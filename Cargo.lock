@@ -133,6 +133,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_memfile"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rustc-demangle"
 version = "0.1.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
