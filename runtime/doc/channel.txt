@@ -64,11 +64,13 @@ Common combination are:
   cross-references in a database.
 
 ==============================================================================
-2. Channel demo				*channel-demo* *demoserver.py*
+2. Channel demo                         *channel-demo* *demoserver*
 
-This requires Python.  The demo program can be found in
-$VIMRUNTIME/tools/demoserver.py
-Run it in one terminal.  We will call this T1.
+This requires Rust and cargo.  The demo program can be found in
+$VIMRUNTIME/tools/demoserver
+Run it in one terminal with: >
+        cargo run --manifest-path $VIMRUNTIME/tools/demoserver/Cargo.toml
+< We will call this T1.
 
 Run Vim in another terminal.  Connect to the demo server with: >
 	let channel = ch_open('localhost:8765')
