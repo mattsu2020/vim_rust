@@ -58,6 +58,7 @@ int ml_replace(linenr_T lnum, char_u *line, int copy UNUSED){return rs_ml_replac
  */
 
 #include "vim.h"
+#include "fileio_rs.h"
 
 #include <time.h>
 

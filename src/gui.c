@@ -9,6 +9,7 @@
  */
 
 #include "vim.h"
+#include "fileio_rs.h"
 
 // Structure containing all the GUI information
 gui_T gui;

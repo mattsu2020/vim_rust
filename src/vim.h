@@ -1917,7 +1917,7 @@ typedef void	    *vim_acl_T;		// dummy to pass an ACL to a function
 # define USE_INPUT_BUF
 #endif
 
-#if !defined(EINTR) && !defined(PROTO)
+#if !defined(EINTR) && !defined(PROTO) && !defined(USE_RUST_FILEIO)
 # define read_eintr(fd, buf, count) vim_read((fd), (buf), (count))
 # define write_eintr(fd, buf, count) vim_write((fd), (buf), (count))
 #endif

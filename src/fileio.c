@@ -12,6 +12,7 @@
  */
 
 #include "vim.h"
+#include "fileio_rs.h"
 
 #if defined(__TANDEM)
 # include <limits.h>		// for SSIZE_MAX
@@ -5840,48 +5841,3 @@ file_pat_to_reg_pat(
     return reg_pat;
 }
 
-#if defined(EINTR) || defined(PROTO)
-/*
- * Version of read() that retries when interrupted by EINTR (possibly
- * by a SIGWINCH).
- */
-    long
-read_eintr(int fd, void *buf, size_t bufsize)
-{
-    long ret;
-
-    for (;;)
-    {
-	ret = vim_read(fd, buf, bufsize);
-	if (ret >= 0 || errno != EINTR)
-	    break;
-    }
-    return ret;
-}
-
-/*
- * Version of write() that retries when interrupted by EINTR (possibly
- * by a SIGWINCH).
- */
-    long
-write_eintr(int fd, void *buf, size_t bufsize)
-{
-    long    ret = 0;
-    long    wlen;
-
-    // Repeat the write() so long it didn't fail, other than being interrupted
-    // by a signal.
-    while (ret < (long)bufsize)
-    {
-	wlen = vim_write(fd, (char *)buf + ret, bufsize - ret);
-	if (wlen < 0)
-	{
-	    if (errno != EINTR)
-		break;
-	}
-	else
-	    ret += wlen;
-    }
-    return ret;
-}
-#endif

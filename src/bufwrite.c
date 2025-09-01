@@ -12,6 +12,7 @@
  */
 
 #include "vim.h"
+#include "fileio_rs.h"
 
 #if defined(HAVE_UTIME) && defined(HAVE_UTIME_H)
 # include <utime.h>		// for struct utimbuf

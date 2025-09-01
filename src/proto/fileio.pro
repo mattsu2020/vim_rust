@@ -40,6 +40,4 @@ void forward_slash(char_u *fname);
 int match_file_pat(char_u *pattern, regprog_T **prog, char_u *fname, char_u *sfname, char_u *tail, int allow_dirs);
 int match_file_list(char_u *list, char_u *sfname, char_u *ffname);
 char_u *file_pat_to_reg_pat(char_u *pat, char_u *pat_end, char *allow_dirs, int no_bslash);
-long read_eintr(int fd, void *buf, size_t bufsize);
-long write_eintr(int fd, void *buf, size_t bufsize);
 /* vim: set ft=c : */

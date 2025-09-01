@@ -19,6 +19,7 @@
  */
 
 #include "vim.h"
+#include "fileio_rs.h"
 
 #ifdef FEAT_MZSCHEME
 # include "if_mzsch.h"

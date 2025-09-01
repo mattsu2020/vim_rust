@@ -85,6 +85,7 @@
 #define CRYPT_BUF_SIZE 8192
 
 #include "vim.h"
+#include "fileio_rs.h"
 
 // Structure passed around between functions.
 // Avoids passing cryptstate_T when encryption not available.
