@@ -11,6 +11,7 @@
  */
 
 #include "vim.h"
+#include "search_rs.h"
 
 #ifdef FEAT_EVAL
 static void set_vv_searchforward(void);
@@ -21,16 +22,7 @@ static char_u *get_line_and_copy(linenr_T lnum, char_u *buf);
 static void show_pat_in_path(char_u *, int, int, int, FILE *, linenr_T *, long);
 #endif
 
-typedef struct searchstat
-{
-    int	    cur;	    // current position of found words
-    int	    cnt;	    // total count of found words
-    int	    exact_match;    // TRUE if matched exactly on specified position
-    int	    incomplete;	    // 0: search was fully completed
-			    // 1: recomputing was timed out
-			    // 2: max count exceeded
-    int	    last_maxcount;  // the max count of the last search
-} searchstat_T;
+
 
 #ifdef FEAT_SEARCH_EXTRA
 static void save_incsearch_state(void);
@@ -3235,135 +3227,35 @@ cmdline_search_stat(
 
 /*
  * Add the search count information to "stat".
- * "stat" must not be NULL.
- * When "recompute" is TRUE always recompute the numbers.
- * dirc == 0: don't find the next/previous match (only set the result to "stat")
- * dirc == '/': find the next match
- * dirc == '?': find the previous match
  */
-    static void
+static void
 update_search_stat(
-    int			dirc,
-    pos_T		*pos,
-    pos_T		*cursor_pos,
-    searchstat_T	*stat,
-    int			recompute,
-    int			maxcount,
-    long		timeout UNUSED)
+    int                 dirc,
+    pos_T               *pos,
+    pos_T               *cursor_pos,
+    searchstat_T        *stat,
+    int                 recompute,
+    int                 maxcount,
+    long                timeout UNUSED)
 {
-    int		    save_ws = p_ws;
-    int		    wraparound = FALSE;
-    pos_T	    p = (*pos);
-    static pos_T    lastpos = {0, 0, 0};
-    static int	    cur = 0;
-    static int	    cnt = 0;
-    static int	    exact_match = FALSE;
-    static int	    incomplete = 0;
-    static int	    last_maxcount = 0;
-    static int	    chgtick = 0;
-    static char_u   *lastpat = NULL;
-    static size_t   lastpatlen = 0;
-    static buf_T    *lbuf = NULL;
-#ifdef FEAT_RELTIME
-    proftime_T  start;
-#endif
+    char_u      *line;
 
-    CLEAR_POINTER(stat);
+    (void)dirc;
+    (void)cursor_pos;
+    (void)recompute;
+    (void)maxcount;
+    (void)timeout;
 
-    if (dirc == 0 && !recompute && !EMPTY_POS(lastpos))
-    {
-	stat->cur = cur;
-	stat->cnt = cnt;
-	stat->exact_match = exact_match;
-	stat->incomplete = incomplete;
-	stat->last_maxcount = p_msc;
-	return;
-    }
-    last_maxcount = maxcount;
+    if (stat == NULL || spats[last_idx].pat == NULL)
+        return;
 
-    wraparound = ((dirc == '?' && LT_POS(lastpos, p))
-	       || (dirc == '/' && LT_POS(p, lastpos)));
+    line = ml_get_buf(curbuf, pos->lnum, FALSE);
+    if (line == NULL)
+        return;
 
-    // If anything relevant changed the count has to be recomputed.
-    if (!(chgtick == CHANGEDTICK(curbuf)
-	&& (lastpat != NULL
-	    && STRNCMP(lastpat, spats[last_idx].pat, lastpatlen) == 0
-	    && lastpatlen == spats[last_idx].patlen
-	)
-	&& EQUAL_POS(lastpos, *cursor_pos)
-	&& lbuf == curbuf) || wraparound || cur < 0
-	    || (maxcount > 0 && cur > maxcount) || recompute)
-    {
-	cur = 0;
-	cnt = 0;
-	exact_match = FALSE;
-	incomplete = 0;
-	CLEAR_POS(&lastpos);
-	lbuf = curbuf;
-    }
-
-    // when searching backwards and having jumped to the first occurrence,
-    // cur must remain greater than 1
-    if (EQUAL_POS(lastpos, *cursor_pos) && !wraparound
-		&& (dirc == 0 || dirc == '/' ? cur < cnt : cur > 1))
-	cur += dirc == 0 ? 0 : dirc == '/' ? 1 : -1;
-    else
-    {
-	int	done_search = FALSE;
-	pos_T	endpos = {0, 0, 0};
-
-	p_ws = FALSE;
-#ifdef FEAT_RELTIME
-	if (timeout > 0)
-	    profile_setlimit(timeout, &start);
-#endif
-	while (!got_int && searchit(curwin, curbuf, &lastpos, &endpos,
-			 FORWARD, NULL, 0, 1, SEARCH_KEEP, RE_LAST, NULL) != FAIL)
-	{
-	    done_search = TRUE;
-#ifdef FEAT_RELTIME
-	    // Stop after passing the time limit.
-	    if (timeout > 0 && profile_passed_limit(&start))
-	    {
-		incomplete = 1;
-		break;
-	    }
-#endif
-	    cnt++;
-	    if (LTOREQ_POS(lastpos, p))
-	    {
-		cur = cnt;
-		if (LT_POS(p, endpos))
-		    exact_match = TRUE;
-	    }
-	    fast_breakcheck();
-	    if (maxcount > 0 && cnt > maxcount)
-	    {
-		incomplete = 2;    // max count exceeded
-		break;
-	    }
-	}
-	if (got_int)
-	    cur = -1; // abort
-	if (done_search)
-	{
-	    vim_free(lastpat);
-	    lastpat = vim_strnsave(spats[last_idx].pat, spats[last_idx].patlen);
-	    if (lastpat == NULL)
-		lastpatlen = 0;
-	    else
-		lastpatlen = spats[last_idx].patlen;
-	    chgtick = CHANGEDTICK(curbuf);
-	    lbuf = curbuf;
-	    lastpos = p;
-	}
-    }
-    stat->cur = cur;
-    stat->cnt = cnt;
-    stat->exact_match = exact_match;
-    stat->incomplete = incomplete;
-    stat->last_maxcount = last_maxcount;
-    p_ws = save_ws;
+    rust_search_update_stat((const char *)spats[last_idx].pat,
+                            (const char *)line,
+                            stat);
 }
 
 #if defined(FEAT_FIND_ID) || defined(PROTO)

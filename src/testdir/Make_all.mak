@@ -278,8 +278,9 @@ NEW_TESTS = \
 	test_rename \
 	test_restricted \
 	test_retab \
-	test_ruby \
-	test_scriptnames \
+        test_ruby \
+        test_rust_search \
+        test_scriptnames \
 	test_scroll_opt \
 	test_scrollbind \
 	test_search \
@@ -548,8 +549,9 @@ NEW_TESTS_RES = \
 	test_rename.res \
 	test_restricted.res \
 	test_retab.res \
-	test_ruby.res \
-	test_scriptnames.res \
+        test_ruby.res \
+        test_rust_search.res \
+        test_scriptnames.res \
 	test_scroll_opt.res \
 	test_scrollbind.res \
 	test_search.res \
