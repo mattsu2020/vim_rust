@@ -42,19 +42,19 @@ impl MemBuffer {
 }
 
 #[no_mangle]
-pub extern "C" fn ml_buffer_new() -> *mut MemBuffer {
+pub extern "C" fn rs_ml_buffer_new() -> *mut MemBuffer {
     Box::into_raw(Box::new(MemBuffer::new()))
 }
 
 #[no_mangle]
-pub extern "C" fn ml_buffer_free(ptr: *mut MemBuffer) {
+pub extern "C" fn rs_ml_buffer_free(ptr: *mut MemBuffer) {
     if !ptr.is_null() {
         unsafe { drop(Box::from_raw(ptr)); }
     }
 }
 
 #[no_mangle]
-pub extern "C" fn ml_append(buf: *mut MemBuffer, lnum: usize, line: *const c_char) -> bool {
+pub extern "C" fn rs_ml_append(buf: *mut MemBuffer, lnum: usize, line: *const c_char) -> bool {
     if buf.is_null() || line.is_null() {
         return false;
     }
@@ -67,7 +67,7 @@ pub extern "C" fn ml_append(buf: *mut MemBuffer, lnum: usize, line: *const c_cha
 }
 
 #[no_mangle]
-pub extern "C" fn ml_delete(buf: *mut MemBuffer, lnum: usize) -> bool {
+pub extern "C" fn rs_ml_delete(buf: *mut MemBuffer, lnum: usize) -> bool {
     if buf.is_null() {
         return false;
     }
@@ -76,7 +76,7 @@ pub extern "C" fn ml_delete(buf: *mut MemBuffer, lnum: usize) -> bool {
 }
 
 #[no_mangle]
-pub extern "C" fn ml_replace(buf: *mut MemBuffer, lnum: usize, line: *const c_char) -> bool {
+pub extern "C" fn rs_ml_replace(buf: *mut MemBuffer, lnum: usize, line: *const c_char) -> bool {
     if buf.is_null() || line.is_null() {
         return false;
     }

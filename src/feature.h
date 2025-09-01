@@ -81,6 +81,9 @@
 # endif
 #endif
 
+// Enable the Rust implementation of memline by default.
+#define USE_RUST_MEMLINE
+
 /*
  * Each feature implies including the "smaller" ones.
  */
