@@ -12,6 +12,7 @@
  */
 
 #include "vim.h"
+#include "tag_rs.h"
 
 /*
  * Structure to hold pointers to various items in a tag line.
@@ -31,7 +32,7 @@ typedef struct tag_pointers
 #ifdef FEAT_EMACS_TAGS
     int		is_etag;	// TRUE for emacs tag
 #endif
-    char_u	*tagkind;	// "kind:" value
+}    char_u	*tagkind;	// "kind:" value
     char_u	*tagkind_end;	// end of tagkind
     char_u	*user_data;	// user_data string
     char_u	*user_data_end;	// end of user_data
@@ -1855,6 +1856,8 @@ findtags_apply_tfu(findtags_state_T *st, char_u *pat, char_u *buf_ffname)
     return retval;
 }
 #endif
+#endif
+#endif
 
 #ifdef FEAT_EMACS_TAGS
 /*
@@ -3064,6 +3067,8 @@ find_tags(
 					// other: minimal number of matches
     char_u	*buf_ffname)		// name of buffer for priority
 {
+    return rust_find_tags((const char *)pat, num_matches, (char ***)matchesp, flags, mincount, (const char *)buf_ffname);
+#if 0
     findtags_state_T	st;
     tagname_T	tn;			// info for get_tagfname()
     int		first_file;		// trying first tag file
@@ -3647,6 +3652,8 @@ parse_match(
 	tagp->user_data_end = p;
     }
     return retval;
+}
+#endif
 }
 
 /*
