@@ -1182,7 +1182,7 @@ mpress: exes
 	mpress gvim.exe
 	mpress vim.exe
 
-xxd/xxd.exe: xxd/xxd.c
+xxd/xxd.exe:
 	$(MAKE) -C xxd -f Make_ming.mak CC='$(CC)'
 
 tee/tee.exe: tee/tee.c

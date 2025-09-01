@@ -1,18 +1,12 @@
-# Makefile for xxd on the Amiga, using Aztec/Manx C 5.0 or later
-#
+# Simplistic Makefile for building xxd on Amiga using Rust
 
-#>>>>> choose between debugging (-bs) or optimizing (-so)
-OPTIONS = -so
-#OPTIONS = -bs
+Xxd:
+	cargo build --release --manifest-path=../rust/xxd/Cargo.toml
+	cp ../rust/xxd/target/release/xxd Xxd
 
-#>>>>>> choose -g for debugging
-LN_DEBUG =
-#LN_DEBUG = -g
+clean:
+	cargo clean --manifest-path=../rust/xxd/Cargo.toml
+	-delete Xxd
 
-CFLAGS = $(OPTIONS) -wapruq -ps -qf -DAMIGA -Dconst=
+# vim: set noet sw=8 ts=8 sts=0 wm=0 tw=79 ft=make:
 
-Xxd: xxd.o
-	ln +q -m $(LN_DEBUG) -o Xxd xxd.o -lc16
-
-xxd.o: xxd.c
-	cc $(CFLAGS) xxd.c -o xxd.o

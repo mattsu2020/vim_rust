@@ -1,28 +1,12 @@
-# The most simplistic Makefile, for MinGW and Cygwin gcc on MS-DOS
+# Simplistic Makefile for building xxd with MinGW or Cygwin using Rust
 
-ifndef USEDLL
-USEDLL = no
-endif
-
-ifeq (yes, $(USEDLL))
-DEFINES =
-LIBS    = -lc
-else
-DEFINES =
-LIBS    =
-endif
-
-CC = gcc
-CFLAGS = -O2 -Wall -DWIN32 $(DEFINES)
-
-ifneq (sh.exe, $(SHELL))
-DEL = rm -f
-else
-DEL = del
-endif
-
-xxd.exe: xxd.c
-	$(CC) $(CFLAGS) -s -o xxd.exe xxd.c $(LIBS)
+xxd.exe:
+	cargo build --release --manifest-path=../rust/xxd/Cargo.toml
+	cp ../rust/xxd/target/release/xxd.exe xxd.exe
 
 clean:
-	-$(DEL) xxd.exe
+	cargo clean --manifest-path=../rust/xxd/Cargo.toml
+	- rm -f xxd.exe
+
+# vim: set noet sw=8 ts=8 sts=0 wm=0 tw=79 ft=make:
+

@@ -2118,9 +2118,9 @@ $(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB)
 		PROG="vim" \
 		sh $(srcdir)/link.sh
 
-xxd/xxd$(EXEEXT): xxd/xxd.c
+xxd/xxd$(EXEEXT):
 	cd xxd; CC="$(CC)" CFLAGS="$(CPPFLAGS) $(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
-		$(MAKE) -f Makefile
+	$(MAKE) -f Makefile
 
 # Build the language specific files if they were unpacked.
 # Generate the converted .mo files separately, it's no problem if this fails.
@@ -2214,7 +2214,7 @@ tags TAGS: notags
 csclean:
 	-rm -vf cscope.out
 cscope.out:
-	cscope -bv ./*.[ch] ./*.cpp ./if_perl.xs auto/*.h auto/pathdef.c proto/*.pro xxd/xxd.c
+   cscope -bv ./*.[ch] ./*.cpp ./if_perl.xs auto/*.h auto/pathdef.c proto/*.pro
 cscope: csclean cscope.out  ;
 
 # Make a highlight file for types.  Requires Exuberant ctags and awk

@@ -26,7 +26,7 @@ enddef
 
 def s:Get_C_source_files(): list<string>
   if empty(list_of_c_files)
-    var list = glob('../*.[ch]', 0, 1) + ['../xxd/xxd.c']
+    var list = glob('../*.[ch]', 0, 1)
     # Some files are auto-generated and may contain space errors, so skip those
     list_of_c_files = filter(list, (i, v) => v !~ 'dlldata.c\|if_ole.h\|iid_ole.c')
   endif
