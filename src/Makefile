@@ -290,7 +290,7 @@ VIEWNAME = view
 
 include auto/config.mk
 #.include "auto/config.mk"
-CFLAGS += -DUSE_RUST_REGEX
+CFLAGS += -DUSE_RUST_REGEX -DUSE_RUST_BUFFER
 CClink = $(CC)
 
 #}}}
@@ -1407,6 +1407,8 @@ RUST_MEM_DIR = rust/mem
 RUST_MEM_LIB = $(RUST_MEM_DIR)/target/release/libvim_mem.a
 RUST_REGEX_DIR = ../rust_regex
 RUST_REGEX_LIB = $(RUST_REGEX_DIR)/target/release/librust_regex.a
+RUST_BUFFER_DIR = ../rust_buffer
+RUST_BUFFER_LIB = $(RUST_BUFFER_DIR)/target/release/librust_buffer.a
 
 # Note: MZSCHEME_LIBS must come before LIBS, because LIBS adds -lm which is
 # needed by racket.
@@ -1424,6 +1426,7 @@ ALL_LIBS = \
            $(EXTRA_LIBS) \
            $(RUST_MEM_LIB) \
            $(RUST_REGEX_LIB) \
+           $(RUST_BUFFER_LIB) \
            $(LUA_LIBS) \
            $(PERL_LIBS) \
            $(PYTHON_LIBS) \
@@ -1449,10 +1452,13 @@ DEST_FTP = $(DESTDIR)$(FTPLUGSUBLOC)
 
 # Build the Rust memory management library
 $(RUST_MEM_LIB):
-        cd $(RUST_MEM_DIR) && cargo build --release
+	cd $(RUST_MEM_DIR) && cargo build --release
 
 $(RUST_REGEX_LIB):
-        cd $(RUST_REGEX_DIR) && cargo build --release
+	cd $(RUST_REGEX_DIR) && cargo build --release
+
+$(RUST_BUFFER_LIB):
+	cd $(RUST_BUFFER_DIR) && cargo build --release
 DEST_LANG = $(DESTDIR)$(LANGSUBLOC)
 DEST_COMP = $(DESTDIR)$(COMPSUBLOC)
 DEST_KMAP = $(DESTDIR)$(KMAPSUBLOC)
@@ -2221,7 +2227,7 @@ tags TAGS: notags
 csclean:
 	-rm -vf cscope.out
 cscope.out:
-   cscope -bv ./*.[ch] ./*.cpp ./if_perl.xs auto/*.h auto/pathdef.c proto/*.pro
+	cscope -bv ./*.[ch] ./*.cpp ./if_perl.xs auto/*.h auto/pathdef.c proto/*.pro
 cscope: csclean cscope.out  ;
 
 # Make a highlight file for types.  Requires Exuberant ctags and awk
