@@ -1,0 +1,11 @@
+[package]
+name = "rust_gui"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+winit = "0.28"
+
+[lib]
+name = "rust_gui"
+crate-type = ["staticlib", "rlib"]
