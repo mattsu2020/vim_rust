@@ -54,9 +54,9 @@ all install uninstall tools config configure reconfig proto depend lint tags typ
 VIM_FOR_INDENTTEST = ../../src/vim
 
 indenttest:
-	cd runtime/indent && \
-		$(MAKE) clean && \
-		$(MAKE) test VIMPROG="$(VIM_FOR_INDENTTEST)"
+        cd runtime/indent && \
+                $(MAKE) clean && \
+                $(MAKE) test VIMPROG="$(VIM_FOR_INDENTTEST)"
 
 # Executable used for running the syntax tests.
 VIM_FOR_SYNTAXTEST = ../../src/vim
@@ -66,9 +66,13 @@ VIM_SYNTAX_TEST_FILTER =
 VIM_SYNTAX_TEST_WAIT_TIME =
 
 syntaxtest:
-	cd runtime/syntax && \
-		$(MAKE) clean && \
-		$(MAKE) test VIMPROG="$(VIM_FOR_SYNTAXTEST)"
+        cd runtime/syntax && \
+                $(MAKE) clean && \
+                $(MAKE) test VIMPROG="$(VIM_FOR_SYNTAXTEST)"
+
+.PHONY: rust-search
+rust-search:
+	cargo build --manifest-path rust_search/Cargo.toml
 
 
 #########################################################################

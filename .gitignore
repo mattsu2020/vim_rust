@@ -131,3 +131,4 @@ rust/terminal/target/
 
 rust_undo/target/
 src/rust/job/target/
+rust_search/target/
