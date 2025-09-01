@@ -1407,6 +1407,8 @@ RUST_MEM_DIR = rust/mem
 RUST_MEM_LIB = $(RUST_MEM_DIR)/target/release/libvim_mem.a
 RUST_REGEX_DIR = ../rust_regex
 RUST_REGEX_LIB = $(RUST_REGEX_DIR)/target/release/librust_regex.a
+RUST_CHANNEL_DIR = ..
+RUST_CHANNEL_LIB = $(RUST_CHANNEL_DIR)/target/release/libvim_channel.a
 
 # Note: MZSCHEME_LIBS must come before LIBS, because LIBS adds -lm which is
 # needed by racket.
@@ -1424,6 +1426,7 @@ ALL_LIBS = \
            $(EXTRA_LIBS) \
            $(RUST_MEM_LIB) \
            $(RUST_REGEX_LIB) \
+           $(RUST_CHANNEL_LIB) \
            $(LUA_LIBS) \
            $(PERL_LIBS) \
            $(PYTHON_LIBS) \
@@ -1453,6 +1456,9 @@ $(RUST_MEM_LIB):
 
 $(RUST_REGEX_LIB):
         cd $(RUST_REGEX_DIR) && cargo build --release
+
+$(RUST_CHANNEL_LIB):
+        cd $(RUST_CHANNEL_DIR) && cargo build --release
 DEST_LANG = $(DESTDIR)$(LANGSUBLOC)
 DEST_COMP = $(DESTDIR)$(COMPSUBLOC)
 DEST_KMAP = $(DESTDIR)$(KMAPSUBLOC)
@@ -1644,7 +1650,7 @@ SRC =	$(BASIC_SRC) \
 
 EXTRA_SRC = if_lua.c if_mzsch.c auto/if_perl.c if_perlsfio.c \
 	    if_python.c if_python3.c if_tcl.c if_ruby.c \
-	    gui_beval.c netbeans.c job.c channel.c \
+	    gui_beval.c netbeans.c job.c \
 	    $(GRESOURCE_SRC)
 
 $(WAYLAND_SRC):
@@ -2117,7 +2123,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB)
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(RUST_CHANNEL_LIB)
 	@$(BUILD_DATE_MSG)
 	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) $(OBJ) $(ALL_LIBS)" \
@@ -3705,8 +3711,6 @@ objects/primary-selection-unstable-v1.o: auto/wayland/primary-selection-unstable
 objects/netbeans.o: netbeans.c
 	$(CCC) -o $@ netbeans.c
 
-objects/channel.o: channel.c
-	$(CCC) -o $@ channel.c
 
 # Dependencies that "make depend" doesn't find
 objects/gui_gtk_x11.o: version.h
@@ -4579,7 +4583,6 @@ objects/job.o: job.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/channel.o: channel.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \

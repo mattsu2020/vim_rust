@@ -1,6 +1,9 @@
 #ifndef CHANNEL_RS_H
 #define CHANNEL_RS_H
 
+#include <stddef.h>
+#include <sys/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

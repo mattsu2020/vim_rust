@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tokio = { version = "1", features = ["net", "time", "macros", "io-util", "rt"] }
-spell = { path = "rust/spell" }
+tokio = { version = "1", features = ["net", "time", "io-util", "rt", "rt-multi-thread"] }
 
 [lib]
 name = "vim_channel"
-path = "src/channel.rs"
+path = "src/channel/mod.rs"
+crate-type = ["staticlib"]

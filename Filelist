@@ -262,7 +262,6 @@ SRC_ALL =	\
 		src/proto/buffer.pro \
 		src/proto/bufwrite.pro \
 		src/proto/change.pro \
-		src/proto/channel.pro \
 		src/proto/charset.pro \
 		src/proto/cindent.pro \
 		src/proto/clientserver.pro \

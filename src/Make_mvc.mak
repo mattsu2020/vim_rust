@@ -489,8 +489,8 @@ SOUND_LIB = winmm.lib
 !ENDIF
 
 !IF "$(CHANNEL)" == "yes"
-CHANNEL_PRO = proto/job.pro proto/channel.pro
-CHANNEL_OBJ = $(OBJDIR)/job.obj $(OBJDIR)/channel.obj
+CHANNEL_PRO = proto/job.pro
+CHANNEL_OBJ = $(OBJDIR)/job.obj
 CHANNEL_DEFS = -DFEAT_JOB_CHANNEL -DFEAT_IPV6 -DHAVE_INET_NTOP
 
 NETBEANS_LIB = Ws2_32.lib
