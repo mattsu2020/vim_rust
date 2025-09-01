@@ -16,6 +16,13 @@
 
 #include <float.h>
 
+#ifdef FEAT_SIGNS
+// FFI functions implemented in the rust_sign crate.
+extern void rs_sign_add(int id, const char *name, long lnum);
+extern void rs_sign_delete(int id);
+extern void rs_sign_draw(void);
+#endif
+
 static int linelen(int *has_tab);
 static void do_filter(linenr_T line1, linenr_T line2, exarg_T *eap, char_u *cmd, int do_in, int do_out);
 static int not_writing(void);
@@ -5948,5 +5955,18 @@ ex_oldfiles(exarg_T *eap UNUSED)
 	}
     }
 # endif
+}
+#endif
+
+#ifdef FEAT_SIGNS
+/*
+ * Bridge to Rust sign implementation.  For now this merely delegates
+ * to the rust_sign crate to add and draw a sign at the current line.
+ */
+    void
+ex_sign(exarg_T *eap UNUSED)
+{
+    rs_sign_add(1, "rust", (long)curwin->w_cursor.lnum);
+    rs_sign_draw();
 }
 #endif
