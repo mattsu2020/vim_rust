@@ -8,6 +8,7 @@
  */
 
 #include "vim.h"
+#include "rust_mem.h"
 
 #define LN_MAX_BUFS 8
 #define LN_DECISION_MAX 255  // pow(2, LN_MAX_BUFS(8)) - 1 = 255
@@ -36,7 +37,7 @@ line_len(const mmfile_t *m)
     char	*s = m->ptr;
     char	*end;
 
-    end = memchr(s, '\n', (size_t)m->size);
+    end = rs_memchr(s, '\n', (size_t)m->size);
     return end ? (size_t)(end - s) : (size_t)m->size;
 }
 
