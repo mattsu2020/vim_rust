@@ -1,11 +1,9 @@
 // Minimal compatibility layer that bridges Vim's channel API to the Rust
 // implementation provided in src/rust/channel/.
 #include "vim.h"
-// FFI to Rust channel crate symbols; bind them under rs_* names.
-typedef struct Channel Channel;
-extern Channel *rs_channel_open(const char *addr);
-extern int rs_channel_send(Channel *chan, const char *data, size_t len);
-extern void rs_channel_close(Channel *chan);
+#include "channel_rs.h"
+// FFI declarations are provided by channel_rs.h, which exposes the Rust
+// channel implementation under rs_* symbols.
 
 typedef struct rs_map_S {
     channel_T *ch;

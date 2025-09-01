@@ -16,6 +16,12 @@ void channel_set_callback(Channel* chan, channel_callback cb, void *userdata);
 void channel_poll(Channel* chan);
 void channel_close(Channel* chan);
 
+// Symbols exported with an "rs_" prefix to avoid name clashes with the C
+// implementation that previously lived in channel.c.
+Channel* rs_channel_open(const char* addr);
+int rs_channel_send(Channel* chan, const char* data, size_t len);
+void rs_channel_close(Channel* chan);
+
 #ifdef __cplusplus
 }
 #endif
