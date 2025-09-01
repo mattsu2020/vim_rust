@@ -83,6 +83,8 @@
 
 // Enable the Rust implementation of memline by default.
 #define USE_RUST_MEMLINE
+// Enable the Rust implementation of quickfix by default.
+#define USE_RUST_QUICKFIX
 
 /*
  * Each feature implies including the "smaller" ones.
