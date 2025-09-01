@@ -198,6 +198,13 @@ static buf_T	*load_dummy_buffer(char_u *fname, char_u *dirname_start, char_u *re
 static void	wipe_dummy_buffer(buf_T *buf, char_u *dirname_start);
 static void	unload_dummy_buffer(buf_T *buf, char_u *dirname_start);
 static qf_info_T *ll_get_or_alloc_list(win_T *);
+#ifdef USE_RUST_QUICKFIX
+extern int rs_qf_add_entry(void *qfl, const char *dir, const char *fname,
+        const char *module, int bufnum, const char *mesg, long lnum,
+        long end_lnum, int col, int end_col, int vis_col, const char *pattern,
+        int nr, int type, typval_T *user_data, int valid);
+extern void rs_qf_list(void *eap);
+#endif
 static int	entry_is_closer_to_target(qfline_T *entry, qfline_T *other_entry, int target_fnum, int target_lnum, int target_col);
 
 // Quickfix window check helper macro
@@ -735,6 +742,8 @@ qf_get_next_str_line(qfstate_T *state)
     state->p_str = p_str;
 
     return QF_OK;
+#endif
+#endif
 }
 
 /*
@@ -2240,6 +2249,11 @@ qf_add_entry(
     typval_T	*user_data,     // custom user data or NULL
     int		valid)		// valid entry
 {
+#ifdef USE_RUST_QUICKFIX
+    return rs_qf_add_entry((void *)qfl, (char *)dir, (char *)fname,
+            (char *)module, bufnum, (char *)mesg, lnum, end_lnum, col,
+            end_col, vis_col, (char *)pattern, nr, type, user_data, valid);
+#else
     buf_T	*buf;
     qfline_T	*qfp;
     qfline_T	**lastp;	// pointer to qf_last or NULL
@@ -2340,6 +2354,7 @@ qf_add_entry(
     }
 
     return QF_OK;
+#endif
 }
 
 /*
@@ -4025,6 +4040,10 @@ qf_list_entry(qfline_T *qfp, int qf_idx, int cursel)
     void
 qf_list(exarg_T *eap)
 {
+#ifdef USE_RUST_QUICKFIX
+    rs_qf_list((void *)eap);
+    return;
+#endif
     qf_list_T	*qfl;
     qfline_T	*qfp;
     int		i;
