@@ -189,7 +189,7 @@ SRC_ALL =	\
 		src/viminfo.c \
 		src/winclip.c \
 		src/window.c \
-		src/xxd/xxd.c \
+		src/rust/xxd/xxd.c \
 		src/testdir/*.in \
 		src/testdir/*.py \
 		src/testdir/Make_all.mak \
