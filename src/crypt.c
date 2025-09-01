@@ -87,6 +87,10 @@ static int crypt_char_to_int(char_u *s);
 static void crypt_sodium_report_hash_params(unsigned long long opslimit, unsigned long long ops_def, size_t memlimit, size_t mem_def, int alg, int alg_def);
 #endif
 
+#ifdef FEAT_RUST_CRYPT
+extern cryptmethod_T *rust_crypt_methods(void);
+# define cryptmethods rust_crypt_methods()
+#else
 // index is method_nr of cryptstate_T, CRYPT_M_*
 static cryptmethod_T cryptmethods[CRYPT_M_COUNT] = {
     // PK_Zip; very weak
@@ -190,6 +194,7 @@ static cryptmethod_T cryptmethods[CRYPT_M_COUNT] = {
     // NOTE: when adding a new method, use some random bytes for the magic key,
     // to avoid that a text file is recognized as encrypted.
 };
+#endif
 
 #if defined(FEAT_SODIUM) || defined(PROTO)
 typedef struct {

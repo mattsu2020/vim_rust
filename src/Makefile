@@ -763,6 +763,12 @@ SANITIZER_LIBS = $(SANITIZER_CFLAGS)
 #CC = c89
 #CPPFLAGS = -D_ALL_SOURCE
 
+CPPFLAGS += -DFEAT_RUST_CRYPT
+
+# Build Rust crypto library
+RUST_CRYPT_LIB = $(shell cargo build --manifest-path rust/crypto/core/Cargo.toml --release >/dev/null && echo rust/crypto/core/target/release/libvim_crypto_core.a)
+EXTRA_LIBS += $(RUST_CRYPT_LIB)
+
 ###     AIX 4.3.3.12 with xic 3.6.6 (David R. Favor)
 #       needed to avoid a problem where strings.h gets included
 #CFLAGS = -qsrcmsg -O2 -qmaxmem=8192 -D__STR31__
@@ -1672,7 +1678,6 @@ OBJ_COMMON = \
 	objects/buffer.o \
 	objects/change.o \
 	objects/blob.o \
-	objects/blowfish.o \
 	objects/cindent.o \
 	objects/clientserver.o \
 	objects/clipboard.o \

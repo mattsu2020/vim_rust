@@ -1,0 +1,13 @@
+[package]
+name = "vim-crypto-core"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "vim_crypto_core"
+crate-type = ["staticlib"]
+
+[dependencies]
+ring = "0.17"
+blowfish = "0.8"
+libc = "0.2"
