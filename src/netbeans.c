@@ -24,6 +24,7 @@
  */
 
 #include "vim.h"
+#include "channel_rs.h"
 
 #if defined(FEAT_NETBEANS_INTG) || defined(PROTO)
 
@@ -206,9 +207,11 @@ netbeans_connect(char *params, int doabort)
     }
     if (hostname != NULL && address != NULL && password != NULL)
     {
-	port = atoi(address);
-	nb_channel = channel_open(hostname, port, 3000, nb_channel_closed);
-	if (nb_channel != NULL)
+        port = atoi(address);
+        char addr_buf[256];
+        vim_snprintf(addr_buf, sizeof(addr_buf), "%s:%d", hostname, port);
+        nb_channel = channel_open(addr_buf);
+        if (nb_channel != NULL)
 	{
 	    // success
 # ifdef FEAT_BEVAL_GUI
