@@ -562,3 +562,8 @@ html: dist dist/$(COMMENT_HTML)
 farsi: dist dist/$(COMMENT_FARSI)
 	-rm -f dist/farsi$(VERSION).zip
 	zip -9 -rD -z dist/farsi$(VERSION).zip farsi < dist/$(COMMENT_FARSI)
+
+# Build the Rust-based channel library that provides the cross-platform
+# communication layer.
+rust-channel:
+	cd src/rust/channel && cargo build --release
