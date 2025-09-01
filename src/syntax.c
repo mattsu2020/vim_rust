@@ -13,6 +13,11 @@
 
 #include "vim.h"
 
+#ifdef USE_RUST_SYNTAX
+extern void rs_syntax_start(void *wp, long lnum);
+extern void rs_syn_update(int startofline);
+#endif
+
 #if defined(FEAT_SYN_HL) || defined(PROTO)
 
 // different types of offsets that are possible
@@ -356,6 +361,10 @@ static void syn_combine_list(short **clstr1, short **clstr2, int list_op);
     void
 syntax_start(win_T *wp, linenr_T lnum)
 {
+#ifdef USE_RUST_SYNTAX
+    rs_syntax_start((void *)wp, (long)lnum);
+    return;
+#else
     synstate_T	*p;
     synstate_T	*last_valid = NULL;
     synstate_T	*last_min_valid = NULL;
@@ -849,6 +858,7 @@ syn_sync(
     }
 
     validate_current_state();
+#endif
 }
 
     static void
@@ -926,6 +936,10 @@ syn_start_line(void)
     static void
 syn_update_ends(int startofline)
 {
+#ifdef USE_RUST_SYNTAX
+    rs_syn_update(startofline);
+    return;
+#else
     stateitem_T	*cur_si;
     int		i;
     int		seen_keepend;
@@ -985,6 +999,7 @@ syn_update_ends(int startofline)
 	}
     }
     check_keepend();
+#endif
 }
 
 /////////////////////////////////////////

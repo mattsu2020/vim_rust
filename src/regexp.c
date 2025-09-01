@@ -15,12 +15,13 @@
 // FFI bindings to Rust regex implementation
 extern int rust_regex_match(const char *pat, const char *text, int magic, long timeout_ms);
 
-    int
+int
 vim_rust_regex_match_wrapper(char_u *pat, char_u *text, int magic, long timeout_ms)
 {
     return rust_regex_match((const char *)pat, (const char *)text, magic, timeout_ms);
 }
-#endif
+
+#else
 #ifdef DEBUG
 // show/save debugging data when BT engine is used
 # define BT_REGEXP_DUMP
@@ -3281,3 +3282,4 @@ vim_regexec_multi(
 
     return result <= 0 ? 0 : result;
 }
+#endif // USE_RUST_REGEX

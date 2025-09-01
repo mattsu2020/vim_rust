@@ -290,6 +290,7 @@ VIEWNAME = view
 
 include auto/config.mk
 #.include "auto/config.mk"
+CFLAGS += -DUSE_RUST_REGEX -DUSE_RUST_BUFFER
 CClink = $(CC)
 
 #}}}
@@ -1300,7 +1301,7 @@ ALL_GUI_PRO  = gui.pro gui_gtk.pro gui_motif.pro gui_xmdlg.pro gui_gtk_x11.pro g
 
 # }}}
 
-TERM_DEPS =
+TERM_DEPS = $(RUST_TERMINAL_LIB)
 RUST_TERMINAL_LIB = rust/terminal/target/release/libterminal.a
 
 # libvterm sources are replaced by the Rust terminal crate
@@ -1404,6 +1405,10 @@ DEPEND_CFLAGS = -DPROTO -DDEPEND -DFEAT_GUI $(LINT_CFLAGS)
 # Location of the Rust memory management crate
 RUST_MEM_DIR = rust/mem
 RUST_MEM_LIB = $(RUST_MEM_DIR)/target/release/libvim_mem.a
+RUST_REGEX_DIR = ../rust_regex
+RUST_REGEX_LIB = $(RUST_REGEX_DIR)/target/release/librust_regex.a
+RUST_BUFFER_DIR = ../rust_buffer
+RUST_BUFFER_LIB = $(RUST_BUFFER_DIR)/target/release/librust_buffer.a
 
 # Note: MZSCHEME_LIBS must come before LIBS, because LIBS adds -lm which is
 # needed by racket.
@@ -1419,12 +1424,7 @@ ALL_LIBS = \
            $(MZSCHEME_LIBS) \
            $(LIBS) \
            $(EXTRA_LIBS) \
-           \
-           rust/channel/target/release/libvim_channel.a \
-           ../rust/spell/target/release/libspell.a \
-           ../src/rust_regex/target/release/libvim_rust_regex.a \
-           rust/jsonlib/target/release/libvim_jsonlib.a \
-           rust/evallib/target/release/libvim_evallib.a \
+           $(RUST_MEM_LIB) \
            $(LUA_LIBS) \
            $(PERL_LIBS) \
            $(PYTHON_LIBS) \
@@ -1451,6 +1451,12 @@ DEST_FTP = $(DESTDIR)$(FTPLUGSUBLOC)
 # Build the Rust memory management library
 $(RUST_MEM_LIB):
 	cd $(RUST_MEM_DIR) && cargo build --release
+
+$(RUST_REGEX_LIB):
+	cd $(RUST_REGEX_DIR) && cargo build --release
+
+$(RUST_BUFFER_LIB):
+	cd $(RUST_BUFFER_DIR) && cargo build --release
 DEST_LANG = $(DESTDIR)$(LANGSUBLOC)
 DEST_COMP = $(DESTDIR)$(COMPSUBLOC)
 DEST_KMAP = $(DESTDIR)$(KMAPSUBLOC)
@@ -2115,7 +2121,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB)
 	@$(BUILD_DATE_MSG)
 	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) $(OBJ) $(ALL_LIBS)" \

@@ -12,6 +12,9 @@
 
 #include "vim.h"
 #include "search_rs.h"
+#ifdef FEAT_RUST_SEARCH
+#include "rust_search.h"
+#endif
 
 #ifdef FEAT_EVAL
 static void set_vv_searchforward(void);
@@ -643,6 +646,7 @@ last_pat_prog(regmmatch_T *regmatch)
  * When FEAT_EVAL is defined, returns the index of the first matching
  * subpattern plus one; one if there was none.
  */
+#ifndef FEAT_RUST_SEARCH
     int
 searchit(
     win_T	*win,		// window to search in; can be NULL for a
@@ -1170,6 +1174,24 @@ searchit(
 
     return submatch + 1;
 }
+#else
+int searchit(
+    win_T *win,
+    buf_T *buf,
+    pos_T *pos,
+    pos_T *end_pos,
+    int dir,
+    char_u *pat,
+    size_t patlen,
+    long count,
+    int options,
+    int pat_use,
+    searchit_arg_T *extra_arg)
+{
+    return rust_searchit(win, buf, pos, end_pos, dir, pat, patlen, count,
+                         options, pat_use, extra_arg);
+}
+#endif
 
 #if defined(FEAT_EVAL) || defined(FEAT_PROTO)
     void
@@ -3278,6 +3300,7 @@ get_line_and_copy(linenr_T lnum, char_u *buf)
  * Find identifiers or defines in included files.
  * If p_ic && compl_status_sol() then ptr must be in lowercase.
  */
+#ifndef FEAT_RUST_SEARCH
     void
 find_pattern_in_path(
     char_u	*ptr,		// pointer to search pattern
@@ -3965,6 +3988,26 @@ fpip_end:
     vim_regfree(incl_regmatch.regprog);
     vim_regfree(def_regmatch.regprog);
 }
+#else
+void find_pattern_in_path(
+    char_u *ptr,
+    int dir,
+    int len,
+    int whole,
+    int skip_comments,
+    int type,
+    long count,
+    int action,
+    linenr_T start_lnum,
+    linenr_T end_lnum,
+    int forceit,
+    int silent)
+{
+    rust_find_pattern_in_path(ptr, dir, len, whole, skip_comments, type,
+                              count, action, start_lnum, end_lnum,
+                              forceit, silent);
+}
+#endif
 
     static void
 show_pat_in_path(

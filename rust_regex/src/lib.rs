@@ -8,7 +8,7 @@ pub struct RegProg {
 }
 
 #[no_mangle]
-pub extern "C" fn rust_vim_regcomp(pattern: *const c_char, _flags: c_int) -> *mut RegProg {
+pub extern "C" fn vim_regcomp(pattern: *const c_char, _flags: c_int) -> *mut RegProg {
     if pattern.is_null() {
         return std::ptr::null_mut();
     }
@@ -24,7 +24,7 @@ pub extern "C" fn rust_vim_regcomp(pattern: *const c_char, _flags: c_int) -> *mu
 }
 
 #[no_mangle]
-pub extern "C" fn rust_vim_regfree(prog: *mut RegProg) {
+pub extern "C" fn vim_regfree(prog: *mut RegProg) {
     if !prog.is_null() {
         unsafe { drop(Box::from_raw(prog)); }
     }
@@ -37,7 +37,7 @@ pub struct RegMatch {
 }
 
 #[no_mangle]
-pub extern "C" fn rust_vim_regexec(prog: *mut RegProg, text: *const c_char, matchp: *mut RegMatch) -> c_int {
+pub extern "C" fn vim_regexec(prog: *mut RegProg, text: *const c_char, matchp: *mut RegMatch) -> c_int {
     if prog.is_null() || text.is_null() {
         return 0;
     }
@@ -64,7 +64,7 @@ pub extern "C" fn rust_vim_regexec(prog: *mut RegProg, text: *const c_char, matc
 }
 
 #[no_mangle]
-pub extern "C" fn rust_vim_regsub(prog: *mut RegProg, text: *const c_char, sub: *const c_char) -> *mut c_char {
+pub extern "C" fn vim_regsub(prog: *mut RegProg, text: *const c_char, sub: *const c_char) -> *mut c_char {
     if prog.is_null() || text.is_null() || sub.is_null() {
         return std::ptr::null_mut();
     }
