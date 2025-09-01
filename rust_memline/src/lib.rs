@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use std::ffi::{CStr};
+use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 
 /// Simple in-memory representation of lines in a buffer.
@@ -39,22 +39,26 @@ impl MemBuffer {
     pub fn ml_replace(&mut self, lnum: usize, line: &str) -> Option<String> {
         self.lines.insert(lnum, line.to_string())
     }
+
+    pub fn ml_get(&self, lnum: usize) -> Option<&str> {
+        self.lines.get(&lnum).map(|s| s.as_str())
+    }
 }
 
 #[no_mangle]
-pub extern "C" fn ml_buffer_new() -> *mut MemBuffer {
+pub extern "C" fn rs_ml_buffer_new() -> *mut MemBuffer {
     Box::into_raw(Box::new(MemBuffer::new()))
 }
 
 #[no_mangle]
-pub extern "C" fn ml_buffer_free(ptr: *mut MemBuffer) {
+pub extern "C" fn rs_ml_buffer_free(ptr: *mut MemBuffer) {
     if !ptr.is_null() {
         unsafe { drop(Box::from_raw(ptr)); }
     }
 }
 
 #[no_mangle]
-pub extern "C" fn ml_append(buf: *mut MemBuffer, lnum: usize, line: *const c_char) -> bool {
+pub extern "C" fn rs_ml_append(buf: *mut MemBuffer, lnum: usize, line: *const c_char) -> bool {
     if buf.is_null() || line.is_null() {
         return false;
     }
@@ -67,7 +71,7 @@ pub extern "C" fn ml_append(buf: *mut MemBuffer, lnum: usize, line: *const c_cha
 }
 
 #[no_mangle]
-pub extern "C" fn ml_delete(buf: *mut MemBuffer, lnum: usize) -> bool {
+pub extern "C" fn rs_ml_delete(buf: *mut MemBuffer, lnum: usize) -> bool {
     if buf.is_null() {
         return false;
     }
@@ -76,7 +80,7 @@ pub extern "C" fn ml_delete(buf: *mut MemBuffer, lnum: usize) -> bool {
 }
 
 #[no_mangle]
-pub extern "C" fn ml_replace(buf: *mut MemBuffer, lnum: usize, line: *const c_char) -> bool {
+pub extern "C" fn rs_ml_replace(buf: *mut MemBuffer, lnum: usize, line: *const c_char) -> bool {
     if buf.is_null() || line.is_null() {
         return false;
     }
@@ -85,6 +89,18 @@ pub extern "C" fn ml_replace(buf: *mut MemBuffer, lnum: usize, line: *const c_ch
     match c_str.to_str() {
         Ok(s) => { buffer.ml_replace(lnum, s); true },
         Err(_) => false,
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn rs_ml_get_line(buf: *mut MemBuffer, lnum: usize) -> *const c_char {
+    if buf.is_null() {
+        return std::ptr::null();
+    }
+    let buffer = unsafe { &mut *buf };
+    match buffer.ml_get(lnum) {
+        Some(s) => CString::new(s).unwrap().into_raw(),
+        None => std::ptr::null(),
     }
 }
 
@@ -111,13 +127,39 @@ pub struct DataBlock {
 
 use std::fs::OpenOptions;
 use memmap2::MmapMut;
-use std::io::{Result};
+use std::io::Result;
+
+pub struct SwapFile {
+    map: MmapMut,
+}
 
 /// Map a file into memory, creating it if needed.
 pub fn map_file(path: &str, size: usize) -> Result<MmapMut> {
     let file = OpenOptions::new().read(true).write(true).create(true).open(path)?;
     file.set_len(size as u64)?;
     unsafe { MmapMut::map_mut(&file) }
+}
+
+#[no_mangle]
+pub extern "C" fn rs_swap_file_open(path: *const c_char, size: usize) -> *mut SwapFile {
+    if path.is_null() {
+        return std::ptr::null_mut();
+    }
+    let c_str = unsafe { CStr::from_ptr(path) };
+    match c_str.to_str() {
+        Ok(p) => match map_file(p, size) {
+            Ok(m) => Box::into_raw(Box::new(SwapFile { map: m })),
+            Err(_) => std::ptr::null_mut(),
+        },
+        Err(_) => std::ptr::null_mut(),
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn rs_swap_file_close(ptr: *mut SwapFile) {
+    if !ptr.is_null() {
+        unsafe { drop(Box::from_raw(ptr)); }
+    }
 }
 
 #[cfg(test)]

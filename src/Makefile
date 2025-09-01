@@ -762,6 +762,7 @@ SANITIZER_LIBS = $(SANITIZER_CFLAGS)
 ###     AIX with c89 (Walter Briscoe)
 #CC = c89
 #CPPFLAGS = -D_ALL_SOURCE
+CPPFLAGS += -DUSE_RUST_MEMLINE
 
 ###     AIX 4.3.3.12 with xic 3.6.6 (David R. Favor)
 #       needed to avoid a problem where strings.h gets included
@@ -1398,6 +1399,8 @@ DEPEND_CFLAGS = -DPROTO -DDEPEND -DFEAT_GUI $(LINT_CFLAGS)
 # Location of the Rust memory management crate
 RUST_MEM_DIR = rust/mem
 RUST_MEM_LIB = $(RUST_MEM_DIR)/target/release/libvim_mem.a
+RUST_MEMLINE_DIR = ../rust_memline
+RUST_MEMLINE_LIB = $(RUST_MEMLINE_DIR)/target/release/librust_memline.a
 
 # Note: MZSCHEME_LIBS must come before LIBS, because LIBS adds -lm which is
 # needed by racket.
@@ -1414,6 +1417,7 @@ ALL_LIBS = \
            $(LIBS) \
            $(EXTRA_LIBS) \
            $(RUST_MEM_LIB) \
+           $(RUST_MEMLINE_LIB) \
            $(LUA_LIBS) \
            $(PERL_LIBS) \
            $(PYTHON_LIBS) \
@@ -1440,6 +1444,9 @@ DEST_FTP = $(DESTDIR)$(FTPLUGSUBLOC)
 # Build the Rust memory management library
 $(RUST_MEM_LIB):
 	cd $(RUST_MEM_DIR) && cargo build --release
+
+$(RUST_MEMLINE_LIB):
+	cd $(RUST_MEMLINE_DIR) && cargo build --release
 DEST_LANG = $(DESTDIR)$(LANGSUBLOC)
 DEST_COMP = $(DESTDIR)$(COMPSUBLOC)
 DEST_KMAP = $(DESTDIR)$(KMAPSUBLOC)

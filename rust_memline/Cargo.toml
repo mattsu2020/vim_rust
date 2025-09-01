@@ -3,5 +3,8 @@ name = "rust_memline"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+crate-type = ["staticlib"]
+
 [dependencies]
 memmap2 = "0.9"
