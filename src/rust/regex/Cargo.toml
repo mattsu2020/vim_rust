@@ -1,0 +1,12 @@
+[package]
+name = "vim_regex"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "vim_regex"
+crate-type = ["staticlib"]
+
+[dependencies]
+regex = "1"
+libc = "0.2"

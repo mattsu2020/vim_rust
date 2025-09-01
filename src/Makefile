@@ -2087,13 +2087,18 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o
+RUST_REGEX_LIB = rust/regex/target/release/libvim_regex.a
+
+$(RUST_REGEX_LIB):
+	cd rust/regex && cargo build --release
+
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_REGEX_LIB)
 	@$(BUILD_DATE_MSG)
 	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
-		-o $(VIMTARGET) $(OBJ) $(ALL_LIBS)" \
-		MAKE="$(MAKE)" LINK_AS_NEEDED=$(LINK_AS_NEEDED) \
-		PROG="vim" \
-		sh $(srcdir)/link.sh
+-o $(VIMTARGET) $(OBJ) $(ALL_LIBS) $(RUST_REGEX_LIB)" \
+	MAKE="$(MAKE)" LINK_AS_NEEDED=$(LINK_AS_NEEDED) \
+	PROG="vim" \
+	sh $(srcdir)/link.sh
 
 xxd/xxd$(EXEEXT): xxd/xxd.c
 	cd xxd; CC="$(CC)" CFLAGS="$(CPPFLAGS) $(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
