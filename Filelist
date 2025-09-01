@@ -110,10 +110,12 @@ SRC_ALL =	\
 		src/match.c \
 		src/mbyte.c \
 		src/memfile.c \
-		src/memfile_test.c \
-		src/memline.c \
-		src/menu.c \
-		src/message.c \
+                src/memfile_test.c \
+                src/memline.c \
+                src/rust/mem/Cargo.toml \
+                src/rust/mem/src/lib.rs \
+                src/menu.c \
+                src/message.c \
 		src/message_test.c \
 		src/misc1.c \
 		src/misc2.c \

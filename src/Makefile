@@ -1395,6 +1395,10 @@ LINT_EXTRA = -D"__attribute__(x)="
 
 DEPEND_CFLAGS = -DPROTO -DDEPEND -DFEAT_GUI $(LINT_CFLAGS)
 
+# Location of the Rust memory management crate
+RUST_MEM_DIR = rust/mem
+RUST_MEM_LIB = $(RUST_MEM_DIR)/target/release/libvim_mem.a
+
 # Note: MZSCHEME_LIBS must come before LIBS, because LIBS adds -lm which is
 # needed by racket.
 ALL_LIB_DIRS = $(GUI_LIBS_DIR) $(X_LIBS_DIR)
@@ -1406,13 +1410,14 @@ ALL_LIBS = \
 	   $(X_LIBS) \
 	   $(WAYLAND_LIBS) \
 	   $(X_EXTRA_LIBS) \
-	   $(MZSCHEME_LIBS) \
-	   $(LIBS) \
-	   $(EXTRA_LIBS) \
-	   $(LUA_LIBS) \
-	   $(PERL_LIBS) \
-	   $(PYTHON_LIBS) \
-	   $(PYTHON3_LIBS) \
+           $(MZSCHEME_LIBS) \
+           $(LIBS) \
+           $(EXTRA_LIBS) \
+           $(RUST_MEM_LIB) \
+           $(LUA_LIBS) \
+           $(PERL_LIBS) \
+           $(PYTHON_LIBS) \
+           $(PYTHON3_LIBS) \
 	   $(TCL_LIBS) \
 	   $(RUBY_LIBS) \
 	   $(PROFILE_LIBS) \
@@ -1431,6 +1436,10 @@ DEST_AUTO = $(DESTDIR)$(AUTOSUBLOC)
 DEST_IMPORT = $(DESTDIR)$(IMPORTSUBLOC)
 DEST_PLUG = $(DESTDIR)$(PLUGSUBLOC)
 DEST_FTP = $(DESTDIR)$(FTPLUGSUBLOC)
+
+# Build the Rust memory management library
+$(RUST_MEM_LIB):
+	cd $(RUST_MEM_DIR) && cargo build --release
 DEST_LANG = $(DESTDIR)$(LANGSUBLOC)
 DEST_COMP = $(DESTDIR)$(COMPSUBLOC)
 DEST_KMAP = $(DESTDIR)$(KMAPSUBLOC)
@@ -2087,7 +2096,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB)
 	@$(BUILD_DATE_MSG)
 	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) $(OBJ) $(ALL_LIBS)" \
