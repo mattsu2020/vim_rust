@@ -1,0 +1,11 @@
+[package]
+name = "terminal_full"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "terminal_full"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+libc = "0.2"
