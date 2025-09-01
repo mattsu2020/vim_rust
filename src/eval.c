@@ -22,17 +22,11 @@
 
 #define NAMESPACE_CHAR	(char_u *)"abglstvw"
 
-static int eval2(char_u **arg, typval_T *rettv, evalarg_T *evalarg);
-static int eval3(char_u **arg, typval_T *rettv, evalarg_T *evalarg);
-static int eval4(char_u **arg, typval_T *rettv, evalarg_T *evalarg);
-static int eval5(char_u **arg, typval_T *rettv, evalarg_T *evalarg);
-static int eval6(char_u **arg, typval_T *rettv, evalarg_T *evalarg);
-static int eval7(char_u **arg, typval_T *rettv, evalarg_T *evalarg, int want_string);
-static int eval8(char_u **arg, typval_T *rettv, evalarg_T *evalarg, int want_string);
-static int eval9(char_u **arg, typval_T *rettv, evalarg_T *evalarg, int want_string);
-static int eval9_leader(typval_T *rettv, int numeric_only, char_u *start_leader, char_u **end_leaderp);
+// FFI interface to the Rust expression evaluator.
+// Returns non-zero on success and stores the evaluated result in "result".
+extern int eval_expr_rs(const char *expr, long *result);
 
-static char_u *make_expanded_name(char_u *in_start, char_u *expr_start, char_u *expr_end, char_u *in_end);
+
 
 /*
  * Return "n1" divided by "n2", taking care of dividing by zero.
@@ -139,44 +133,22 @@ fill_evalarg_from_eap(evalarg_T *evalarg, exarg_T *eap, int skip)
  */
     int
 eval_to_bool(
-    char_u	*arg,
-    int		*error,
-    exarg_T	*eap,
-    int		skip,	    // only parse, don't execute
-    int		use_simple_function)
+    char_u      *arg,
+    int         *error,
+    exarg_T     *eap,
+    int         skip,       // only parse, don't execute
+    int         use_simple_function)
 {
-    typval_T	tv;
-    varnumber_T	retval = FALSE;
-    evalarg_T	evalarg;
-    int		r;
-
-    fill_evalarg_from_eap(&evalarg, eap, skip);
-
-    if (skip)
-	++emsg_skip;
-    if (use_simple_function)
-	r = eval0_simple_funccal(arg, &tv, eap, &evalarg);
-    else
-	r = eval0(arg, &tv, eap, &evalarg);
-    if (r == FAIL)
-	*error = TRUE;
-    else
+    long result = 0;
+    if (!eval_expr_rs((const char *)arg, &result))
     {
-	*error = FALSE;
-	if (!skip)
-	{
-	    if (in_vim9script())
-		retval = tv_get_bool_chk(&tv, error);
-	    else
-		retval = (tv_get_number_chk(&tv, error) != 0);
-	    clear_tv(&tv);
-	}
+        if (error != NULL)
+            *error = TRUE;
+        return 0;
     }
-    if (skip)
-	--emsg_skip;
-    clear_evalarg(&evalarg, eap);
-
-    return (int)retval;
+    if (error != NULL)
+        *error = FALSE;
+    return result != 0;
 }
 
 /*
@@ -800,26 +772,21 @@ eval_expr(char_u *arg, exarg_T *eap)
     typval_T *
 eval_expr_ext(char_u *arg, exarg_T *eap, int use_simple_function)
 {
-    typval_T	*tv;
-    evalarg_T	evalarg;
-
-    fill_evalarg_from_eap(&evalarg, eap, eap != NULL && eap->skip);
-
+    typval_T    *tv;
     tv = ALLOC_ONE(typval_T);
-    if (tv != NULL)
+    if (tv == NULL)
+        return NULL;
+    long result = 0;
+    if (eval_expr_rs((const char *)arg, &result))
     {
-	int	r = NOTDONE;
-
-	if (use_simple_function)
-	    r = eval0_simple_funccal(arg, tv, eap, &evalarg);
-	if (r == NOTDONE)
-	    r = eval0(arg, tv, eap, &evalarg);
-
-	if (r == FAIL)
-	    VIM_CLEAR(tv);
+        tv->v_type = VAR_NUMBER;
+        tv->v_lock = 0;
+        tv->vval.v_number = result;
     }
-
-    clear_evalarg(&evalarg, eap);
+    else
+    {
+        VIM_CLEAR(tv);
+    }
     return tv;
 }
 
