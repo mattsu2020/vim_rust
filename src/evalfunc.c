@@ -2564,6 +2564,8 @@ static const funcentry_T global_functions[] =
 			ret_list_any,	    f_matchstrlist},
     {"matchstrpos",	2, 4, FEARG_1,	    arg24_match_func,
 			ret_list_any,	    f_matchstrpos},
+    {"rust_regex_match", 2, 4, FEARG_1,      arg24_match_func,
+                        ret_number_bool,    f_rust_regex_match},
     {"max",		1, 1, FEARG_1,	    arg1_list_or_tuple_or_dict,
 			ret_max_min,	    f_max},
     {"menu_info",	1, 2, FEARG_1,	    arg2_string,
@@ -9553,6 +9555,26 @@ theend:
 f_matchstrpos(typval_T *argvars, typval_T *rettv)
 {
     find_some_match(argvars, rettv, MATCH_POS);
+}
+
+    static void
+f_rust_regex_match(typval_T *argvars, typval_T *rettv)
+{
+#ifdef USE_RUST_REGEX
+    char_u *pattern = tv_get_string(&argvars[0]);
+    char_u *text = tv_get_string(&argvars[1]);
+    int magic = (argvars[2].v_type == VAR_UNKNOWN)
+                    ? TRUE
+                    : (int)tv_get_number(&argvars[2]);
+    long timeout = (argvars[3].v_type == VAR_UNKNOWN)
+                    ? 1000L
+                    : tv_get_number(&argvars[3]);
+    rettv->v_type = VAR_NUMBER;
+    rettv->vval.v_number = vim_rust_regex_match_wrapper(pattern, text, magic, timeout);
+#else
+    rettv->v_type = VAR_NUMBER;
+    rettv->vval.v_number = 0;
+#endif
 }
 
     static void

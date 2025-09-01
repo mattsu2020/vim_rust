@@ -183,6 +183,10 @@ struct regengine
 #endif
 };
 
+#ifdef USE_RUST_REGEX
+int vim_rust_regex_match_wrapper(char_u *pat, char_u *text, int magic, long timeout_ms);
+#endif
+
 // Flags used by vim_regsub() and vim_regsub_both()
 #define REGSUB_COPY	    1
 #define REGSUB_MAGIC	    2

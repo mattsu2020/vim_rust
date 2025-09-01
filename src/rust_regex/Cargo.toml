@@ -1,0 +1,12 @@
+[package]
+name = "vim_rust_regex"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "vim_rust_regex"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+regex = "1"
+libc = "0.2"
