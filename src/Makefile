@@ -1994,13 +1994,16 @@ PRO_MANUAL = os_amiga.pro os_win32.pro \
 	os_mswin.pro winclip.pro os_vms.pro $(PERL_PRO)
 
 # Default target is making the executable and tools
-all: $(VIMTARGET) $(TOOLS) languages $(GUI_BUNDLE) rust-channel
+all: $(VIMTARGET) $(TOOLS) languages $(GUI_BUNDLE) rust-channel rust-spell
 
 # Build the Rust channel library that exposes a minimal FFI API for Vim.
 # This is a placeholder; a full integration would link the resulting static
 # library into the final executable.
 rust-channel:
-	cargo build --manifest-path=rust/channel/Cargo.toml --release
+	cargo build --manifest-path=../rust/channel/Cargo.toml --release
+
+rust-spell:
+	cargo build --manifest-path=../rust/spell/Cargo.toml --release
 
 tools: $(TOOLS)
 

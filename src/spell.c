@@ -51,6 +51,16 @@
  *
  * Matching involves checking the caps type: Onecap ALLCAP KeepCap.
  *
+ * Internally words are stored in a compact trie represented by two arrays:
+ * "byts" contains for each node the number of child edges followed by the
+ * sorted bytes for those edges.  "idxs" mirrors this structure and contains
+ * either the index of the child node or, when the byte is NUL, a terminal
+ * entry describing the word.  The terminal entry packs several flags that
+ * describe how a word is to be handled.  The most prominent ones are
+ * WF_ONECAP, WF_ALLCAP and WF_KEEPCAP which track the capitalisation of the
+ * word that was inserted.  This flag management drives the decision on how a
+ * match should be formatted or suggested.
+ *
  * Why doesn't Vim use aspell/ispell/myspell/etc.?
  * See ":help develop-spell".
  */
@@ -2445,59 +2455,15 @@ find_region(char_u *rp, char_u *region)
 
 /*
  * Return case type of word:
- * w word	0
- * Word		WF_ONECAP
- * W WORD	WF_ALLCAP
- * WoRd	wOrd	WF_KEEPCAP
+ * w word       0
+ * Word         WF_ONECAP
+ * W WORD       WF_ALLCAP
+ * WoRd wOrd    WF_KEEPCAP
+ *
+ * The actual implementation lives in the Rust crate rust/spell and is linked
+ * in via FFI.  See rust/spell/src/lib.rs for details.
  */
-    int
-captype(
-    char_u	*word,
-    char_u	*end)	    // When NULL use up to NUL byte.
-{
-    char_u	*p;
-    int		c;
-    int		firstcap;
-    int		allcap;
-    int		past_second = FALSE;	// past second word char
-
-    // find first letter
-    for (p = word; !spell_iswordp_nmw(p, curwin); MB_PTR_ADV(p))
-	if (end == NULL ? *p == NUL : p >= end)
-	    return 0;	    // only non-word characters, illegal word
-    if (has_mbyte)
-	c = mb_ptr2char_adv(&p);
-    else
-	c = *p++;
-    firstcap = allcap = SPELL_ISUPPER(c);
-
-    /*
-     * Need to check all letters to find a word with mixed upper/lower.
-     * But a word with an upper char only at start is a ONECAP.
-     */
-    for ( ; end == NULL ? *p != NUL : p < end; MB_PTR_ADV(p))
-	if (spell_iswordp_nmw(p, curwin))
-	{
-	    c = PTR2CHAR(p);
-	    if (!SPELL_ISUPPER(c))
-	    {
-		// UUl -> KEEPCAP
-		if (past_second && allcap)
-		    return WF_KEEPCAP;
-		allcap = FALSE;
-	    }
-	    else if (!allcap)
-		// UlU -> KEEPCAP
-		return WF_KEEPCAP;
-	    past_second = TRUE;
-	}
-
-    if (allcap)
-	return WF_ALLCAP;
-    if (firstcap)
-	return WF_ONECAP;
-    return 0;
-}
+extern int captype(char_u *word, char_u *end);
 
 /*
  * Delete the internal wordlist and its .spl file.
