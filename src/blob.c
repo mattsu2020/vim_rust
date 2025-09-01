@@ -15,6 +15,15 @@
 
 #if defined(FEAT_EVAL) || defined(PROTO)
 
+// When built with the Rust implementation the core blob helpers are
+// provided by the "rust_blob" crate.  Declare them here so that other C
+// code can link against the Rust versions.
+extern blob_T *blob_alloc(void);
+extern int rettv_blob_alloc(typval_T *rettv);
+extern void rettv_blob_set(typval_T *rettv, blob_T *b);
+extern int blob_copy(blob_T *from, typval_T *to);
+
+#ifndef USE_RUST_BLOB
 /*
  * Allocate an empty blob.
  * Caller should take care of the reference count.
@@ -86,6 +95,7 @@ blob_copy(blob_T *from, typval_T *to)
 
     return OK;
 }
+#endif // !USE_RUST_BLOB
 
     void
 blob_free(blob_T *b)
