@@ -1,0 +1,12 @@
+[package]
+name = "rust_undo"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+libc = "0.2"
+rust_memline = { path = "../rust_memline" }
+
+[lib]
+name = "rust_undo"
+crate-type = ["staticlib", "rlib"]
