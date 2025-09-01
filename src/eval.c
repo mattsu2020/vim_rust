@@ -13,6 +13,7 @@
 #define USING_FLOAT_STUFF
 
 #include "vim.h"
+#include "rust_userfunc.h"
 
 #if defined(FEAT_EVAL) || defined(PROTO)
 
@@ -279,9 +280,10 @@ eval_expr_partial(
 
 	CLEAR_FIELD(funcexe);
 	funcexe.fe_evaluate = TRUE;
-	funcexe.fe_partial = partial;
-	if (call_func(s, -1, rettv, argc, argv, &funcexe) == FAIL)
-	    return FAIL;
+        funcexe.fe_partial = partial;
+        if (!rust_userfunc_call(s, argc, argv, rettv)
+                && call_func(s, -1, rettv, argc, argv, &funcexe) == FAIL)
+            return FAIL;
     }
 
     return OK;
@@ -312,8 +314,9 @@ eval_expr_func(
 
     CLEAR_FIELD(funcexe);
     funcexe.fe_evaluate = TRUE;
-    if (call_func(s, -1, rettv, argc, argv, &funcexe) == FAIL)
-	return FAIL;
+    if (!rust_userfunc_call(s, argc, argv, rettv)
+            && call_func(s, -1, rettv, argc, argv, &funcexe) == FAIL)
+        return FAIL;
 
     return OK;
 }
@@ -921,7 +924,9 @@ call_vim_function(
     if (name == NULL)
 	name = func;
 
-    ret = call_func(name, -1, rettv, argc, argv, &funcexe);
+    ret = rust_userfunc_call(name, argc, argv, rettv)
+            ? OK
+            : call_func(name, -1, rettv, argc, argv, &funcexe);
 
     if (ret == FAIL)
 	clear_tv(rettv);

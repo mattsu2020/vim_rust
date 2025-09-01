@@ -13,6 +13,7 @@
 
 #define USING_FLOAT_STUFF
 #include "vim.h"
+#include "rust_userfunc.h"
 
 #if defined(FEAT_EVAL) || defined(PROTO)
 
@@ -1205,7 +1206,8 @@ invoke_defer_funcs(ectx_T *ectx)
 	exception_state_save(&estate);
 	exception_state_clear();
 
-	(void)call_func(name, -1, &rettv, argcount, argvars, &funcexe);
+    if (!rust_userfunc_call(name, argcount, argvars, &rettv))
+        (void)call_func(name, -1, &rettv, argcount, argvars, &funcexe);
 
 	exception_state_restore(&estate);
 

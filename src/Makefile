@@ -1409,6 +1409,8 @@ RUST_REGEX_DIR = ../rust_regex
 RUST_REGEX_LIB = $(RUST_REGEX_DIR)/target/release/librust_regex.a
 RUST_BUFFER_DIR = ../rust_buffer
 RUST_BUFFER_LIB = $(RUST_BUFFER_DIR)/target/release/librust_buffer.a
+RUST_USERFUNC_DIR = ../rust_userfunc
+RUST_USERFUNC_LIB = $(RUST_USERFUNC_DIR)/target/release/librust_userfunc.a
 
 # Note: MZSCHEME_LIBS must come before LIBS, because LIBS adds -lm which is
 # needed by racket.
@@ -1425,6 +1427,7 @@ ALL_LIBS = \
            $(LIBS) \
            $(EXTRA_LIBS) \
            $(RUST_MEM_LIB) \
+           $(RUST_USERFUNC_LIB) \
            $(LUA_LIBS) \
            $(PERL_LIBS) \
            $(PYTHON_LIBS) \
@@ -1456,7 +1459,9 @@ $(RUST_REGEX_LIB):
 	cd $(RUST_REGEX_DIR) && cargo build --release
 
 $(RUST_BUFFER_LIB):
-	cd $(RUST_BUFFER_DIR) && cargo build --release
+       cd $(RUST_BUFFER_DIR) && cargo build --release
+$(RUST_USERFUNC_LIB):
+       cd $(RUST_USERFUNC_DIR) && cargo build --release
 DEST_LANG = $(DESTDIR)$(LANGSUBLOC)
 DEST_COMP = $(DESTDIR)$(COMPSUBLOC)
 DEST_KMAP = $(DESTDIR)$(KMAPSUBLOC)

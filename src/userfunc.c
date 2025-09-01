@@ -12,6 +12,7 @@
  */
 
 #include "vim.h"
+#include "rust_userfunc.h"
 
 #if defined(FEAT_EVAL) || defined(PROTO)
 /*
@@ -761,12 +762,9 @@ register_cfunc(cfunc_T cb, cfunc_free_T cb_free, void *state)
     fp->uf_flags = FC_CFUNC | FC_LAMBDA;
     fp->uf_calls = 0;
     fp->uf_script_ctx = current_sctx;
-    fp->uf_cb = cb;
-    fp->uf_cb_free = cb_free;
-    fp->uf_cb_state = state;
-
+    if (rust_userfunc_register(name.string, cb, cb_free, state) == 0)
+        return NULL;
     hash_add(&func_hashtab, UF2HIKEY(fp), "add C function");
-
     return name.string;
 }
 #endif
@@ -2735,14 +2733,7 @@ func_clear_items(ufunc_T *fp)
     fp->uf_refcount -= 3;
 
 #ifdef FEAT_LUA
-    if (fp->uf_cb_free != NULL)
-    {
-	fp->uf_cb_free(fp->uf_cb_state);
-	fp->uf_cb_free = NULL;
-    }
-
-    fp->uf_cb_state = NULL;
-    fp->uf_cb = NULL;
+    rust_userfunc_clear(fp->uf_name);
 #endif
 #ifdef FEAT_PROFILE
     VIM_CLEAR(fp->uf_tml_count);
@@ -3448,11 +3439,8 @@ call_user_func_check(
 
 #ifdef FEAT_LUA
     if (fp->uf_flags & FC_CFUNC)
-    {
-	cfunc_T cb = fp->uf_cb;
-
-	return (*cb)(argcount, argvars, rettv, fp->uf_cb_state);
-    }
+        return rust_userfunc_call(fp->uf_name, argcount, argvars, rettv)
+                   ? FCERR_NONE : FCERR_OTHER;
 #endif
 
     if (fp->uf_flags & FC_RANGE && funcexe->fe_doesrange != NULL)
