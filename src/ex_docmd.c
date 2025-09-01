@@ -13,6 +13,13 @@
 
 #include "vim.h"
 
+// External implementations provided by the Rust "rust_excmd" crate.
+extern int rust_do_cmdline(char_u *cmdline,
+        char_u *(*fgetline)(int, void *, int, getline_opt_T),
+        void *cookie, int flags);
+extern char_u *rust_do_one_cmd(char_u **cmdlinep, int flags, void *cstack,
+        char_u *(*fgetline)(int, void *, int, getline_opt_T), void *cookie);
+
 static int	quitmore = 0;
 static int	ex_pressedreturn = FALSE;
 #ifndef FEAT_PRINTER
@@ -20,9 +27,11 @@ static int	ex_pressedreturn = FALSE;
 #endif
 
 #ifdef FEAT_EVAL
-static char_u	*do_one_cmd(char_u **, int, cstack_T *, char_u *(*fgetline)(int, void *, int, getline_opt_T), void *cookie);
+static char_u	*do_one_cmd_impl(char_u **, int, cstack_T *,
+        char_u *(*fgetline)(int, void *, int, getline_opt_T), void *cookie);
 #else
-static char_u	*do_one_cmd(char_u **, int, char_u *(*fgetline)(int, void *, int, getline_opt_T), void *cookie);
+static char_u	*do_one_cmd_impl(char_u **, int,
+        char_u *(*fgetline)(int, void *, int, getline_opt_T), void *cookie);
 static int	if_level = 0;		// depth in :if
 #endif
 static void	append_command(char_u *cmd);
@@ -667,7 +676,7 @@ do_cmd_argument(char_u *cmd)
  * return FAIL if cmdline could not be executed, OK otherwise
  */
     int
-do_cmdline(
+do_cmdline_impl(
     char_u	*cmdline,
     char_u	*(*fgetline)(int, void *, int, getline_opt_T),
     void	*cookie,		// argument for fgetline()
@@ -1038,7 +1047,7 @@ do_cmdline(
 	 *    "cmdline_copy" can change, e.g. for '%' and '#' expansion.
 	 */
 	++recursive;
-	next_cmdline = do_one_cmd(&cmdline_copy, flags,
+  next_cmdline = do_one_cmd_impl(&cmdline_copy, flags,
 #ifdef FEAT_EVAL
 				&cstack,
 #endif
@@ -1770,7 +1779,7 @@ comment_start(char_u *p, int starts_with_colon UNUSED)
  * This function may be called recursively!
  */
     static char_u *
-do_one_cmd(
+do_one_cmd_impl(
     char_u	**cmdlinep,
     int		flags,
 #ifdef FEAT_EVAL
@@ -10439,3 +10448,25 @@ set_pressedreturn(int val)
 {
     ex_pressedreturn = val;
 }
+
+// Wrappers that delegate command execution to the Rust implementation.
+int do_cmdline(char_u *cmdline,
+        char_u *(*fgetline)(int, void *, int, getline_opt_T),
+        void *cookie, int flags)
+{
+    return rust_do_cmdline(cmdline, fgetline, cookie, flags);
+}
+
+#ifdef FEAT_EVAL
+char_u *do_one_cmd(char_u **cmdlinep, int flags, cstack_T *cstack,
+        char_u *(*fgetline)(int, void *, int, getline_opt_T), void *cookie)
+{
+    return rust_do_one_cmd(cmdlinep, flags, cstack, fgetline, cookie);
+}
+#else
+char_u *do_one_cmd(char_u **cmdlinep, int flags,
+        char_u *(*fgetline)(int, void *, int, getline_opt_T), void *cookie)
+{
+    return rust_do_one_cmd(cmdlinep, flags, NULL, fgetline, cookie);
+}
+#endif
