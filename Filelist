@@ -96,7 +96,8 @@ SRC_ALL =	\
 		src/indent.c \
 		src/insexpand.c \
 		src/job.c \
-		src/json.c \
+		src/rust/json/Cargo.toml \
+		src/rust/json/src/lib.rs \
 		src/json_test.c \
 		src/keymap.h \
 		src/kword_test.c \

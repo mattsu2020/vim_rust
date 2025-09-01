@@ -1,4 +1,4 @@
-/* json.c */
+/* json.rs */
 char_u *json_encode(typval_T *val, int options);
 char_u *json_encode_nr_expr(int nr, typval_T *val, int options);
 char_u *json_encode_lsp_msg(typval_T *val);

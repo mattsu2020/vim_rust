@@ -290,6 +290,11 @@ VIEWNAME = view
 
 include auto/config.mk
 #.include "auto/config.mk"
+RUST_JSON_LIB = rust/json/target/release/libjson.a
+EXTRA_LIBS += $(RUST_JSON_LIB)
+
+$(RUST_JSON_LIB):
+	cargo build --manifest-path=rust/json/Cargo.toml --release
 CClink = $(CC)
 
 #}}}
@@ -1535,7 +1540,6 @@ BASIC_SRC = \
 	if_xcmdsrv.c \
 	indent.c \
 	insexpand.c \
-	json.c \
 	linematch.c \
 	list.c \
 	locale.c \
@@ -1799,7 +1803,6 @@ OBJ_COMMON = \
 # The files included by tests are not in OBJ_COMMON.
 OBJ_MAIN = \
 	objects/charset.o \
-	objects/json.o \
 	objects/main.o \
 	objects/memfile.o \
 	objects/message.o
@@ -1815,7 +1818,6 @@ OBJ_JSON_TEST = \
 JSON_TEST_OBJ = $(OBJ_COMMON) $(OBJ_JSON_TEST)
 
 OBJ_KWORD_TEST = \
-	objects/json.o \
 	objects/memfile.o \
 	objects/message.o \
 	objects/kword_test.o
@@ -1824,7 +1826,6 @@ KWORD_TEST_OBJ = $(OBJ_COMMON) $(OBJ_KWORD_TEST)
 
 OBJ_MEMFILE_TEST = \
 	objects/charset.o \
-	objects/json.o \
 	objects/message.o \
 	objects/memfile_test.o
 
@@ -1832,7 +1833,6 @@ MEMFILE_TEST_OBJ = $(OBJ_COMMON) $(OBJ_MEMFILE_TEST)
 
 OBJ_MESSAGE_TEST = \
 	objects/charset.o \
-	objects/json.o \
 	objects/memfile.o \
 	objects/message_test.o
 
@@ -2087,7 +2087,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_JSON_LIB)
 	@$(BUILD_DATE_MSG)
 	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) $(OBJ) $(ALL_LIBS)" \
@@ -2301,7 +2301,7 @@ testclean:
 
 # Unittests
 # It's build just like Vim to satisfy all dependencies.
-$(JSON_TEST_TARGET): auto/config.mk $(JSON_TEST_OBJ) objects/version.o
+$(JSON_TEST_TARGET): auto/config.mk $(JSON_TEST_OBJ) objects/version.o $(RUST_JSON_LIB)
 	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(JSON_TEST_TARGET) $(JSON_TEST_OBJ) $(ALL_LIBS)" \
 		MAKE="$(MAKE)" LINK_AS_NEEDED=$(LINK_AS_NEEDED) \
@@ -3417,8 +3417,6 @@ objects/insexpand.o: insexpand.c
 objects/job.o: job.c
 	$(CCC) -o $@ job.c
 
-objects/json.o: json.c
-	$(CCC) -o $@ json.c
 
 objects/json_test.o: json_test.c
 	$(CCC) -o $@ json_test.c
@@ -4054,11 +4052,6 @@ objects/insexpand.o: insexpand.c vim.h protodef.h auto/config.h feature.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h errors.h
-objects/json.o: json.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
 objects/linematch.o: linematch.c vim.h protodef.h auto/config.h feature.h \
  os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
@@ -4478,7 +4471,7 @@ objects/json_test.o: json_test.c main.c vim.h protodef.h auto/config.h feature.h
  os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h errors.h json.c
+ ex_cmds.h spell.h proto.h globals.h errors.h 
 objects/kword_test.o: kword_test.c main.c vim.h protodef.h auto/config.h \
  feature.h os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h \
  option.h beval.h proto/gui_beval.pro structs.h regexp.h gui.h \

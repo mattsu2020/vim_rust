@@ -8,7 +8,7 @@
  */
 
 /*
- * json_test.c: Unittests for json.c
+ * json_test.c: Unittests for json.rs
  */
 
 #undef NDEBUG
@@ -18,8 +18,6 @@
 #define NO_VIM_MAIN
 #include "main.c"
 
-// This file has to be included because the tested functions are static
-#include "json.c"
 
 #if defined(FEAT_EVAL)
 /*
