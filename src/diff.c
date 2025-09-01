@@ -46,7 +46,7 @@ static int diff_need_update = FALSE; // ex_diffupdate needs to be called
 #define ALL_WHITE_DIFF (DIFF_IWHITE | DIFF_IWHITEALL | DIFF_IWHITEEOL)
 #define ALL_INLINE (DIFF_INLINE_NONE | DIFF_INLINE_SIMPLE | DIFF_INLINE_CHAR | DIFF_INLINE_WORD)
 #define ALL_INLINE_DIFF (DIFF_INLINE_CHAR | DIFF_INLINE_WORD)
-static int	diff_flags = DIFF_INTERNAL | DIFF_FILLER | DIFF_CLOSE_OFF;
+int diff_flags = DIFF_INTERNAL | DIFF_FILLER | DIFF_CLOSE_OFF;
 
 static long diff_algorithm = 0;
 
@@ -98,8 +98,8 @@ typedef struct {
 } diffio_T;
 
 static int diff_buf_idx(buf_T *buf);
-static int diff_buf_idx_tp(buf_T *buf, tabpage_T *tp);
-static void diff_mark_adjust_tp(tabpage_T *tp, int idx, linenr_T line1, linenr_T line2, long amount, long amount_after);
+int diff_buf_idx_tp(buf_T *buf, tabpage_T *tp);
+void diff_mark_adjust_tp(tabpage_T *tp, int idx, linenr_T line1, linenr_T line2, long amount, long amount_after);
 static void diff_check_unchanged(tabpage_T *tp, diff_T *dp);
 static int diff_check_sanity(tabpage_T *tp, diff_T *dp);
 static int check_external_diff(diffio_T *diffio);
@@ -251,7 +251,7 @@ diff_buf_idx(buf_T *buf)
  * Find buffer "buf" in the list of diff buffers for tab page "tp".
  * Return its index or DB_COUNT if not found.
  */
-    static int
+    int
 diff_buf_idx_tp(buf_T *buf, tabpage_T *tp)
 {
     int		idx;
@@ -284,27 +284,6 @@ diff_invalidate(buf_T *buf)
     }
 }
 
-/*
- * Called by mark_adjust(): update line numbers in "curbuf".
- */
-    void
-diff_mark_adjust(
-    linenr_T	line1,
-    linenr_T	line2,
-    long	amount,
-    long	amount_after)
-{
-    int		idx;
-    tabpage_T	*tp;
-
-    // Handle all tab pages that use the current buffer in a diff.
-    FOR_ALL_TABPAGES(tp)
-    {
-	idx = diff_buf_idx_tp(curbuf, tp);
-	if (idx != DB_COUNT)
-	    diff_mark_adjust_tp(tp, idx, line1, line2, amount, amount_after);
-    }
-}
 
 /*
  * Update line numbers in tab page "tp" for "curbuf" with index "idx".
@@ -313,7 +292,7 @@ diff_mark_adjust(
  * new change block and update the line numbers in following blocks.
  * When inserting/deleting lines in existing change blocks, update them.
  */
-    static void
+    void
 diff_mark_adjust_tp(
     tabpage_T	*tp,
     int		idx,
@@ -2654,21 +2633,6 @@ diff_cmp(char_u *s1, char_u *s2)
 }
 
 /*
- * Return the number of filler lines above "lnum".
- */
-    int
-diff_check_fill(win_T *wp, linenr_T lnum)
-{
-    int		n;
-
-    // be quick when there are no filler lines
-    if (!(diff_flags & DIFF_FILLER))
-	return 0;
-    n = diff_check_with_linestatus(wp, lnum, NULL);
-    if (n <= 0)
-	return 0;
-    return n;
-}
 
 /*
  * Set the topline of "towin" to match the position in "fromwin", so that they

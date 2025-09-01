@@ -1,0 +1,10 @@
+[package]
+name = "rust_diff"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "rust_diff"
+crate-type = ["staticlib"]
+
+[dependencies]

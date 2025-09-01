@@ -1407,6 +1407,8 @@ RUST_MEM_DIR = rust/mem
 RUST_MEM_LIB = $(RUST_MEM_DIR)/target/release/libvim_mem.a
 RUST_REGEX_DIR = ../rust_regex
 RUST_REGEX_LIB = $(RUST_REGEX_DIR)/target/release/librust_regex.a
+RUST_DIFF_DIR = ../rust_diff
+RUST_DIFF_LIB = $(RUST_DIFF_DIR)/target/release/librust_diff.a
 
 # Note: MZSCHEME_LIBS must come before LIBS, because LIBS adds -lm which is
 # needed by racket.
@@ -1424,6 +1426,7 @@ ALL_LIBS = \
            $(EXTRA_LIBS) \
            $(RUST_MEM_LIB) \
            $(RUST_REGEX_LIB) \
+           $(RUST_DIFF_LIB) \
            $(LUA_LIBS) \
            $(PERL_LIBS) \
            $(PYTHON_LIBS) \
@@ -1449,10 +1452,13 @@ DEST_FTP = $(DESTDIR)$(FTPLUGSUBLOC)
 
 # Build the Rust memory management library
 $(RUST_MEM_LIB):
-        cd $(RUST_MEM_DIR) && cargo build --release
+	cd $(RUST_MEM_DIR) && cargo build --release
 
 $(RUST_REGEX_LIB):
-        cd $(RUST_REGEX_DIR) && cargo build --release
+	cd $(RUST_REGEX_DIR) && cargo build --release
+
+$(RUST_DIFF_LIB):
+	cd $(RUST_DIFF_DIR) && cargo build --release
 DEST_LANG = $(DESTDIR)$(LANGSUBLOC)
 DEST_COMP = $(DESTDIR)$(COMPSUBLOC)
 DEST_KMAP = $(DESTDIR)$(KMAPSUBLOC)
@@ -2117,7 +2123,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB)
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(RUST_DIFF_LIB)
 	@$(BUILD_DATE_MSG)
 	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) $(OBJ) $(ALL_LIBS)" \
@@ -2221,7 +2227,7 @@ tags TAGS: notags
 csclean:
 	-rm -vf cscope.out
 cscope.out:
-   cscope -bv ./*.[ch] ./*.cpp ./if_perl.xs auto/*.h auto/pathdef.c proto/*.pro
+	cscope -bv ./*.[ch] ./*.cpp ./if_perl.xs auto/*.h auto/pathdef.c proto/*.pro
 cscope: csclean cscope.out  ;
 
 # Make a highlight file for types.  Requires Exuberant ctags and awk
