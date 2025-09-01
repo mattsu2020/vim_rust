@@ -13,11 +13,22 @@
 
 #include "vim.h"
 
+#ifdef USE_RUST_ALLOC
+// Interfaces to the Rust allocation wrappers.
+void *rs_alloc(size_t size);
+void *rs_alloc_zeroed(size_t size);
+void *rs_realloc(void *ptr, size_t size);
+void rs_free(void *ptr);
+# ifdef MEM_PROFILE
+void rs_mem_stats(size_t *allocated, size_t *freed);
+# endif
+#endif
+
 /**********************************************************************
  * Various routines dealing with allocation and deallocation of memory.
  */
 
-#if defined(MEM_PROFILE) || defined(PROTO)
+#if (defined(MEM_PROFILE) && !defined(USE_RUST_ALLOC)) || defined(PROTO)
 
 # define MEM_SIZES  8200
 static long_u mem_allocs[MEM_SIZES];
@@ -148,7 +159,11 @@ alloc_does_fail(size_t size)
     void *
 alloc(size_t size)
 {
+#ifdef USE_RUST_ALLOC
+    return rs_alloc(size);
+#else
     return lalloc(size, TRUE);
+#endif
 }
 
 #if defined(FEAT_QUICKFIX) || defined(PROTO)
@@ -160,9 +175,13 @@ alloc_id(size_t size, alloc_id_T id UNUSED)
 {
 # ifdef FEAT_EVAL
     if (alloc_fail_id == id && alloc_does_fail(size))
-	return NULL;
+        return NULL;
 # endif
+#ifdef USE_RUST_ALLOC
+    return rs_alloc(size);
+#else
     return lalloc(size, TRUE);
+#endif
 }
 #endif
 
@@ -172,12 +191,16 @@ alloc_id(size_t size, alloc_id_T id UNUSED)
     void *
 alloc_clear(size_t size)
 {
+#ifdef USE_RUST_ALLOC
+    return rs_alloc_zeroed(size);
+#else
     void *p;
 
     p = lalloc(size, TRUE);
     if (p != NULL)
-	(void)vim_memset(p, 0, size);
+        (void)vim_memset(p, 0, size);
     return p;
+#endif
 }
 
 /*
@@ -188,9 +211,13 @@ alloc_clear_id(size_t size, alloc_id_T id UNUSED)
 {
 #ifdef FEAT_EVAL
     if (alloc_fail_id == id && alloc_does_fail(size))
-	return NULL;
+        return NULL;
 #endif
+#ifdef USE_RUST_ALLOC
+    return rs_alloc_zeroed(size);
+#else
     return alloc_clear(size);
+#endif
 }
 
 /*
@@ -199,12 +226,19 @@ alloc_clear_id(size_t size, alloc_id_T id UNUSED)
     void *
 lalloc_clear(size_t size, int message)
 {
+#ifdef USE_RUST_ALLOC
+    void *p = rs_alloc_zeroed(size);
+    if (p == NULL && message)
+        do_outofmem_msg(size);
+    return p;
+#else
     void *p;
 
     p = lalloc(size, message);
     if (p != NULL)
-	(void)vim_memset(p, 0, size);
+        (void)vim_memset(p, 0, size);
     return p;
+#endif
 }
 
 /*
@@ -305,7 +339,7 @@ lalloc_id(size_t size, int message, alloc_id_T id UNUSED)
 }
 #endif
 
-#if defined(MEM_PROFILE) || defined(PROTO)
+#if (defined(MEM_PROFILE) && !defined(USE_RUST_ALLOC)) || defined(PROTO)
 /*
  * realloc() with memory profiling.
  */
@@ -321,6 +355,17 @@ mem_realloc(void *ptr, size_t size)
 
     mem_post_alloc(&p, size);
 
+    return p;
+}
+#endif
+
+#ifdef USE_RUST_ALLOC
+    void *
+mem_realloc(void *ptr, size_t size)
+{
+    void *p = rs_realloc(ptr, size);
+    if (p == NULL)
+        do_outofmem_msg(size);
     return p;
 }
 #endif
@@ -610,10 +655,14 @@ vim_free(void *x)
 {
     if (x != NULL && !really_exiting)
     {
+#ifdef USE_RUST_ALLOC
+        rs_free(x);
+#else
 #ifdef MEM_PROFILE
-	mem_pre_free(&x);
+        mem_pre_free(&x);
 #endif
-	free(x);
+        free(x);
+#endif
     }
 }
 

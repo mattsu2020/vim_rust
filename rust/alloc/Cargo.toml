@@ -1,0 +1,11 @@
+[package]
+name = "vim_alloc"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "vim_alloc"
+crate-type = ["cdylib", "staticlib"]
+
+[features]
+mem_profile = []
