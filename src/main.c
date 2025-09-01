@@ -9,6 +9,7 @@
 
 #define EXTERN
 #include "vim.h"
+#include "rust_option.h"
 
 #ifdef __CYGWIN__
 # include <cygwin/version.h>
@@ -1077,18 +1078,19 @@ common_init_2(mparm_T *paramp)
      * msg_outtrans_len_attr().
      * First find out the home directory, needed to expand "~" in options.
      */
-    init_homedir();		// find real value of $HOME
-    set_init_1(paramp->clean);
-    TIME_MSG("inits 1");
-
+	init_homedir();             // find real value of $HOME
+	rs_options_init();
+	rs_set_option("compatible", "false");
+	char *sh = rs_get_option("shell");
+	rs_free_cstring(sh);
+	TIME_MSG("inits 1");
 #ifdef FEAT_EVAL
-    // set v:lang and v:ctype
-    set_lang_var();
+	// set v:lang and v:ctype
+	set_lang_var();
 
-    // set v:argv
-    set_argv_var(paramp->argv, paramp->argc);
+	// set v:argv
+	set_argv_var(paramp->argv, paramp->argc);
 #endif
-
 #ifdef FEAT_SIGNS
     init_signs();
 #endif
