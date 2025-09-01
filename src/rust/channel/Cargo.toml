@@ -1,0 +1,12 @@
+[package]
+name = "vim_channel"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "vim_channel"
+crate-type = ["staticlib"]
+
+[dependencies]
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "net", "io-util"] }
+
