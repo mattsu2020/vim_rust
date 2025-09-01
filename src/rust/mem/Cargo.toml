@@ -9,3 +9,5 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 libc = "0.2"
+memmap2 = "0.5"
+memchr = "2"
