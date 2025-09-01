@@ -34,9 +34,6 @@
 #  undef EINTR
 # endif
 # define EINTR WSAEINTR
-# define sock_write(sd, buf, len) send((SOCKET)sd, buf, len, 0)
-# define sock_read(sd, buf, len) recv((SOCKET)sd, buf, len, 0)
-# define sock_close(sd) closesocket((SOCKET)sd)
 // Support for Unix-domain sockets was added in Windows SDK 17061.
 # define UNIX_PATH_MAX 108
 typedef struct sockaddr_un {
@@ -53,9 +50,19 @@ typedef struct sockaddr_un {
 #  include <libgen.h>
 # endif
 # define SOCK_ERRNO
-# define sock_write(sd, buf, len) write(sd, buf, len)
-# define sock_read(sd, buf, len) read(sd, buf, len)
-# define sock_close(sd) close(sd)
+# include <unistd.h>
+#endif
+
+// Interface to Rust-based socket helpers.
+#include <stdint.h>
+extern ssize_t channel_read_rs(sock_T fd, char *buf, size_t len);
+extern ssize_t channel_write_rs(sock_T fd, const char *buf, size_t len);
+extern int channel_close_rs(sock_T fd);
+
+#define sock_write(sd, buf, len) channel_write_rs(sd, buf, len)
+#define sock_read(sd, buf, len) channel_read_rs(sd, buf, len)
+#define sock_close(sd) channel_close_rs(sd)
+#ifndef MSWIN
 # define fd_read(fd, buf, len) read(fd, buf, len)
 # define fd_write(sd, buf, len) write(sd, buf, len)
 # define fd_close(sd) close(sd)
