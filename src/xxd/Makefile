@@ -1,10 +1,8 @@
-# The most simplistic Makefile
-
-# SANITIZER_CFLAGS=-g -O0  -fsanitize-recover=all -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer
-
-xxd: xxd.c
-	$(CC) $(SANITIZER_CFLAGS) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -DUNIX -o xxd xxd.c $(LIBS)
+# Build xxd using Rust crate
+xxd:
+	cargo build --release --manifest-path=../rust/xxd/Cargo.toml
+	cp ../rust/xxd/target/release/xxd xxd
 
 clean:
-	rm -f xxd xxd.o
-	rm -rf xxd.dSYM
+	cargo clean --manifest-path=../rust/xxd/Cargo.toml
+	rm -f xxd

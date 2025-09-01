@@ -34,4 +34,4 @@ xcmdsrv_client.c:  Example for a client program that communicates with a Vim
 
 unicode.vim	Vim script to generate tables for src/mbyte.c.
 
-[xxd can be found in the src directory]
+xxd is now implemented in Rust under src/rust/xxd
