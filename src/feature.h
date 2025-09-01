@@ -84,6 +84,9 @@
 // Enable the Rust implementation of memline by default.
 #define USE_RUST_MEMLINE
 
+// Enable Rust implementations for syntax highlighting helpers.
+#define USE_RUST_SYNTAX
+
 /*
  * Each feature implies including the "smaller" ones.
  */
