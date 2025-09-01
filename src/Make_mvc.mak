@@ -770,7 +770,6 @@ OBJ = \
 	$(OUTDIR)\screen.obj \
 	$(OUTDIR)\search.obj \
 	$(OUTDIR)\session.obj \
-	$(OUTDIR)\sha256.obj \
 	$(OUTDIR)\sign.obj \
 	$(OUTDIR)\spell.obj \
 	$(OUTDIR)\spellfile.obj \
@@ -1764,8 +1763,6 @@ $(OUTDIR)/screen.obj: $(OUTDIR) screen.c $(INCL)
 $(OUTDIR)/search.obj: $(OUTDIR) search.c $(INCL)
 
 $(OUTDIR)/session.obj: $(OUTDIR) session.c $(INCL)
-
-$(OUTDIR)/sha256.obj: $(OUTDIR) sha256.c $(INCL)
 
 $(OUTDIR)/sign.obj: $(OUTDIR) sign.c $(INCL)
 

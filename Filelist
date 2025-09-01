@@ -144,8 +144,9 @@ SRC_ALL =	\
 		src/screen.c \
 		src/search.c \
 		src/session.c \
-		src/sha256.c \
-		src/sign.c \
+                src/rust/crypto/sha256/Cargo.toml \
+                src/rust/crypto/sha256/src/lib.rs \
+                src/sign.c \
 		src/sound.c \
 		src/spell.c \
 		src/spell.h \

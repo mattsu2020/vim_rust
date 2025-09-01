@@ -292,6 +292,12 @@ include auto/config.mk
 #.include "auto/config.mk"
 CClink = $(CC)
 
+SHA256_LIB = rust/crypto/sha256/target/release/libvim_sha256.a
+LIBS += $(SHA256_LIB)
+
+$(SHA256_LIB):
+	cargo build --manifest-path=rust/crypto/sha256/Cargo.toml --release
+
 #}}}
 
 # Include the configuration choices first, so we can override everything
@@ -1567,12 +1573,11 @@ BASIC_SRC = \
 	regexp.c \
 	register.c \
 	screen.c \
-	scriptfile.c \
-	search.c \
-	session.c \
-	sha256.c \
-	sign.c \
-	sound.c \
+        scriptfile.c \
+        search.c \
+        session.c \
+        sign.c \
+        sound.c \
 	spell.c \
 	spellfile.c \
 	spellsuggest.c \
@@ -1742,12 +1747,11 @@ OBJ_COMMON = \
 	objects/regexp.o \
 	objects/register.o \
 	objects/screen.o \
-	objects/scriptfile.o \
-	objects/search.o \
-	objects/session.o \
-	objects/sha256.o \
-	objects/sign.o \
-	objects/sound.o \
+        objects/scriptfile.o \
+        objects/search.o \
+        objects/session.o \
+        objects/sign.o \
+        objects/sound.o \
 	objects/spell.o \
 	objects/spellfile.o \
 	objects/spellsuggest.o \
@@ -2087,7 +2091,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(SHA256_LIB)
 	@$(BUILD_DATE_MSG)
 	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) $(OBJ) $(ALL_LIBS)" \
@@ -3552,9 +3556,6 @@ objects/search.o: search.c
 objects/session.o: session.c
 	$(CCC) -o $@ session.c
 
-objects/sha256.o: sha256.c
-	$(CCC) -o $@ sha256.c
-
 objects/sign.o: sign.c
 	$(CCC) -o $@ sign.c
 
@@ -4229,16 +4230,11 @@ objects/session.o: session.c vim.h protodef.h auto/config.h feature.h os_unix.h 
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/sha256.o: sha256.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
 objects/sign.o: sign.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
+auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
+proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
+libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
+globals.h errors.h
 objects/sound.o: sound.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \

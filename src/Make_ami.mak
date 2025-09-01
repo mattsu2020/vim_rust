@@ -155,7 +155,6 @@ SRC += \
 	scriptfile.c \
 	search.c \
 	session.c \
-	sha256.c \
 	sign.c \
 	spell.c \
 	spellfile.c \
