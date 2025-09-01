@@ -2002,8 +2002,7 @@ proto.h: \
 	proto/search.pro \
 	proto/session.pro \
 	proto/sha256.pro \
-	proto/sign.pro \
-	proto/spell.pro \
+        proto/spell.pro \
 	proto/spellfile.pro \
 	proto/spellsuggest.pro \
 	proto/strings.pro \
