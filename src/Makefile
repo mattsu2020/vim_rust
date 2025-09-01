@@ -1301,7 +1301,7 @@ ALL_GUI_PRO  = gui.pro gui_gtk.pro gui_motif.pro gui_xmdlg.pro gui_gtk_x11.pro g
 
 # }}}
 
-TERM_DEPS =
+TERM_DEPS = $(RUST_TERMINAL_LIB)
 RUST_TERMINAL_LIB = rust/terminal/target/release/libterminal.a
 
 # libvterm sources are replaced by the Rust terminal crate
@@ -1422,6 +1422,7 @@ ALL_LIBS = \
            $(MZSCHEME_LIBS) \
            $(LIBS) \
            $(EXTRA_LIBS) \
+           $(RUST_TERMINAL_LIB) \
            $(RUST_MEM_LIB) \
            $(RUST_REGEX_LIB) \
            $(LUA_LIBS) \
