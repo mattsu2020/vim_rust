@@ -1415,9 +1415,16 @@ ALL_LIBS = \
 	   $(PYTHON3_LIBS) \
 	   $(TCL_LIBS) \
 	   $(RUBY_LIBS) \
-	   $(PROFILE_LIBS) \
-	   $(SANITIZER_LIBS) \
-	   $(LEAK_LIBS)
+           $(PROFILE_LIBS) \
+           $(SANITIZER_LIBS) \
+           $(LEAK_LIBS)
+
+# Rust JSON library
+RUST_JSON_LIB = $(CURDIR)/rust_json/target/release/librust_json.a
+EXTRA_LIBS += $(RUST_JSON_LIB)
+
+$(RUST_JSON_LIB):
+	cargo build --manifest-path rust_json/Cargo.toml --release
 
 # abbreviations
 DEST_BIN = $(DESTDIR)$(BINDIR)
