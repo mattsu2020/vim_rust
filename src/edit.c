@@ -12,6 +12,9 @@
  */
 
 #include "vim.h"
+#include "edit_rs.h"
+#define ins_char rs_ins_char
+#define del_char rs_del_char
 
 #define BACKSPACE_CHAR		    1
 #define BACKSPACE_WORD		    2
@@ -4041,17 +4044,7 @@ ins_del(void)
     static void
 ins_bs_one(void)
 {
-    dec_cursor();
-    if (State & REPLACE_FLAG)
-    {
-	// Don't delete characters before the insert point when in
-	// Replace mode
-	if (curwin->w_cursor.lnum != Insstart.lnum
-		|| curwin->w_cursor.col >= Insstart.col)
-	    replace_do_bs(-1);
-    }
-    else
-	(void)del_char(FALSE);
+    rs_backspace_char();
 }
 
 /*
