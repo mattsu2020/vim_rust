@@ -81,6 +81,9 @@
 # endif
 #endif
 
+/* Always route memory allocation through Rust implementation. */
+#define USE_RUST_ALLOC
+
 /*
  * Each feature implies including the "smaller" ones.
  */

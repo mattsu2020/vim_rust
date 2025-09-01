@@ -1,37 +1,71 @@
-use std::collections::HashMap;
-use std::os::raw::c_void;
-use std::sync::{Mutex, OnceLock};
+use std::ffi::c_void;
+use std::ptr;
 
-// Lazily initialized global map of allocations so that memory obtained in
-// Rust can later be released from C code.
-static ALLOCATIONS: OnceLock<Mutex<HashMap<usize, Vec<u8>>>> = OnceLock::new();
-
-fn allocations() -> &'static Mutex<HashMap<usize, Vec<u8>>> {
-    ALLOCATIONS.get_or_init(|| Mutex::new(HashMap::new()))
+extern "C" {
+    fn malloc(size: usize) -> *mut c_void;
+    fn calloc(nmemb: usize, size: usize) -> *mut c_void;
+    fn free(ptr: *mut c_void);
 }
 
+/// Allocate `size` bytes of memory using the C allocator.
+/// Returns null on error or when `size` is zero.
 #[no_mangle]
-pub extern "C" fn rust_alloc(size: usize) -> *mut c_void {
-    let mut buf: Vec<u8> = Vec::with_capacity(size);
-    let ptr = buf.as_mut_ptr();
-    // Safety: we reserve `size` bytes and assume caller initializes it.
-    unsafe { buf.set_len(size); }
-    allocations().lock().unwrap().insert(ptr as usize, buf);
-    ptr as *mut c_void
-}
-
-#[no_mangle]
-pub extern "C" fn rust_alloc_clear(size: usize) -> *mut c_void {
-    let mut buf = vec![0u8; size];
-    let ptr = buf.as_mut_ptr();
-    allocations().lock().unwrap().insert(ptr as usize, buf);
-    ptr as *mut c_void
-}
-
-#[no_mangle]
-pub extern "C" fn rust_free(ptr: *mut c_void) {
-    if ptr.is_null() {
-        return;
+pub unsafe extern "C" fn rust_alloc(size: usize) -> *mut c_void {
+    if size == 0 {
+        return ptr::null_mut();
     }
-    allocations().lock().unwrap().remove(&(ptr as usize));
+    let p = malloc(size);
+    if p.is_null() {
+        ptr::null_mut()
+    } else {
+        p
+    }
+}
+
+/// Allocate zero-initialized memory using the C allocator.
+/// Returns null on error or when `size` is zero.
+#[no_mangle]
+pub unsafe extern "C" fn rust_alloc_clear(size: usize) -> *mut c_void {
+    if size == 0 {
+        return ptr::null_mut();
+    }
+    let p = calloc(1, size);
+    if p.is_null() {
+        ptr::null_mut()
+    } else {
+        p
+    }
+}
+
+/// Free memory previously allocated with `rust_alloc` or `rust_alloc_clear`.
+#[no_mangle]
+pub unsafe extern "C" fn rust_free(ptr: *mut c_void) {
+    if !ptr.is_null() {
+        free(ptr);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::mem;
+
+    #[test]
+    fn rust_alloc_and_c_free() {
+        unsafe {
+            let ptr = rust_alloc(64);
+            assert!(!ptr.is_null());
+            assert_eq!((ptr as usize) % mem::align_of::<usize>(), 0);
+            free(ptr);
+        }
+    }
+
+    #[test]
+    fn c_alloc_and_rust_free() {
+        unsafe {
+            let ptr = malloc(64);
+            assert!(!ptr.is_null());
+            rust_free(ptr);
+        }
+    }
 }
