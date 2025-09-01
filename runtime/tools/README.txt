@@ -24,7 +24,7 @@ vim132:		Shell script to edit in 132 column mode on vt100 compatible
 vimm:		Shell script to start Vim on a DEC terminal with mouse
 		enabled.
 
-vimspell.*:	Shell script for highlighting spelling mistakes.
+vimspell:	Rust tool for highlighting spelling mistakes.
 
 vim_vs_net.cmd: MS-Windows command file to use Vim with MS Visual Studio 7 and
 		later.
