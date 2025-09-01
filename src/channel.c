@@ -2193,21 +2193,21 @@ channel_parse_json(channel_T *channel, ch_part_T part)
     // Do not generate error messages, they will be written in a channel log.
     if (status == OK)
     {
-	++emsg_silent;
-	status = json_decode(&reader, &listtv,
-				chanpart->ch_mode == CH_MODE_JS ? JSON_JS : 0);
-	--emsg_silent;
+        ++emsg_silent;
+        status = json_decode(&reader, &listtv,
+                                chanpart->ch_mode == CH_MODE_JS ? JSON_JS : 0);
+        --emsg_silent;
     }
     if (status == OK)
     {
-	// Only accept the response when it is a list with at least two
-	// items.
-	if (chanpart->ch_mode == CH_MODE_LSP && listtv.v_type != VAR_DICT)
-	{
-	    ch_error(channel, "Did not receive a LSP dict, discarding");
-	    clear_tv(&listtv);
-	}
-	else if (chanpart->ch_mode != CH_MODE_LSP
+        // Only accept the response when it is a list with at least two
+        // items.
+        if (chanpart->ch_mode == CH_MODE_LSP && listtv.v_type != VAR_DICT)
+        {
+            ch_error(channel, "Did not receive a LSP dict, discarding");
+            clear_tv(&listtv);
+        }
+        else if (chanpart->ch_mode != CH_MODE_LSP
 	      && (listtv.v_type != VAR_LIST || listtv.vval.v_list->lv_len < 2))
 	{
 	    if (listtv.v_type != VAR_LIST)
@@ -2245,6 +2245,8 @@ channel_parse_json(channel_T *channel, ch_part_T part)
 	    }
 	}
     }
+    else
+        ch_error(channel, "json decode error");
 
     if (status == OK)
 	chanpart->ch_wait_len = 0;
@@ -2659,24 +2661,26 @@ channel_exe_cmd(channel_T *channel, ch_part_T part, typval_T *argv)
 	    {
 		int id = argv[id_idx].vval.v_number;
 
-		if (tv != NULL)
-		    json = json_encode_nr_expr(id, tv, options | JSON_NL);
-		if (tv == NULL || (json != NULL && *json == NUL))
-		{
-		    // If evaluation failed or the result can't be encoded
-		    // then return the string "ERROR".
-		    vim_free(json);
-		    err_tv.v_type = VAR_STRING;
-		    err_tv.vval.v_string = (char_u *)"ERROR";
-		    json = json_encode_nr_expr(id, &err_tv, options | JSON_NL);
-		}
-		if (json != NULL)
-		{
-		    channel_send(channel,
-				 part == PART_SOCK ? PART_SOCK : PART_IN,
-				 json, (int)STRLEN(json), (char *)cmd);
-		    vim_free(json);
-		}
+                if (tv != NULL)
+                    json = json_encode_nr_expr(id, tv, options | JSON_NL);
+                if (tv == NULL || json == NULL || *json == NUL)
+                {
+                    // If evaluation failed or the result can't be encoded
+                    // then return the string "ERROR".
+                    vim_free(json);
+                    err_tv.v_type = VAR_STRING;
+                    err_tv.vval.v_string = (char_u *)"ERROR";
+                    json = json_encode_nr_expr(id, &err_tv, options | JSON_NL);
+                }
+                if (json != NULL)
+                {
+                    channel_send(channel,
+                                 part == PART_SOCK ? PART_SOCK : PART_IN,
+                                 json, (int)STRLEN(json), (char *)cmd);
+                    vim_free(json);
+                }
+                else
+                    ch_error(channel, "json encode error");
 	    }
 	    --emsg_silent;
 	    if (tv == &res_tv)
@@ -3098,19 +3102,21 @@ may_invoke_callback(channel_T *channel, ch_part_T part)
     {
 	if (buffer != NULL)
 	{
-	    if (msg == NULL)
-		// JSON or JS mode: re-encode the message.
-		msg = json_encode(listtv, ch_mode);
-	    if (msg != NULL)
-	    {
+            if (msg == NULL)
+                // JSON or JS mode: re-encode the message.
+                msg = json_encode(listtv, ch_mode);
+            if (msg != NULL)
+            {
 #ifdef FEAT_TERMINAL
-		if (buffer->b_term != NULL)
-		    write_to_term(buffer, msg, channel);
-		else
+                if (buffer->b_term != NULL)
+                    write_to_term(buffer, msg, channel);
+                else
 #endif
-		    append_to_buffer(buffer, msg, channel, part);
-	    }
-	}
+                    append_to_buffer(buffer, msg, channel, part);
+            }
+            else
+                ch_error(channel, "json encode error");
+        }
 
 	if (callback != NULL)
 	{
@@ -4551,7 +4557,10 @@ ch_expr_common(typval_T *argvars, typval_T *rettv, int eval)
 			      (ch_mode == CH_MODE_JS ? JSON_JS : 0) | JSON_NL);
     }
     if (text == NULL)
-	return;
+    {
+        ch_error(channel, "json encode error");
+        return;
+    }
 
     channel = send_common(argvars, text, (int)STRLEN(text), id, eval, &opt,
 			    eval ? "ch_evalexpr" : "ch_sendexpr", &part_read);
