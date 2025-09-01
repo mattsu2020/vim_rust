@@ -8,5 +8,5 @@ name = "vim_channel"
 crate-type = ["staticlib"]
 
 [dependencies]
-tokio = { version = "1", features = ["rt", "rt-multi-thread", "net", "io-util"] }
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "net", "io-util", "process", "time"] }
 
