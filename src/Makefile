@@ -1409,6 +1409,8 @@ RUST_REGEX_DIR = ../rust_regex
 RUST_REGEX_LIB = $(RUST_REGEX_DIR)/target/release/librust_regex.a
 RUST_BUFFER_DIR = ../rust_buffer
 RUST_BUFFER_LIB = $(RUST_BUFFER_DIR)/target/release/librust_buffer.a
+RUST_CHANNEL_DIR = ../rust_channel
+RUST_CHANNEL_LIB = $(RUST_CHANNEL_DIR)/target/release/librust_channel.a
 
 # Note: MZSCHEME_LIBS must come before LIBS, because LIBS adds -lm which is
 # needed by racket.
@@ -1425,6 +1427,7 @@ ALL_LIBS = \
            $(LIBS) \
            $(EXTRA_LIBS) \
            $(RUST_MEM_LIB) \
+           $(RUST_CHANNEL_LIB) \
            $(LUA_LIBS) \
            $(PERL_LIBS) \
            $(PYTHON_LIBS) \
@@ -1453,10 +1456,13 @@ $(RUST_MEM_LIB):
 	cd $(RUST_MEM_DIR) && cargo build --release
 
 $(RUST_REGEX_LIB):
-	cd $(RUST_REGEX_DIR) && cargo build --release
+        cd $(RUST_REGEX_DIR) && cargo build --release
 
 $(RUST_BUFFER_LIB):
-	cd $(RUST_BUFFER_DIR) && cargo build --release
+        cd $(RUST_BUFFER_DIR) && cargo build --release
+
+$(RUST_CHANNEL_LIB):
+	cd $(RUST_CHANNEL_DIR) && cargo build --release
 DEST_LANG = $(DESTDIR)$(LANGSUBLOC)
 DEST_COMP = $(DESTDIR)$(COMPSUBLOC)
 DEST_KMAP = $(DESTDIR)$(KMAPSUBLOC)
@@ -2121,7 +2127,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB)
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_CHANNEL_LIB)
 	@$(BUILD_DATE_MSG)
 	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) $(OBJ) $(ALL_LIBS)" \
