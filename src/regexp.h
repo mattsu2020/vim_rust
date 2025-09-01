@@ -39,6 +39,10 @@
 #define	    BACKTRACKING_ENGINE	1
 #define	    NFA_ENGINE		2
 
+#ifdef USE_RUST_REGEX
+# include "../rust_regex/include/rust_regex.h"
+typedef RegProg regprog_T;
+#else
 typedef struct regengine regengine_T;
 
 /*
@@ -122,6 +126,7 @@ typedef struct
     int			nstate;
     nfa_state_T		state[1];	// actually longer..
 } nfa_regprog_T;
+#endif
 
 /*
  * Structure to be used for single-line matching.
@@ -168,6 +173,7 @@ typedef struct
     char_u		*matches[NSUBEXP];
 } reg_extmatch_T;
 
+#ifndef USE_RUST_REGEX
 struct regengine
 {
     // bt_regcomp or nfa_regcomp
@@ -182,6 +188,7 @@ struct regengine
     char_u	*expr;
 #endif
 };
+#endif
 
 #ifdef USE_RUST_REGEX
 int vim_rust_regex_match_wrapper(char_u *pat, char_u *text, int magic, long timeout_ms);
