@@ -26,7 +26,9 @@
  */
 
 #include "vim.h"
-
+#ifdef USE_RUST_BUFFER
+# include "rust_buffer.h"
+#endif
 
 #ifdef FEAT_EVAL
 // Determines how deeply nested %{} blocks will be evaluated in statusline.
@@ -866,6 +868,7 @@ buf_clear_file(buf_T *buf)
  * BFA_KEEP_UNDO     do not free undo information
  * BFA_IGNORE_ABORT  don't abort even when aborting() returns TRUE
  */
+#ifndef USE_RUST_BUFFER
     void
 buf_freeall(buf_T *buf, int flags)
 {
@@ -966,6 +969,7 @@ buf_freeall(buf_T *buf, int flags)
 #endif
     buf->b_flags &= ~BF_READERR;    // a read error is no longer relevant
 }
+#endif // !USE_RUST_BUFFER
 
 /*
  * Free a buffer structure and the things it contains related to the buffer
@@ -2243,7 +2247,12 @@ buflist_new(
     }
     if (buf != curbuf || curbuf == NULL)
     {
-	buf = ALLOC_CLEAR_ONE(buf_T);
+        buf =
+#ifdef USE_RUST_BUFFER
+            (buf_T *)buf_alloc(sizeof(buf_T));
+#else
+            ALLOC_CLEAR_ONE(buf_T);
+#endif
 	if (buf == NULL)
 	{
 	    vim_free(ffname);
