@@ -25,6 +25,7 @@
 // FFI interface to the Rust expression evaluator.
 // Returns non-zero on success and stores the evaluated result in "result".
 extern int eval_expr_rs(const char *expr, long *result);
+extern const char *eval_last_error_rs(void);
 
 
 
@@ -144,6 +145,9 @@ eval_to_bool(
     {
         if (error != NULL)
             *error = TRUE;
+        const char *msg = eval_last_error_rs();
+        if (msg != NULL)
+            semsg("%s", msg);
         return 0;
     }
     if (error != NULL)
@@ -307,27 +311,27 @@ eval_expr_func(
  */
     static int
 eval_expr_string(
-    typval_T	*expr,
-    typval_T	*rettv)
+    typval_T    *expr,
+    typval_T    *rettv)
 {
-    char_u	*s;
-    char_u	buf[NUMBUFLEN];
+    char_u      *s;
+    char_u      buf[NUMBUFLEN];
 
     s = tv_get_string_buf_chk_strict(expr, buf, in_vim9script());
     if (s == NULL)
-	return FAIL;
+        return FAIL;
 
-    s = skipwhite(s);
-    if (eval1_emsg(&s, rettv, NULL) == FAIL)
-	return FAIL;
-
-    if (*skipwhite(s) != NUL)  // check for trailing chars after expr
+    long result = 0;
+    if (!eval_expr_rs((const char *)s, &result))
     {
-	clear_tv(rettv);
-	semsg(_(e_invalid_expression_str), s);
-	return FAIL;
+        const char *msg = eval_last_error_rs();
+        if (msg != NULL)
+            semsg("%s", msg);
+        return FAIL;
     }
-
+    rettv->v_type = VAR_NUMBER;
+    rettv->v_lock = 0;
+    rettv->vval.v_number = result;
     return OK;
 }
 
@@ -786,6 +790,9 @@ eval_expr_ext(char_u *arg, exarg_T *eap, int use_simple_function)
     else
     {
         VIM_CLEAR(tv);
+        const char *msg = eval_last_error_rs();
+        if (msg != NULL)
+            semsg("%s", msg);
     }
     return tv;
 }

@@ -1,4 +1,5 @@
-use std::ffi::CStr;
+use std::cell::RefCell;
+use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 
 #[derive(Debug, Clone)]
@@ -10,11 +11,11 @@ enum Expr {
     Div(Box<Expr>, Box<Expr>),
 }
 
-fn parse_expr(input: &str) -> Result<Expr, ()> {
+fn parse_expr(input: &str) -> Result<Expr, String> {
     let mut chars = Tokenizer::new(input);
     let expr = parse_add_sub(&mut chars)?;
-    if chars.next_non_ws().is_some() {
-        return Err(());
+    if let Some(c) = chars.next_non_ws() {
+        return Err(format!("unexpected character '{}'", c));
     }
     Ok(expr)
 }
@@ -68,13 +69,13 @@ impl<'a> Tokenizer<'a> {
     }
 }
 
-fn parse_primary(tokens: &mut Tokenizer) -> Result<Expr, ()> {
+fn parse_primary(tokens: &mut Tokenizer) -> Result<Expr, String> {
     if let Some(c) = tokens.peek_non_ws() {
         if c == '(' {
             tokens.next_non_ws();
             let expr = parse_add_sub(tokens)?;
             if tokens.next_non_ws() != Some(')') {
-                return Err(());
+                return Err("missing ')'".into());
             }
             return Ok(expr);
         }
@@ -82,11 +83,11 @@ fn parse_primary(tokens: &mut Tokenizer) -> Result<Expr, ()> {
     if let Some(num) = tokens.parse_number() {
         Ok(Expr::Number(num))
     } else {
-        Err(())
+        Err("expected number".into())
     }
 }
 
-fn parse_mul_div(tokens: &mut Tokenizer) -> Result<Expr, ()> {
+fn parse_mul_div(tokens: &mut Tokenizer) -> Result<Expr, String> {
     let mut node = parse_primary(tokens)?;
     loop {
         let op = match tokens.peek_non_ws() {
@@ -105,7 +106,7 @@ fn parse_mul_div(tokens: &mut Tokenizer) -> Result<Expr, ()> {
     Ok(node)
 }
 
-fn parse_add_sub(tokens: &mut Tokenizer) -> Result<Expr, ()> {
+fn parse_add_sub(tokens: &mut Tokenizer) -> Result<Expr, String> {
     let mut node = parse_mul_div(tokens)?;
     loop {
         let op = match tokens.peek_non_ws() {
@@ -124,14 +125,37 @@ fn parse_add_sub(tokens: &mut Tokenizer) -> Result<Expr, ()> {
     Ok(node)
 }
 
-fn eval(expr: &Expr) -> i64 {
+fn eval(expr: &Expr) -> Result<i64, String> {
     match expr {
-        Expr::Number(n) => *n,
-        Expr::Add(a, b) => eval(a) + eval(b),
-        Expr::Sub(a, b) => eval(a) - eval(b),
-        Expr::Mul(a, b) => eval(a) * eval(b),
-        Expr::Div(a, b) => eval(a) / eval(b),
+        Expr::Number(n) => Ok(*n),
+        Expr::Add(a, b) => Ok(eval(a)? + eval(b)?),
+        Expr::Sub(a, b) => Ok(eval(a)? - eval(b)?),
+        Expr::Mul(a, b) => Ok(eval(a)? * eval(b)?),
+        Expr::Div(a, b) => {
+            let rhs = eval(b)?;
+            if rhs == 0 {
+                Err("division by zero".into())
+            } else {
+                Ok(eval(a)? / rhs)
+            }
+        }
     }
+}
+
+thread_local! {
+    static LAST_ERROR: RefCell<Option<CString>> = RefCell::new(None);
+}
+
+fn set_error(msg: String) {
+    LAST_ERROR.with(|e| {
+        *e.borrow_mut() = Some(CString::new(msg).unwrap());
+    });
+}
+
+fn clear_error() {
+    LAST_ERROR.with(|e| {
+        *e.borrow_mut() = None;
+    });
 }
 
 #[no_mangle]
@@ -144,16 +168,30 @@ pub extern "C" fn eval_expr_rs(expr: *const c_char, out: *mut i64) -> bool {
         Ok(s) => s,
         Err(_) => return false,
     };
-    match parse_expr(expr_str) {
-        Ok(ast) => {
-            let val = eval(&ast);
+    match parse_expr(expr_str).and_then(|ast| eval(&ast)) {
+        Ok(val) => {
+            clear_error();
             unsafe {
                 *out = val;
             }
             true
         }
-        Err(_) => false,
+        Err(msg) => {
+            set_error(msg);
+            false
+        }
     }
+}
+
+#[no_mangle]
+pub extern "C" fn eval_last_error_rs() -> *const c_char {
+    LAST_ERROR.with(|e| {
+        if let Some(ref s) = *e.borrow() {
+            s.as_ptr()
+        } else {
+            std::ptr::null()
+        }
+    })
 }
 
 #[cfg(test)]
@@ -163,6 +201,17 @@ mod tests {
     #[test]
     fn test_eval() {
         let ast = parse_expr("1 + 2 * 3").unwrap();
-        assert_eq!(eval(&ast), 7);
+        assert_eq!(eval(&ast).unwrap(), 7);
+    }
+
+    #[test]
+    fn test_divide_by_zero() {
+        let ast = parse_expr("1/0").unwrap();
+        assert!(matches!(eval(&ast), Err(msg) if msg.contains("zero")));
+    }
+
+    #[test]
+    fn test_parse_error() {
+        assert!(parse_expr("1 +").is_err());
     }
 }

@@ -37,6 +37,8 @@ history, on-line help, spell checking, filename completion, block operations,
 script language, etc.  There is also a Graphical User Interface (GUI)
 available.  Still, Vi compatibility is maintained, those who have Vi "in the
 fingers" will feel at home.
+Some functionality is implemented in Rust for robustness, including the
+expression evaluator.
 See [`runtime/doc/vi_diff.txt`](runtime/doc/vi_diff.txt) for differences with
 Vi.
 
