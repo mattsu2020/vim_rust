@@ -38,6 +38,9 @@ src/auto/wayland/*.h
 *.res
 *.RES
 vim*.dll
+
+# Rust build artifacts
+*/target/
 vim*.lib
 src/dobj*/pathdef.c
 src/gobj*/pathdef.c

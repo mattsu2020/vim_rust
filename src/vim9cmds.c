@@ -21,6 +21,8 @@
 # include "vim9.h"
 #endif
 
+#include "../rust_eval/include/rust_eval.h"
+
 /*
  * Get the index of the current instruction.
  * This compensates for a preceding ISN_CMDMOD and ISN_PROF_START.
@@ -1999,7 +2001,17 @@ compile_eval(char_u *arg, cctx_T *cctx)
     name_only = cmd_is_name_only(arg);
 
     if (compile_expr0(&p, cctx) == FAIL)
-	return NULL;
+        return NULL;
+
+    // Evaluate the expression using the Rust implementation.
+    {
+        typval_T tv;
+        if (eval_expr_rs((char *)arg, &tv))
+        {
+            if (tv.v_type == VAR_STRING && tv.vval.v_string != NULL)
+                vim_free(tv.vval.v_string);
+        }
+    }
 
     if (name_only && lnum == SOURCING_LNUM)
     {
