@@ -13,6 +13,12 @@
  */
 
 #include "vim.h"
+#include "normal_rs.h"
+
+int op_change(oparg_T *oap)
+{
+    return rs_op_change(oap);
+}
 
 static void shift_block(oparg_T *oap, int amount);
 static void	mb_adjust_opend(oparg_T *oap);
@@ -1887,7 +1893,7 @@ op_insert(oparg_T *oap, long count1)
  * return TRUE if edit() returns because of a CTRL-O command
  */
     int
-op_change(oparg_T *oap)
+op_change_c(oparg_T *oap)
 {
     colnr_T		l;
     int			retval;
