@@ -1294,14 +1294,11 @@ ALL_GUI_PRO  = gui.pro gui_gtk.pro gui_motif.pro gui_xmdlg.pro gui_gtk_x11.pro g
 
 # }}}
 
-TERM_DEPS = \
-	libvterm/include/vterm.h \
-	libvterm/include/vterm_keycodes.h \
-	libvterm/src/rect.h \
-	libvterm/src/utf8.h \
-	libvterm/src/vterm_internal.h
+TERM_DEPS =
+RUST_TERMINAL_LIB = rust/terminal/target/release/libterminal.a
 
-TERM_SRC = libvterm/src/*.c
+# libvterm sources are replaced by the Rust terminal crate
+TERM_SRC =
 
 XDIFF_SRC = \
 	xdiff/xdiffi.c \
@@ -1374,7 +1371,10 @@ MKDIR_P = $(SHELL) install-sh -c -d
 .SUFFIXES:
 .SUFFIXES: .c .o .pro
 
-VTERM_CFLAGS = -Ilibvterm/include
+VTERM_CFLAGS =
+
+$(RUST_TERMINAL_LIB):
+	cargo build --manifest-path rust/terminal/Cargo.toml --release
 
 PRE_DEFS = -Iproto $(DEFS) $(GUI_DEFS) $(GUI_IPATH) $(CPPFLAGS) $(EXTRA_IPATHS)
 POST_DEFS = $(X_CFLAGS) $(MZSCHEME_CFLAGS) $(EXTRA_DEFS)
