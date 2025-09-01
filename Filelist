@@ -657,12 +657,7 @@ SRC_DOS_BIN =	\
 		src/vim.tlb \
 		src/xpm/COPYRIGHT \
 		src/xpm/README.txt \
-		src/xpm/arm64/lib-vc14/libXpm.lib \
-		src/xpm/include/*.h \
-		src/xpm/x64/lib-vc14/libXpm.lib \
-		src/xpm/x64/lib/libXpm.a \
-		src/xpm/x86/lib-vc14/libXpm.lib \
-		src/xpm/x86/lib/libXpm.a \
+                src/xpm/include/*.h \
 		runtime/bitmaps/vim.ico \
 		nsis/icons.zip \
 

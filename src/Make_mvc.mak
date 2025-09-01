@@ -469,29 +469,15 @@ DIRECTX_OBJ = $(OUTDIR)\gui_dwrite.obj
 
 # Only allow XPM for a GUI build.
 ! IFNDEF XPM
-!  IFNDEF USE_MSVCRT
-# Both XPM and USE_MSVCRT are not set, use the included xpm files, depending
-# on the architecture.
-!   IF "$(CPU)" == "AMD64"
-XPM = xpm\x64
-!   ELSEIF "$(CPU)" == "ARM64"
-XPM = xpm\arm64
-!   ELSEIF "$(CPU)" == "i386"
-XPM = xpm\x86
-!   ELSE
-XPM = no
-!   ENDIF
-!  ELSE # USE_MSVCRT
-XPM = no
-!  ENDIF # USE_MSVCRT
-! ENDIF # XPM
+XPM = rust\xpm
+! ENDIF
 ! IF "$(XPM)" != "no"
 # XPM - Include support for XPM signs
 # See the xpm directory for more information.
 XPM_OBJ = $(OBJDIR)/xpm_w32.obj
 XPM_DEFS = -DFEAT_XPM_W32
-XPM_LIB = $(XPM)\lib-vc14\libXpm.lib
-XPM_INC = -I $(XPM)\include -I $(XPM)\..\include
+XPM_LIB = $(XPM)\target\release\libvim_xpm.a
+XPM_INC = -I $(XPM)\include
 ! ENDIF
 !ENDIF # GUI
 

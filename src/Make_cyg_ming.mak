@@ -717,28 +717,11 @@ endif
 ifeq (yes, $(GUI))
 
  ifndef XPM
-  ifeq ($(ARCH),i386)
-XPM = xpm/x86
-  endif
-  ifeq ($(ARCH),i486)
-XPM = xpm/x86
-  endif
-  ifeq ($(ARCH),i586)
-XPM = xpm/x86
-  endif
-  ifeq ($(ARCH),i686)
-XPM = xpm/x86
-  endif
-  ifeq ($(ARCH),x86-64)
-XPM = xpm/x64
-  endif
-  ifeq ($(ARCH),native)
-XPM = no
-  endif
+XPM = rust/xpm
  endif
  ifdef XPM
   ifneq ($(XPM),no)
-CFLAGS += -DFEAT_XPM_W32 -I $(XPM)/include -I $(XPM)/../include
+CFLAGS += -DFEAT_XPM_W32 -I $(XPM)/include
   endif
  endif
 
@@ -971,8 +954,8 @@ ifneq ($(XPM),no)
 # Only allow XPM for a GUI build.
  ifeq (yes, $(GUI))
 OBJ += $(OUTDIR)/xpm_w32.o
-# You'll need libXpm.a from http://gnuwin32.sf.net
-LIB += -L$(XPM)/lib -lXpm
+# Use the Rust-based XPM loader
+LIB += $(XPM)/target/release/libvim_xpm.a
  endif
 endif
 

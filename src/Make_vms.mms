@@ -324,8 +324,8 @@ GUI_INC_VER= ,\""/gtk_root/gtk\"",\""/gtk_root/glib\""
 MOTIF	 = YES
 .IFDEF XPM
 DEFS     = ,"HAVE_CONFIG_H","FEAT_GUI_MOTIF","HAVE_XPM"
-XPM_INC  = ,[.xpm.include]
-XPM_LIB  = ,OS_VMS_XPM.OPT/OPT
+XPM_INC  = ,[-.rust.xpm.include]
+XPM_LIB  = ,rust/xpm/target/release/libvim_xpm.a
 .ELSE
 DEFS     = ,"HAVE_CONFIG_H","FEAT_GUI_MOTIF"
 XPM_INC  =
@@ -882,7 +882,7 @@ ARCH_XPM = axp
 .ELSE
 ARCH_XPM = $(ARCH)
 .ENDIF
-	-@ write opt_file "[.xpm.vms.$(ARCH_XPM)]libxpm.olb/lib"
+        -@ write opt_file "rust/xpm/target/release/libvim_xpm.a/lib"
 	-@ close opt_file
 .ELSE
 	-@ write sys$output "using DECW/Motif environment."
