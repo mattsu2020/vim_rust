@@ -6968,7 +6968,7 @@ delete-insert	change.txt	/*delete-insert*
 delete-menus	gui.txt	/*delete-menus*
 deletebufline()	builtin.txt	/*deletebufline()*
 deleting	change.txt	/*deleting*
-demoserver.py	channel.txt	/*demoserver.py*
+demoserver	channel.txt	/*demoserver*
 design-assumptions	develop.txt	/*design-assumptions*
 design-compatible	develop.txt	/*design-compatible*
 design-decisions	develop.txt	/*design-decisions*

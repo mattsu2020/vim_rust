@@ -5,6 +5,9 @@ blink.c:	C program to make the cursor blink in an xterm.
 ccfilter*:	C program to filter the output of a few compilers to a common
 		QuickFix format.
 
+demoserver:     Rust example server for Vim channels.
+                Build with Cargo in the demoserver directory.
+
 efm_filter.*:	Perl script to filter compiler messages to QuickFix format.
 
 efm_perl.pl:	Perl script to filter error messages from the Perl interpreter
