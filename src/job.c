@@ -11,7 +11,6 @@
  */
 
 #include "vim.h"
-#include "channel_rs.h"
 
 #if defined(FEAT_JOB_CHANNEL) || defined(PROTO)
 

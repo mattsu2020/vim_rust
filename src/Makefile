@@ -1377,7 +1377,7 @@ MKDIR_P = $(SHELL) install-sh -c -d
 .SUFFIXES:
 .SUFFIXES: .c .o .pro
 
-VTERM_CFLAGS =
+VTERM_CFLAGS = -Ilibvterm/include
 
 $(RUST_TERMINAL_LIB):
 	cargo build --manifest-path rust/terminal/Cargo.toml --release
@@ -1419,7 +1419,12 @@ ALL_LIBS = \
            $(MZSCHEME_LIBS) \
            $(LIBS) \
            $(EXTRA_LIBS) \
-           $(RUST_MEM_LIB) \
+           \
+           rust/channel/target/release/libvim_channel.a \
+           ../rust/spell/target/release/libspell.a \
+           ../src/rust_regex/target/release/libvim_rust_regex.a \
+           rust/jsonlib/target/release/libvim_jsonlib.a \
+           rust/evallib/target/release/libvim_evallib.a \
            $(LUA_LIBS) \
            $(PERL_LIBS) \
            $(PYTHON_LIBS) \
@@ -2005,7 +2010,7 @@ all: $(VIMTARGET) $(TOOLS) languages $(GUI_BUNDLE) rust-channel rust-spell
 # This is a placeholder; a full integration would link the resulting static
 # library into the final executable.
 rust-channel:
-	cargo build --manifest-path=../rust/channel/Cargo.toml --release
+	cargo build --manifest-path=rust/channel/Cargo.toml --release
 
 rust-spell:
 	cargo build --manifest-path=../rust/spell/Cargo.toml --release
@@ -2110,7 +2115,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB)
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o
 	@$(BUILD_DATE_MSG)
 	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) $(OBJ) $(ALL_LIBS)" \
@@ -2214,7 +2219,7 @@ tags TAGS: notags
 csclean:
 	-rm -vf cscope.out
 cscope.out:
-   cscope -bv ./*.[ch] ./*.cpp ./if_perl.xs auto/*.h auto/pathdef.c proto/*.pro
+	cscope -bv ./*.[ch] ./*.cpp ./if_perl.xs auto/*.h auto/pathdef.c proto/*.pro
 cscope: csclean cscope.out  ;
 
 # Make a highlight file for types.  Requires Exuberant ctags and awk

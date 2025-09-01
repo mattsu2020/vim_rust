@@ -131,3 +131,12 @@ rust/terminal/target/
 
 rust_undo/target/
 src/rust/job/target/
+src/rust/spell/target/
+rust/spell/target/release/
+src/rust/crypto/core/target/
+src/rust/mem/target/
+rust/spell/target/
+src/rust_regex/target/
+src/rust_regex/target/release/
+src/rust/jsonlib/target/
+src/rust/evallib/target/

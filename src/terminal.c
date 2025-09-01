@@ -39,7 +39,6 @@
  */
 
 #include "vim.h"
-#include "channel_rs.h"
 
 #if defined(FEAT_TERMINAL) || defined(PROTO)
 

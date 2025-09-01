@@ -146,6 +146,10 @@ static void f_reg_executing(typval_T *argvars, typval_T *rettv);
 static void f_reg_recording(typval_T *argvars, typval_T *rettv);
 static void f_rename(typval_T *argvars, typval_T *rettv);
 static void f_repeat(typval_T *argvars, typval_T *rettv);
+#ifdef FEAT_EVAL
+// Forward declaration for Rust regex integration builtin
+static void f_rust_regex_match(typval_T *argvars, typval_T *rettv);
+#endif
 #ifdef FEAT_RUBY
 static void f_rubyeval(typval_T *argvars, typval_T *rettv);
 #endif

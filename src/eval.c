@@ -26,6 +26,19 @@
 // Returns non-zero on success and stores the evaluated result in "result".
 extern int eval_expr_rs(const char *expr, typval_T *result);
 
+// Forward declarations for internal eval* helpers and helpers used before
+// their definitions, to avoid implicit declarations with C99+ compilers.
+static int eval2(char_u **arg, typval_T *rettv, evalarg_T *evalarg);
+static int eval3(char_u **arg, typval_T *rettv, evalarg_T *evalarg);
+static int eval4(char_u **arg, typval_T *rettv, evalarg_T *evalarg);
+static int eval5(char_u **arg, typval_T *rettv, evalarg_T *evalarg);
+static int eval6(char_u **arg, typval_T *rettv, evalarg_T *evalarg);
+static int eval7(char_u **arg, typval_T *rettv, evalarg_T *evalarg, int want_string);
+static int eval8(char_u **arg, typval_T *rettv, evalarg_T *evalarg, int want_string);
+static int eval9(char_u **arg, typval_T *rettv, evalarg_T *evalarg, int want_string);
+static int eval9_leader(typval_T *rettv, int numeric_only, char_u *start_leader, char_u **end_leaderp);
+static char_u *make_expanded_name(char_u *in_start, char_u *expr_start, char_u *expr_end, char_u *in_end);
+
 
 
 /*

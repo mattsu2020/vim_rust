@@ -24,7 +24,6 @@ pub struct Channel {
 
 /// Opens a TCP connection to the given address ("host:port") and returns an
 /// opaque pointer to a `Channel` on success. `NULL` is returned on failure.
-#[no_mangle]
 pub extern "C" fn channel_open(addr: *const c_char) -> *mut Channel {
     if addr.is_null() {
         return ptr::null_mut();
@@ -67,6 +66,12 @@ pub extern "C" fn channel_open(addr: *const c_char) -> *mut Channel {
     }
 }
 
+// Export aliases with rs_ prefix to avoid C symbol clashes
+#[no_mangle]
+pub extern "C" fn rs_channel_open(addr: *const c_char) -> *mut Channel {
+    channel_open(addr)
+}
+
 /// Register a callback to be invoked for received messages. Passing a NULL
 /// callback unregisters the current one.
 #[no_mangle]
@@ -103,7 +108,6 @@ pub extern "C" fn channel_poll(chan: *mut Channel) {
 
 /// Sends `len` bytes from `data` over the channel. Returns 0 on success and -1
 /// on failure.
-#[no_mangle]
 pub extern "C" fn channel_send(chan: *mut Channel, data: *const c_char, len: usize) -> c_int {
     if chan.is_null() || data.is_null() {
         return -1;
@@ -114,6 +118,11 @@ pub extern "C" fn channel_send(chan: *mut Channel, data: *const c_char, len: usi
         Ok(_) => 0,
         Err(_) => -1,
     }
+}
+
+#[no_mangle]
+pub extern "C" fn rs_channel_send(chan: *mut Channel, data: *const c_char, len: usize) -> c_int {
+    channel_send(chan, data, len)
 }
 
 /// Receives at most `len` bytes into `buf`. Returns the number of bytes read or
@@ -134,10 +143,14 @@ pub extern "C" fn channel_receive(chan: *mut Channel, buf: *mut c_char, len: usi
 }
 
 /// Closes the channel and frees the underlying resources.
-#[no_mangle]
 pub extern "C" fn channel_close(chan: *mut Channel) {
     if chan.is_null() {
         return;
     }
     unsafe { drop(Box::from_raw(chan)); }
+}
+
+#[no_mangle]
+pub extern "C" fn rs_channel_close(chan: *mut Channel) {
+    channel_close(chan)
 }

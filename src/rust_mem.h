@@ -2,7 +2,8 @@
 #define RUST_MEM_H
 
 #include <stddef.h>
+#include <string.h>
 
-char *rs_memchr(const char *s, int c, size_t n);
+#define rs_memchr(s, c, n) ((char *)memchr((s), (c), (n)))
 
 #endif // RUST_MEM_H
