@@ -13,6 +13,12 @@
  */
 
 #include "vim.h"
+#include "normal_rs.h"
+
+void normal_cmd(oparg_T *oap, int toplevel)
+{
+    rs_normal_cmd(oap, toplevel);
+}
 
 static int	VIsual_mode_orig = NUL;		// saved Visual mode
 
@@ -680,7 +686,7 @@ normal_cmd_wait_for_msg(void)
  * Execute a command in Normal mode.
  */
     void
-normal_cmd(
+normal_cmd_c(
     oparg_T	*oap,
     int		toplevel UNUSED)	// TRUE when called from main()
 {
