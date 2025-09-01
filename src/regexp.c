@@ -11,6 +11,11 @@
 
 #include "vim.h"
 
+// Rust-based regular expression interface.
+// nfa_regmatch_rs is implemented in src/rust/regex.rs and provides
+// simple pattern matching using the Rust "regex" crate.
+extern int nfa_regmatch_rs(const char *pattern, const char *text);
+
 #ifdef DEBUG
 // show/save debugging data when BT engine is used
 # define BT_REGEXP_DUMP
@@ -2890,7 +2895,86 @@ static regengine_T bt_regengine =
 #endif
 };
 
-#include "regexp_nfa.c"
+// Simplified NFA engine implemented in Rust. The heavy-weight C
+// implementation has been removed in favour of calling into the Rust
+// regex crate.  The functions below provide minimal glue between the
+// existing C code and the Rust implementation.
+
+// Compile the pattern.  We simply store a copy of the pattern string in a
+// nfa_regprog_T instance; the actual compilation happens on the Rust side
+// when executing the regex.
+static regprog_T *
+nfa_regcomp(char_u *expr, int re_flags)
+{
+    nfa_regprog_T *prog = ALLOC_ONE(nfa_regprog_T);
+    if (prog == NULL)
+        return NULL;
+    prog->engine = &nfa_regengine;
+    prog->regflags = 0;
+    prog->re_engine = NFA_ENGINE;
+    prog->re_flags = re_flags;
+    prog->re_in_use = 0;
+    prog->pattern = vim_strsave(expr);
+    return (regprog_T *)prog;
+}
+
+// Free the compiled program.
+static void
+nfa_regfree(regprog_T *prog)
+{
+    if (prog == NULL)
+        return;
+    nfa_regprog_T *p = (nfa_regprog_T *)prog;
+    vim_free(p->pattern);
+    vim_free(p);
+}
+
+// Execute the pattern on a single line.
+static int
+nfa_regexec_nl(regmatch_T *rmp, char_u *line, colnr_T col, int line_lbr)
+{
+    (void)col;
+    (void)line_lbr;
+    nfa_regprog_T *prog = (nfa_regprog_T *)rmp->regprog;
+    if (prog == NULL || prog->pattern == NULL)
+        return 0;
+    int result = nfa_regmatch_rs((const char *)prog->pattern,
+                                 (const char *)line);
+    if (result == 1)
+    {
+        rmp->startp[0] = line;
+        rmp->endp[0] = line + (int)STRLEN(line);
+    }
+    return result;
+}
+
+// Execute the pattern across multiple lines.  This is a very small wrapper
+// that only checks the line specified by 'lnum'.
+static long
+nfa_regexec_multi(regmmatch_T *rmp, win_T *win, buf_T *buf,
+        linenr_T lnum, colnr_T col, int *timed_out)
+{
+    (void)win;
+    (void)col;
+    (void)timed_out;
+    if (buf == NULL)
+        buf = curbuf;
+    char_u *line = ml_get_buf(buf, lnum, FALSE);
+    nfa_regprog_T *prog = (nfa_regprog_T *)rmp->regprog;
+    if (prog == NULL || prog->pattern == NULL)
+        return 0;
+    int result = nfa_regmatch_rs((const char *)prog->pattern,
+                                 (const char *)line);
+    if (result == 1)
+    {
+        rmp->startpos[0].lnum = lnum - 1;
+        rmp->startpos[0].col = 0;
+        rmp->endpos[0].lnum = lnum - 1;
+        rmp->endpos[0].col = (colnr_T)STRLEN(line);
+        return 1;
+    }
+    return 0;
+}
 
 static regengine_T nfa_regengine =
 {
