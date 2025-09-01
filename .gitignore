@@ -128,3 +128,4 @@ src/cscope.out
 /.ccls-cache/
 /compile_commands.json
 rust/terminal/target/
+src/rust/job/target/
