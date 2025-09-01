@@ -20,6 +20,8 @@
 
 #include "vim.h"
 
+#include "rust_term.h"
+
 #ifdef FEAT_MZSCHEME
 # include "if_mzsch.h"
 #endif
@@ -4422,6 +4424,14 @@ mch_get_shellsize(void)
     long	rows = 0;
     long	columns = 0;
     char_u	*p;
+    int w = 0;
+    int h = 0;
+    if (rust_term_get_winsize(&w, &h) == 0 && w > 0 && h > 0)
+    {
+        Columns = w;
+        Rows = h;
+        return OK;
+    }
 
     /*
      * 1. try using an ioctl. It is the most accurate method.
