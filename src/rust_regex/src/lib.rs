@@ -14,6 +14,59 @@ fn compile_pattern(pattern: &str, magic: bool) -> Result<Regex, regex::Error> {
     Regex::new(&pat)
 }
 
+#[repr(C)]
+pub struct SearchStat {
+    pub cur: c_int,
+    pub cnt: c_int,
+    pub exact_match: c_int,
+    pub incomplete: c_int,
+    pub last_maxcount: c_int,
+}
+
+#[no_mangle]
+pub extern "C" fn rust_search_update_stat(
+    pat: *const c_char,
+    text: *const c_char,
+    stat: *mut SearchStat,
+) {
+    if pat.is_null() || text.is_null() || stat.is_null() {
+        return;
+    }
+    let c_pat = unsafe { CStr::from_ptr(pat) };
+    let c_text = unsafe { CStr::from_ptr(text) };
+    let pattern = match c_pat.to_str() {
+        Ok(p) => p,
+        Err(_) => return,
+    };
+    let text = match c_text.to_str() {
+        Ok(t) => t,
+        Err(_) => return,
+    };
+    let re = match Regex::new(pattern) {
+        Ok(r) => r,
+        Err(_) => return,
+    };
+    let mut cur: c_int = -1;
+    let mut cnt: c_int = 0;
+    let mut exact: c_int = 0;
+    for (i, m) in re.find_iter(text).enumerate() {
+        if i == 0 {
+            cur = m.start() as c_int;
+            if m.start() == 0 {
+                exact = 1;
+            }
+        }
+        cnt = i as c_int + 1;
+    }
+    unsafe {
+        (*stat).cur = cur;
+        (*stat).cnt = cnt;
+        (*stat).exact_match = exact;
+        (*stat).incomplete = 0;
+        (*stat).last_maxcount = cnt;
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn rust_regex_match(
     pat: *const c_char,
