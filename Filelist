@@ -181,17 +181,16 @@ SRC_ALL =	\
 		src/vim9cmds.c \
 		src/vim9compile.c \
 		src/vim9execute.c \
-		src/vim9expr.c \
-		src/vim9generics.c \
-		src/vim9instr.c \
-		src/vim9script.c \
-		src/vim9type.c \
-		src/viminfo.c \
-		src/winclip.c \
-		src/window.c \
-		src/rust/xxd/xxd.c \
-		src/testdir/*.in \
-		src/testdir/*.py \
+                src/vim9expr.c \
+                src/vim9generics.c \
+                src/vim9instr.c \
+                src/vim9script.c \
+                src/vim9type.c \
+                src/viminfo.c \
+                src/winclip.c \
+                src/window.c \
+                src/testdir/*.in \
+                src/testdir/*.py \
 		src/testdir/Make_all.mak \
 		src/testdir/README.txt \
 		src/testdir/commondumps.vim \

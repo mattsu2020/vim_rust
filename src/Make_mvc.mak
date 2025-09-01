@@ -1368,7 +1368,7 @@ uninstall.exe: uninstall.c dosinst.h version.h
 vimrun.exe: vimrun.c
 	$(CC) /nologo -DNDEBUG vimrun.c -link -subsystem:$(SUBSYSTEM_TOOLS)
 
-xxd/xxd.exe: xxd/xxd.c
+xxd/xxd.exe:
 	cd xxd
 	$(MAKE) -lf Make_mvc.mak $(MAKEFLAGS_TOOLS)
 	cd ..
