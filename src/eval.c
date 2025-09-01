@@ -24,7 +24,7 @@
 
 // FFI interface to the Rust expression evaluator.
 // Returns non-zero on success and stores the evaluated result in "result".
-extern int eval_expr_rs(const char *expr, long *result);
+extern int eval_expr_rs(const char *expr, typval_T *result);
 
 
 
@@ -139,7 +139,9 @@ eval_to_bool(
     int         skip,       // only parse, don't execute
     int         use_simple_function)
 {
-    long result = 0;
+    typval_T    result;
+    int         res;
+
     if (!eval_expr_rs((const char *)arg, &result))
     {
         if (error != NULL)
@@ -148,7 +150,9 @@ eval_to_bool(
     }
     if (error != NULL)
         *error = FALSE;
-    return result != 0;
+    res = tv_get_bool(&result) != 0;
+    clear_tv(&result);
+    return res;
 }
 
 /*
@@ -776,14 +780,7 @@ eval_expr_ext(char_u *arg, exarg_T *eap, int use_simple_function)
     tv = ALLOC_ONE(typval_T);
     if (tv == NULL)
         return NULL;
-    long result = 0;
-    if (eval_expr_rs((const char *)arg, &result))
-    {
-        tv->v_type = VAR_NUMBER;
-        tv->v_lock = 0;
-        tv->vval.v_number = result;
-    }
-    else
+    if (!eval_expr_rs((const char *)arg, tv))
     {
         VIM_CLEAR(tv);
     }
