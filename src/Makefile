@@ -1397,6 +1397,9 @@ DEPEND_CFLAGS = -DPROTO -DDEPEND -DFEAT_GUI $(LINT_CFLAGS)
 
 # Note: MZSCHEME_LIBS must come before LIBS, because LIBS adds -lm which is
 # needed by racket.
+RUST_ALLOC_DIR = ../rust_alloc
+RUST_ALLOC_LIB = $(RUST_ALLOC_DIR)/target/release/librust_alloc.a
+EXTRA_LIBS += $(RUST_ALLOC_LIB)
 ALL_LIB_DIRS = $(GUI_LIBS_DIR) $(X_LIBS_DIR)
 ALL_LIBS = \
 	   $(GUI_LIBS1) \
@@ -2087,13 +2090,16 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_ALLOC_LIB)
 	@$(BUILD_DATE_MSG)
 	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) $(OBJ) $(ALL_LIBS)" \
 		MAKE="$(MAKE)" LINK_AS_NEEDED=$(LINK_AS_NEEDED) \
-		PROG="vim" \
-		sh $(srcdir)/link.sh
+                PROG="vim" \
+                sh $(srcdir)/link.sh
+
+$(RUST_ALLOC_LIB):
+	cd $(RUST_ALLOC_DIR) && cargo build --release
 
 xxd/xxd$(EXEEXT): xxd/xxd.c
 	cd xxd; CC="$(CC)" CFLAGS="$(CPPFLAGS) $(CFLAGS)" LDFLAGS="$(LDFLAGS)" \

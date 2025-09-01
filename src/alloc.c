@@ -141,169 +141,16 @@ alloc_does_fail(size_t size)
 #define KEEP_ROOM (2 * 8192L)
 #define KEEP_ROOM_KB (KEEP_ROOM / 1024L)
 
-/*
- * The normal way to allocate memory.  This handles an out-of-memory situation
- * as well as possible, still returns NULL when we're completely out.
- */
-    void *
-alloc(size_t size)
-{
-    return lalloc(size, TRUE);
-}
+/* Allocation functions are implemented in Rust. */
+void *alloc(size_t size);
+void *alloc_id(size_t size, alloc_id_T id);
 
-#if defined(FEAT_QUICKFIX) || defined(PROTO)
-/*
- * alloc() with an ID for alloc_fail().
- */
-    void *
-alloc_id(size_t size, alloc_id_T id UNUSED)
-{
-# ifdef FEAT_EVAL
-    if (alloc_fail_id == id && alloc_does_fail(size))
-	return NULL;
-# endif
-    return lalloc(size, TRUE);
-}
-#endif
+void *alloc_clear(size_t size);
+void *alloc_clear_id(size_t size, alloc_id_T id);
+void *lalloc_clear(size_t size, int message);
+void *lalloc(size_t size, int message);
+void *lalloc_id(size_t size, int message, alloc_id_T id);
 
-/*
- * Allocate memory and set all bytes to zero.
- */
-    void *
-alloc_clear(size_t size)
-{
-    void *p;
-
-    p = lalloc(size, TRUE);
-    if (p != NULL)
-	(void)vim_memset(p, 0, size);
-    return p;
-}
-
-/*
- * Same as alloc_clear() but with allocation id for testing
- */
-    void *
-alloc_clear_id(size_t size, alloc_id_T id UNUSED)
-{
-#ifdef FEAT_EVAL
-    if (alloc_fail_id == id && alloc_does_fail(size))
-	return NULL;
-#endif
-    return alloc_clear(size);
-}
-
-/*
- * Allocate memory like lalloc() and set all bytes to zero.
- */
-    void *
-lalloc_clear(size_t size, int message)
-{
-    void *p;
-
-    p = lalloc(size, message);
-    if (p != NULL)
-	(void)vim_memset(p, 0, size);
-    return p;
-}
-
-/*
- * Low level memory allocation function.
- * This is used often, KEEP IT FAST!
- */
-    void *
-lalloc(size_t size, int message)
-{
-    void	*p;		    // pointer to new storage space
-    static int	releasing = FALSE;  // don't do mf_release_all() recursive
-    int		try_again;
-#if defined(HAVE_AVAIL_MEM)
-    static size_t allocated = 0;    // allocated since last avail check
-#endif
-
-    // Safety check for allocating zero bytes
-    if (size == 0)
-    {
-	// Don't hide this message
-	emsg_silent = 0;
-	iemsg(e_internal_error_lalloc_zero);
-	return NULL;
-    }
-
-#ifdef MEM_PROFILE
-    mem_pre_alloc_l(&size);
-#endif
-
-    // Loop when out of memory: Try to release some memfile blocks and
-    // if some blocks are released call malloc again.
-    for (;;)
-    {
-	// Handle three kinds of systems:
-	// 1. No check for available memory: Just return.
-	// 2. Slow check for available memory: call mch_avail_mem() after
-	//    allocating KEEP_ROOM amount of memory.
-	// 3. Strict check for available memory: call mch_avail_mem()
-	if ((p = malloc(size)) != NULL)
-	{
-#ifndef HAVE_AVAIL_MEM
-	    // 1. No check for available memory: Just return.
-	    goto theend;
-#else
-	    // 2. Slow check for available memory: call mch_avail_mem() after
-	    //    allocating (KEEP_ROOM / 2) amount of memory.
-	    allocated += size;
-	    if (allocated < KEEP_ROOM / 2)
-		goto theend;
-	    allocated = 0;
-
-	    // 3. check for available memory: call mch_avail_mem()
-	    if (mch_avail_mem(TRUE) < KEEP_ROOM_KB && !releasing)
-	    {
-		free(p);	// System is low... no go!
-		p = NULL;
-	    }
-	    else
-		goto theend;
-#endif
-	}
-	// Remember that mf_release_all() is being called to avoid an endless
-	// loop, because mf_release_all() may call alloc() recursively.
-	if (releasing)
-	    break;
-	releasing = TRUE;
-
-	clear_sb_text(TRUE);	      // free any scrollback text
-	try_again = mf_release_all(); // release as many blocks as possible
-
-	releasing = FALSE;
-	if (!try_again)
-	    break;
-    }
-
-    if (message && p == NULL)
-	do_outofmem_msg(size);
-
-theend:
-#ifdef MEM_PROFILE
-    mem_post_alloc(&p, size);
-#endif
-    return p;
-}
-
-/*
- * lalloc() with an ID for alloc_fail().
- */
-#if defined(FEAT_SIGNS) || defined(PROTO)
-    void *
-lalloc_id(size_t size, int message, alloc_id_T id UNUSED)
-{
-#ifdef FEAT_EVAL
-    if (alloc_fail_id == id && alloc_does_fail(size))
-	return NULL;
-#endif
-    return (lalloc(size, message));
-}
-#endif
 
 #if defined(MEM_PROFILE) || defined(PROTO)
 /*
@@ -598,24 +445,8 @@ vim_memsave(char_u *p, size_t len)
     return ret;
 }
 
-/*
- * Replacement for free() that ignores NULL pointers.
- * Also skip free() when exiting for sure, this helps when we caught a deadly
- * signal that was caused by a crash in free().
- * If you want to set NULL after calling this function, you should use
- * VIM_CLEAR() instead.
- */
-    void
-vim_free(void *x)
-{
-    if (x != NULL && !really_exiting)
-    {
-#ifdef MEM_PROFILE
-	mem_pre_free(&x);
-#endif
-	free(x);
-    }
-}
+/* Replacement for free() that ignores NULL pointers. Implemented in Rust. */
+void vim_free(void *x);
 
 /************************************************************************
  * Functions for handling growing arrays.
