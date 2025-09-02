@@ -32,33 +32,9 @@
 #if defined(FEAT_CLIPBOARD) || defined(PROTO)
 
 #if defined(FEAT_WAYLAND_CLIPBOARD)
-// Mime types we support sending and receiving
-// Mimes with a lower index in the array are prioritized first when we are
-// receiving data.
-static const char *supported_mimes[] = {
-    VIMENC_ATOM_NAME,
-    VIM_ATOM_NAME,
-    "text/plain;charset=utf-8",
-    "text/plain",
-    "UTF8_STRING",
-    "STRING",
-    "TEXT"
-};
-
-static void clip_wl_receive_data(Clipboard_T *cbd,
-	const char *mime_type, int fd);
-static void clip_wl_request_selection(Clipboard_T *cbd);
-static void clip_wl_send_data(const char *mime_type, int fd,
-	wayland_selection_T);
-static int clip_wl_own_selection(Clipboard_T *cbd);
-static void clip_wl_lose_selection(Clipboard_T *cbd);
-static void clip_wl_set_selection(Clipboard_T *cbd);
-static void clip_wl_selection_cancelled(wayland_selection_T selection);
-
-#if defined(USE_SYSTEM) && defined(PROTO)
-static int clip_wl_owner_exists(Clipboard_T *cbd);
-#endif
-
+extern char_u *rs_clipboard_get(size_t *len);
+extern int rs_clipboard_set(const char_u *data, size_t len);
+extern void rs_clipboard_free(char_u *data, size_t len);
 #endif
 
 /*
@@ -2472,54 +2448,15 @@ poll_data:
     static void
 clip_wl_request_selection(Clipboard_T *cbd)
 {
-    wayland_selection_T	    selection;
-    garray_T		    *mime_types;
-    int			    len;
-    int			    fd;
-    const char		    *chosen_mime = NULL;
-
-    if (cbd == &clip_star)
-	selection = WAYLAND_SELECTION_PRIMARY;
-    else if (cbd == &clip_plus)
-	selection = WAYLAND_SELECTION_REGULAR;
-    else
-	return;
-
-    // Get mime types that the source client offers
-    mime_types = wayland_cb_get_mime_types(selection);
-
-    if (mime_types == NULL || mime_types->ga_len == 0)
+    size_t len = 0;
+    char_u *text = rs_clipboard_get(&len);
+    if (text == NULL)
     {
-	// Selection is empty/cleared
-	clip_free_selection(cbd);
-	return;
+        clip_free_selection(cbd);
+        return;
     }
-
-    len = ARRAY_LENGTH(supported_mimes);
-
-    // Loop through and pick the one we want to receive from
-    for (int i = 0; i < len && chosen_mime == NULL; i++)
-    {
-	for (int k = 0; k < mime_types->ga_len && chosen_mime == NULL; k++)
-	{
-	    char *mime_type = ((char**)mime_types->ga_data)[k];
-
-	    if (STRCMP(mime_type, supported_mimes[i]) == 0)
-		chosen_mime = supported_mimes[i];
-	}
-    }
-    if (chosen_mime == NULL)
-	return;
-
-    fd = wayland_cb_receive_data(chosen_mime, selection);
-
-    if (fd == -1)
-	return;
-
-    // Start reading the file descriptor returned
-    clip_wl_receive_data(cbd, chosen_mime, fd);
-
-    close(fd);
+    clip_yank_selection(MCHAR, text, (long)len, cbd);
+    rs_clipboard_free(text, len);
 }
 
 /*
@@ -2695,8 +2632,18 @@ clip_wl_lose_selection(Clipboard_T *cbd)
  * we will fill in the selection only when requested by another client.
  */
     static void
-clip_wl_set_selection(Clipboard_T *cbd UNUSED)
+clip_wl_set_selection(Clipboard_T *cbd)
 {
+    char_u *str = NULL;
+    long_u len;
+
+    cbd->owned = TRUE;
+    clip_get_selection(cbd);
+    cbd->owned = FALSE;
+
+    if (clip_convert_selection(&str, &len, cbd) >= 0)
+        rs_clipboard_set(str, len);
+    vim_free(str);
 }
 
 #if defined(USE_SYSTEM) && defined(PROTO)
