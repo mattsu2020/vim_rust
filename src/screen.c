@@ -42,6 +42,7 @@
 
 #include "vim.h"
 #include "screen_rs.h"
+#include "drawscreen_rs.h"
 
 /*
  * The attributes that are actually active for writing to the screen.
@@ -2722,6 +2723,7 @@ give_up:
     if (rs_screen_buf != NULL)
         rs_screen_free(rs_screen_buf);
     rs_screen_buf = rs_screen_new((int)Columns, (int)Rows);
+    rs_drawscreen_init((int)Columns, (int)Rows);
 
     set_must_redraw(UPD_CLEAR);	// need to clear the screen later
     if (doclear)
