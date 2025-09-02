@@ -13,7 +13,7 @@
  */
 
 #include "vim.h"
-#include "normal_rs.h"
+#include "ops_rs.h"
 
 int op_change(oparg_T *oap)
 {

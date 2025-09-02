@@ -8,7 +8,6 @@ extern "C" {
 #endif
 
 void rs_normal_cmd(oparg_T *oap, int toplevel);
-int rs_op_change(oparg_T *oap);
 
 #ifdef __cplusplus
 }
