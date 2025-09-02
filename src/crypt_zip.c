@@ -9,10 +9,15 @@
 
 /*
  * crypt_zip.c: Zip encryption support.
+ *
+ * This file implements the classic Zip encryption in C.  It is kept for
+ * backwards compatibility but is deprecated when the Rust based crypto
+ * implementation is available.  When FEAT_RUST_CRYPT is defined the Rust
+ * code provides these routines and this file becomes empty.
  */
 #include "vim.h"
 
-#if defined(FEAT_CRYPT) || defined(PROTO)
+#if (defined(FEAT_CRYPT) && !defined(FEAT_RUST_CRYPT)) || defined(PROTO)
 /*
  * Optional encryption support.
  * Mohsin Ahmed, mosh@sasi.com, 98-09-24
