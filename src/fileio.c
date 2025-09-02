@@ -1,5 +1,6 @@
 #include "vim.h"
 #include "fileio_rs.h"
+#include "path_rs.h"
 
 /*
  * The original and complex C implementation for reading and writing files has
@@ -17,11 +18,17 @@ int readfile(char_u *fname, char_u *sfname, linenr_T from,
     (void)lines_to_read;
     (void)eap;
     (void)flags;
-    return rs_readfile((const char *)fname);
+    char_u *norm = normalize_path(fname);
+    int r = rs_readfile((const char *)norm);
+    vim_free(norm);
+    return r;
 }
 
 int writefile(char_u *fname, char_u *buf, size_t len, int flags)
 {
     (void)flags;
-    return rs_writefile((const char *)fname, (const char *)buf, len);
+    char_u *norm = normalize_path(fname);
+    int r = rs_writefile((const char *)norm, (const char *)buf, len);
+    vim_free(norm);
+    return r;
 }
