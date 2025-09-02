@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 similar = "2"
+libc = "0.2"
 
 [lib]
 name = "diff"
