@@ -59,14 +59,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust_gui"
-version = "0.1.0"
-dependencies = [
- "rust_gui_core",
- "rust_gui_x11",
-]
-
-[[package]]
 name = "rust_gui_core"
 version = "0.1.0"
 

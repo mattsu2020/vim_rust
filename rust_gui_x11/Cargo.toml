@@ -1,0 +1,8 @@
+[package]
+name = "rust_gui_x11"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+x11rb = "0.11"
+rust_gui_core = { path = "../rust_gui_core" }
