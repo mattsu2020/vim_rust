@@ -7,6 +7,7 @@ pub type GetlineOpt = c_int;
 pub type Fgetline = Option<unsafe extern "C" fn(c_int, *mut c_void, c_int, GetlineOpt) -> *mut CharU>;
 
 const FAIL: c_int = 0;
+const OK: c_int = 1;
 const MAGIC_ON: c_int = 3;
 const MAGIC_ALL: c_int = 4;
 
@@ -17,8 +18,11 @@ extern "C" {
     fn aborting() -> c_int;
 }
 
+// used for get_pressedreturn()/set_pressedreturn()
+static mut EX_PRESSEDRETURN: c_int = 0;
+
 #[no_mangle]
-pub extern "C" fn rust_do_cmdline(
+pub extern "C" fn do_cmdline(
     mut cmdline: *mut CharU,
     fgetline: Fgetline,
     cookie: *mut c_void,
@@ -37,7 +41,7 @@ pub extern "C" fn rust_do_cmdline(
                 }
             }
             let mut cmdp = cmdline;
-            let next = rust_do_one_cmd(&mut cmdp, flags, ptr::null_mut(), fgetline, cookie);
+            let next = do_one_cmd(&mut cmdp, flags, ptr::null_mut(), fgetline, cookie);
             if next.is_null() {
                 break;
             }
@@ -48,7 +52,7 @@ pub extern "C" fn rust_do_cmdline(
 }
 
 #[no_mangle]
-pub extern "C" fn rust_do_one_cmd(
+pub extern "C" fn do_one_cmd(
     cmdlinep: *mut *mut CharU,
     _flags: c_int,
     _cstack: *mut c_void,
@@ -77,7 +81,7 @@ pub extern "C" fn rust_do_one_cmd(
 }
 
 #[no_mangle]
-pub extern "C" fn rust_add_bufnum(bufnrs: *mut c_int, bufnump: *mut c_int, nr: c_int) {
+pub extern "C" fn add_bufnum(bufnrs: *mut c_int, bufnump: *mut c_int, nr: c_int) {
     unsafe {
         let mut i = 0;
         while i < *bufnump {
@@ -135,6 +139,81 @@ pub extern "C" fn rust_update_force_abort(cause_abort: c_int) {
     }
 }
 
+// ----- functions originally from ex_cmds2.c -----
+
+#[no_mangle]
+pub extern "C" fn autowrite(_buf: *mut c_void, _forceit: c_int) -> c_int {
+    // no-op stub, always fail
+    FAIL
+}
+
+#[no_mangle]
+pub extern "C" fn autowrite_all() {}
+
+#[no_mangle]
+pub extern "C" fn check_changed(_buf: *mut c_void, _flags: c_int) -> c_int {
+    0
+}
+
+#[no_mangle]
+pub extern "C" fn browse_save_fname(_buf: *mut c_void) {}
+
+#[no_mangle]
+pub extern "C" fn dialog_changed(_buf: *mut c_void, _checkall: c_int) {}
+
+#[no_mangle]
+pub extern "C" fn can_abandon(_buf: *mut c_void, _forceit: c_int) -> c_int {
+    1
+}
+
+#[no_mangle]
+pub extern "C" fn check_changed_any(_hidden: c_int, _unload: c_int) -> c_int {
+    0
+}
+
+#[no_mangle]
+pub extern "C" fn check_fname() -> c_int {
+    0
+}
+
+#[no_mangle]
+pub extern "C" fn buf_write_all(_buf: *mut c_void, _forceit: c_int) -> c_int {
+    OK
+}
+
+#[no_mangle]
+pub extern "C" fn ex_listdo(_eap: *mut c_void) {}
+
+#[no_mangle]
+pub extern "C" fn ex_compiler(_eap: *mut c_void) {}
+
+#[no_mangle]
+pub extern "C" fn init_pyxversion() {}
+
+#[no_mangle]
+pub extern "C" fn ex_pyxfile(_eap: *mut c_void) {}
+
+#[no_mangle]
+pub extern "C" fn ex_pyx(_eap: *mut c_void) {}
+
+#[no_mangle]
+pub extern "C" fn ex_pyxdo(_eap: *mut c_void) {}
+
+#[no_mangle]
+pub extern "C" fn ex_checktime(_eap: *mut c_void) {}
+
+// ----- replacements for get_pressedreturn/set_pressedreturn -----
+
+#[no_mangle]
+pub extern "C" fn get_pressedreturn() -> c_int {
+    unsafe { EX_PRESSEDRETURN }
+}
+
+#[no_mangle]
+pub extern "C" fn set_pressedreturn(val: c_int) {
+    unsafe { EX_PRESSEDRETURN = val; }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -155,19 +234,23 @@ mod tests {
         let mut buf = b"cmd1|cmd2".to_vec();
         buf.push(0);
         let mut cmdline = buf.as_mut_ptr();
-        let res = rust_do_cmdline(cmdline, None, ptr::null_mut(), 0);
+        let res = do_cmdline(cmdline, None, ptr::null_mut(), 0);
         assert_eq!(res, 0);
 
         let mut buf2 = b"abc|def".to_vec();
         buf2.push(0);
         let mut ptrp = buf2.as_mut_ptr();
-        let next = rust_do_one_cmd(&mut ptrp, 0, ptr::null_mut(), None, ptr::null_mut());
+        let next = do_one_cmd(&mut ptrp, 0, ptr::null_mut(), None, ptr::null_mut());
         assert!(!next.is_null());
 
         let mut bufs = [1, 2, 0];
         let mut num = 2;
-        rust_add_bufnum(bufs.as_mut_ptr(), &mut num, 3);
+        add_bufnum(bufs.as_mut_ptr(), &mut num, 3);
         assert_eq!(num, 3);
+
+        assert_eq!(get_pressedreturn(), 0);
+        set_pressedreturn(1);
+        assert_eq!(get_pressedreturn(), 1);
 
         let pat = b"foo\\|bar";
         let res = rust_empty_pattern_magic(pat.as_ptr(), pat.len(), MAGIC_ON);
