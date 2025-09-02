@@ -12,9 +12,7 @@
 
 #include "vim.h"
 #include "search_rs.h"
-#ifdef FEAT_RUST_SEARCH
 #include "rust_search.h"
-#endif
 
 #ifdef FEAT_EVAL
 static void set_vv_searchforward(void);
