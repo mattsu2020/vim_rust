@@ -1,11 +1,16 @@
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
+use std::io::Read;
 use std::os::raw::{c_char, c_int};
-use std::process::{Child, Command};
+use std::process::{Child, Command, Stdio};
 use std::ptr;
+use std::sync::{Arc, Mutex};
+use std::thread;
 
 /// Minimal job representation wrapping a spawned child process.
 pub struct Job {
     child: Child,
+    stdout: Arc<Mutex<Vec<u8>>>,
+    stderr: Arc<Mutex<Vec<u8>>>,
 }
 
 /// Start a job using the command provided as a C string.  The command is
@@ -24,12 +29,46 @@ pub extern "C" fn job_start(cmd: *const c_char) -> *mut Job {
 
     // Spawn using the platform shell for parity with Vim's job_start
     #[cfg(unix)]
-    let child = Command::new("sh").arg("-c").arg(cmd_str).spawn();
+    let mut command = Command::new("sh");
     #[cfg(windows)]
-    let child = Command::new("cmd").arg("/C").arg(cmd_str).spawn();
+    let mut command = Command::new("cmd");
 
-    match child {
-        Ok(child) => Box::into_raw(Box::new(Job { child })),
+    #[cfg(unix)]
+    let command = command.arg("-c").arg(cmd_str);
+    #[cfg(windows)]
+    let command = command.arg("/C").arg(cmd_str);
+
+    let command = command.stdout(Stdio::piped()).stderr(Stdio::piped());
+
+    match command.spawn() {
+        Ok(mut child) => {
+            let stdout_buf = Arc::new(Mutex::new(Vec::new()));
+            let stderr_buf = Arc::new(Mutex::new(Vec::new()));
+
+            if let Some(mut stdout) = child.stdout.take() {
+                let buf = Arc::clone(&stdout_buf);
+                thread::spawn(move || {
+                    let mut data = Vec::new();
+                    let _ = stdout.read_to_end(&mut data);
+                    if let Ok(mut locked) = buf.lock() {
+                        *locked = data;
+                    }
+                });
+            }
+
+            if let Some(mut stderr) = child.stderr.take() {
+                let buf = Arc::clone(&stderr_buf);
+                thread::spawn(move || {
+                    let mut data = Vec::new();
+                    let _ = stderr.read_to_end(&mut data);
+                    if let Ok(mut locked) = buf.lock() {
+                        *locked = data;
+                    }
+                });
+            }
+
+            Box::into_raw(Box::new(Job { child, stdout: stdout_buf, stderr: stderr_buf }))
+        }
         Err(_) => ptr::null_mut(),
     }
 }
@@ -47,17 +86,56 @@ pub extern "C" fn job_stop(job: *mut Job) -> c_int {
     }
 }
 
-/// Check the status of the job.  Returns 0 if running, the exit code if the
-/// process has finished, and -1 on error.
+/// Check the status of the job.  Returns -1 if still running, the exit code if
+/// the process has finished, and -2 on error.
 #[no_mangle]
 pub extern "C" fn job_status(job: *mut Job) -> c_int {
     if job.is_null() {
-        return -1;
+        return -2;
     }
     let job = unsafe { &mut *job };
     match job.child.try_wait() {
         Ok(Some(status)) => status.code().unwrap_or(-1),
-        Ok(None) => 0,
-        Err(_) => -1,
+        Ok(None) => -1,
+        Err(_) => -2,
     }
+}
+
+/// Retrieve the captured standard output of the job as a newly allocated C
+/// string.  The caller must free the returned pointer using `job_free_string`.
+#[no_mangle]
+pub extern "C" fn job_stdout(job: *mut Job) -> *mut c_char {
+    if job.is_null() {
+        return ptr::null_mut();
+    }
+    let job = unsafe { &mut *job };
+    let data = job.stdout.lock().unwrap();
+    match CString::new(data.clone()) {
+        Ok(s) => s.into_raw(),
+        Err(_) => ptr::null_mut(),
+    }
+}
+
+/// Retrieve the captured standard error of the job as a newly allocated C
+/// string.  The caller must free the returned pointer using `job_free_string`.
+#[no_mangle]
+pub extern "C" fn job_stderr(job: *mut Job) -> *mut c_char {
+    if job.is_null() {
+        return ptr::null_mut();
+    }
+    let job = unsafe { &mut *job };
+    let data = job.stderr.lock().unwrap();
+    match CString::new(data.clone()) {
+        Ok(s) => s.into_raw(),
+        Err(_) => ptr::null_mut(),
+    }
+}
+
+/// Free a string previously returned by `job_stdout` or `job_stderr`.
+#[no_mangle]
+pub extern "C" fn job_free_string(s: *mut c_char) {
+    if s.is_null() {
+        return;
+    }
+    unsafe { let _ = CString::from_raw(s); }
 }
