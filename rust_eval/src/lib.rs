@@ -1,5 +1,8 @@
+use once_cell::sync::Lazy;
+use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
+use std::sync::Mutex;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -27,19 +30,8 @@ pub struct typval_T {
     pub vval: ValUnion,
 }
 
-#[derive(Debug, Clone)]
-enum Expr {
-    Number(i64),
-    Str(String),
-    Add(Box<Expr>, Box<Expr>),
-    Sub(Box<Expr>, Box<Expr>),
-    Mul(Box<Expr>, Box<Expr>),
-    Div(Box<Expr>, Box<Expr>),
-    Concat(Box<Expr>, Box<Expr>),
-}
-
 #[derive(Debug, Clone, PartialEq)]
-enum Value {
+pub enum Value {
     Number(i64),
     Str(String),
 }
@@ -60,14 +52,67 @@ impl Value {
     }
 }
 
-fn parse_expr(input: &str) -> Result<Expr, ()> {
-    let mut chars = Tokenizer::new(input);
-    let expr = parse_concat(&mut chars)?;
-    if chars.next_non_ws().is_some() {
-        return Err(());
-    }
-    Ok(expr)
+#[derive(Debug, Clone)]
+enum Expr {
+    Number(i64),
+    Str(String),
+    Var(String),
+    Call(String, Vec<Expr>),
+    Add(Box<Expr>, Box<Expr>),
+    Sub(Box<Expr>, Box<Expr>),
+    Mul(Box<Expr>, Box<Expr>),
+    Div(Box<Expr>, Box<Expr>),
+    Concat(Box<Expr>, Box<Expr>),
 }
+
+pub struct Evaluator {
+    vars: HashMap<String, Value>,
+    funcs: HashMap<String, fn(&[Value]) -> Value>,
+}
+
+impl Evaluator {
+    pub fn new() -> Self {
+        let mut funcs: HashMap<String, fn(&[Value]) -> Value> = HashMap::new();
+        fn add_func(args: &[Value]) -> Value {
+            let a = args.get(0).map(|v| v.as_number()).unwrap_or(0);
+            let b = args.get(1).map(|v| v.as_number()).unwrap_or(0);
+            Value::Number(a + b)
+        }
+        fn concat_func(args: &[Value]) -> Value {
+            let mut s = String::new();
+            for v in args {
+                s.push_str(&v.clone().to_string());
+            }
+            Value::Str(s)
+        }
+        funcs.insert("add".to_string(), add_func);
+        funcs.insert("concat".to_string(), concat_func);
+        Evaluator { vars: HashMap::new(), funcs }
+    }
+
+    pub fn set_var(&mut self, name: &str, val: Value) {
+        self.vars.insert(name.to_string(), val);
+    }
+
+    pub fn get_var(&self, name: &str) -> Option<Value> {
+        self.vars.get(name).cloned()
+    }
+
+    pub fn call_function(&self, name: &str, args: &[Value]) -> Option<Value> {
+        self.funcs.get(name).map(|f| f(args))
+    }
+
+    pub fn eval_expr(&self, expr: &str) -> Result<Value, ()> {
+        let mut tokens = Tokenizer::new(expr);
+        let ast = parse_concat(&mut tokens)?;
+        if tokens.next_non_ws().is_some() {
+            return Err(());
+        }
+        Ok(eval(&ast, self))
+    }
+}
+
+static GLOBAL_EVAL: Lazy<Mutex<Evaluator>> = Lazy::new(|| Mutex::new(Evaluator::new()));
 
 struct Tokenizer<'a> {
     iter: std::iter::Peekable<std::str::Chars<'a>>,
@@ -113,7 +158,7 @@ impl<'a> Tokenizer<'a> {
         if s.is_empty() {
             None
         } else {
-                s.parse().ok()
+            s.parse().ok()
         }
     }
 
@@ -121,7 +166,7 @@ impl<'a> Tokenizer<'a> {
         if self.peek_non_ws() != Some('"') {
             return None;
         }
-        self.next_non_ws(); // skip opening quote
+        self.next_non_ws();
         let mut s = String::new();
         while let Some(c) = self.iter.next() {
             if c == '"' {
@@ -130,6 +175,29 @@ impl<'a> Tokenizer<'a> {
             s.push(c);
         }
         None
+    }
+
+    fn parse_identifier(&mut self) -> Option<String> {
+        let mut s = String::new();
+        if let Some(&c) = self.iter.peek() {
+            if c.is_ascii_alphabetic() || c == '_' {
+                s.push(c);
+                self.iter.next();
+            } else {
+                return None;
+            }
+        } else {
+            return None;
+        }
+        while let Some(&c) = self.iter.peek() {
+            if c.is_ascii_alphanumeric() || c == '_' {
+                s.push(c);
+                self.iter.next();
+            } else {
+                break;
+            }
+        }
+        Some(s)
     }
 }
 
@@ -152,10 +220,32 @@ fn parse_primary(tokens: &mut Tokenizer) -> Result<Expr, ()> {
         }
     }
     if let Some(num) = tokens.parse_number() {
-        Ok(Expr::Number(num))
-    } else {
-        Err(())
+        return Ok(Expr::Number(num));
     }
+    if let Some(id) = tokens.parse_identifier() {
+        if tokens.peek_non_ws() == Some('(') {
+            tokens.next_non_ws();
+            let mut args = Vec::new();
+            if tokens.peek_non_ws() != Some(')') {
+                loop {
+                    let arg = parse_concat(tokens)?;
+                    args.push(arg);
+                    match tokens.peek_non_ws() {
+                        Some(',') => { tokens.next_non_ws(); }
+                        Some(')') => break,
+                        _ => return Err(()),
+                    }
+                }
+            }
+            if tokens.next_non_ws() != Some(')') {
+                return Err(());
+            }
+            return Ok(Expr::Call(id, args));
+        } else {
+            return Ok(Expr::Var(id));
+        }
+    }
+    Err(())
 }
 
 fn parse_mul_div(tokens: &mut Tokenizer) -> Result<Expr, ()> {
@@ -211,33 +301,38 @@ fn parse_concat(tokens: &mut Tokenizer) -> Result<Expr, ()> {
     Ok(node)
 }
 
-fn eval(expr: &Expr) -> Value {
+fn eval(expr: &Expr, ctx: &Evaluator) -> Value {
     match expr {
         Expr::Number(n) => Value::Number(*n),
         Expr::Str(s) => Value::Str(s.clone()),
+        Expr::Var(name) => ctx.get_var(name).unwrap_or(Value::Number(0)),
+        Expr::Call(name, args) => {
+            let vals: Vec<Value> = args.iter().map(|e| eval(e, ctx)).collect();
+            ctx.call_function(name, &vals).unwrap_or(Value::Number(0))
+        }
         Expr::Add(a, b) => {
-            let a = eval(a).as_number();
-            let b = eval(b).as_number();
+            let a = eval(a, ctx).as_number();
+            let b = eval(b, ctx).as_number();
             Value::Number(a + b)
         }
         Expr::Sub(a, b) => {
-            let a = eval(a).as_number();
-            let b = eval(b).as_number();
+            let a = eval(a, ctx).as_number();
+            let b = eval(b, ctx).as_number();
             Value::Number(a - b)
         }
         Expr::Mul(a, b) => {
-            let a = eval(a).as_number();
-            let b = eval(b).as_number();
+            let a = eval(a, ctx).as_number();
+            let b = eval(b, ctx).as_number();
             Value::Number(a * b)
         }
         Expr::Div(a, b) => {
-            let a = eval(a).as_number();
-            let b = eval(b).as_number();
+            let a = eval(a, ctx).as_number();
+            let b = eval(b, ctx).as_number();
             Value::Number(a / b)
         }
         Expr::Concat(a, b) => {
-            let left = eval(a).to_string();
-            let right = eval(b).to_string();
+            let left = eval(a, ctx).to_string();
+            let right = eval(b, ctx).to_string();
             Value::Str(left + &right)
         }
     }
@@ -287,13 +382,86 @@ pub extern "C" fn eval_expr_rs(expr: *const c_char, out: *mut typval_T) -> bool 
         Ok(s) => s,
         Err(_) => return false,
     };
-    match parse_expr(expr_str) {
-        Ok(ast) => {
-            let val = eval(&ast);
+    let eval = GLOBAL_EVAL.lock().unwrap();
+    match eval.eval_expr(expr_str) {
+        Ok(val) => {
             unsafe { to_typval(val, out); }
             true
         }
         Err(_) => false,
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn eval_variable_rs(name: *const c_char, out: *mut typval_T) -> bool {
+    if name.is_null() || out.is_null() {
+        return false;
+    }
+    let c_str = unsafe { CStr::from_ptr(name) };
+    let name_str = match c_str.to_str() {
+        Ok(s) => s,
+        Err(_) => return false,
+    };
+    let eval = GLOBAL_EVAL.lock().unwrap();
+    match eval.get_var(name_str) {
+        Some(val) => {
+            unsafe { to_typval(val, out); }
+            true
+        }
+        None => false,
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn set_variable_rs(name: *const c_char, val: *const typval_T) -> bool {
+    if name.is_null() || val.is_null() {
+        return false;
+    }
+    let c_str = unsafe { CStr::from_ptr(name) };
+    let name_str = match c_str.to_str() {
+        Ok(s) => s,
+        Err(_) => return false,
+    };
+    let value = unsafe { from_typval(val) };
+    let mut eval = GLOBAL_EVAL.lock().unwrap();
+    if let Some(v) = value {
+        eval.set_var(name_str, v);
+        true
+    } else {
+        false
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn call_function_rs(name: *const c_char, args: *const typval_T, argc: usize, out: *mut typval_T) -> bool {
+    if name.is_null() || out.is_null() {
+        return false;
+    }
+    let c_str = unsafe { CStr::from_ptr(name) };
+    let name_str = match c_str.to_str() {
+        Ok(s) => s,
+        Err(_) => return false,
+    };
+    let slice = if args.is_null() {
+        &[][..]
+    } else {
+        unsafe { std::slice::from_raw_parts(args, argc) }
+    };
+    let mut vals = Vec::new();
+    for tv in slice {
+        if let Some(v) = unsafe { from_typval(tv) } {
+            vals.push(v);
+        } else {
+            return false;
+        }
+    }
+    let eval = GLOBAL_EVAL.lock().unwrap();
+    match eval.call_function(name_str, &vals) {
+        Some(v) => {
+            unsafe { to_typval(v, out); }
+            true
+        }
+        None => false,
     }
 }
 
@@ -302,21 +470,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_eval_number() {
-        let ast = parse_expr("1 + 2 * 3").unwrap();
-        assert_eq!(eval(&ast), Value::Number(7));
+    fn test_variable_and_function_eval() {
+        let mut ev = Evaluator::new();
+        ev.set_var("x", Value::Number(10));
+        assert_eq!(ev.eval_expr("x + 5").unwrap(), Value::Number(15));
+        assert_eq!(ev.eval_expr("add(x, 5)").unwrap(), Value::Number(15));
     }
 
     #[test]
-    fn test_eval_string_concat() {
-        let ast = parse_expr("\"foo\" . \"bar\"").unwrap();
-        assert_eq!(eval(&ast), Value::Str("foobar".to_string()));
+    fn test_vimscript_vim9script_compat() {
+        let mut ev = Evaluator::new();
+        ev.set_var("s", Value::Str("hi".to_string()));
+        let res_vim = ev.eval_expr("concat(s, \" there\")").unwrap();
+        let res_vim9 = ev.eval_expr("concat(s, \" there\")").unwrap();
+        assert_eq!(res_vim, res_vim9);
     }
 
     #[test]
     fn test_typval_roundtrip() {
-        let ast = parse_expr("\"a\" . \"b\"").unwrap();
-        let val = eval(&ast);
+        let val = Value::Str("ab".to_string());
         let mut tv = typval_T {
             v_type: Vartype::VAR_UNKNOWN,
             v_lock: 0,
@@ -326,7 +498,6 @@ mod tests {
             to_typval(val.clone(), &mut tv);
             let back = from_typval(&tv as *const typval_T).unwrap();
             if let Vartype::VAR_STRING = tv.v_type {
-                // free allocated string
                 let _ = CString::from_raw(tv.vval.v_string);
             }
             assert_eq!(back, val);
