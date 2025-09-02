@@ -1,7 +1,7 @@
 fn main() {
-    println!("cargo:rerun-if-changed=../src/rust_option.h");
+    println!("cargo:rerun-if-changed=../src/option_rs.h");
     let bindings = bindgen::Builder::default()
-        .header("../src/rust_option.h")
+        .header("../src/option_rs.h")
         .allowlist_type("rs_opt_t")
         .generate()
         .expect("Unable to generate bindings");

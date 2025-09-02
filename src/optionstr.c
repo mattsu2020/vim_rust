@@ -12,6 +12,7 @@
  */
 
 #include "vim.h"
+#include "option_rs.h"
 
 static char_u shm_buf[SHM_LEN];
 static int set_shm_recursive = 0;
@@ -625,6 +626,21 @@ set_string_option(
     vim_free(saved_oldval_g);
     vim_free(saved_newval);
 #endif
+    if (errmsg == NULL)
+    {
+        char_u *fullname = get_option_fullname(opt_idx);
+        if (fullname != NULL)
+        {
+            size_t len = STRLEN(fullname) + STRLEN(s) + 2;
+            char *buf = (char *)alloc(len);
+            if (buf != NULL)
+            {
+                vim_snprintf(buf, len, "%s=%s", fullname, s);
+                rs_parse_option(buf);
+                vim_free(buf);
+            }
+        }
+    }
     return errmsg;
 }
 

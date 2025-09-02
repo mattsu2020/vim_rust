@@ -38,7 +38,7 @@
 #define IN_OPTION_C
 #include "vim.h"
 #include "optiondefs.h"
-#include "rust_option.h"
+#include "option_rs.h"
 
 static const rs_opt_t *rs_option_table = NULL;
 static size_t rs_option_count = 0;
@@ -134,7 +134,16 @@ set_init_default_shell(void)
 	set_string_default_esc("sh", p, TRUE);
 #endif
     if (rs_verify_option("shell"))
-        rs_set_option("shell", (char *)p);
+    {
+        size_t len = STRLEN(p) + 7; // "shell=" + NUL
+        char *buf = (char *)alloc(len);
+        if (buf != NULL)
+        {
+            vim_snprintf(buf, len, "shell=%s", p);
+            rs_parse_option(buf);
+            vim_free(buf);
+        }
+    }
 }
 
 /*

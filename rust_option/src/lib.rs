@@ -9,6 +9,28 @@ mod bindings {
 use bindings::rs_opt_t;
 unsafe impl Sync for rs_opt_t {}
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Opt {
+    name: String,
+    value: String,
+}
+
+fn parse_option(s: &str) -> Option<Opt> {
+    let (name, value) = match s.split_once('=') {
+        Some((n, v)) => (n, v),
+        None => (s, "true"),
+    };
+    let name = name.trim();
+    if name.is_empty() {
+        return None;
+    }
+    let value = value.trim();
+    Some(Opt {
+        name: name.to_string(),
+        value: value.to_string(),
+    })
+}
+
 static OPTIONS: OnceLock<Mutex<HashMap<String, String>>> = OnceLock::new();
 
 static OPTION_DEFS: [rs_opt_t; 2] = [
@@ -143,6 +165,21 @@ pub extern "C" fn rs_load_options(path: *const c_char) -> bool {
     true
 }
 
+#[no_mangle]
+pub extern "C" fn rs_parse_option(assignment: *const c_char) -> bool {
+    if assignment.is_null() {
+        return false;
+    }
+    let cstr = unsafe { CStr::from_ptr(assignment) };
+    let Ok(s) = cstr.to_str() else { return false };
+    if let Some(opt) = parse_option(s) {
+        options().lock().unwrap().insert(opt.name, opt.value);
+        true
+    } else {
+        false
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -192,6 +229,24 @@ mod tests {
         assert!(!res_ptr.is_null());
         let res = unsafe { CString::from_raw(res_ptr) };
         assert_eq!(res.to_str().unwrap(), "foo");
+    }
+
+    #[test]
+    fn parse_option_assignment() {
+        rs_options_init();
+        let assign = CString::new("newopt=bar").unwrap();
+        assert!(rs_parse_option(assign.as_ptr()));
+        let name = CString::new("newopt").unwrap();
+        let val_ptr = rs_get_option(name.as_ptr());
+        assert!(!val_ptr.is_null());
+        let val = unsafe { CString::from_raw(val_ptr) };
+        assert_eq!(val.to_str().unwrap(), "bar");
+    }
+
+    #[test]
+    fn parse_option_invalid() {
+        let assign = CString::new("=bad").unwrap();
+        assert!(!rs_parse_option(assign.as_ptr()));
     }
 }
 
