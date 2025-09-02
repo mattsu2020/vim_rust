@@ -2,30 +2,23 @@ use rust_gui_core::backend::{GuiBackend, GuiEvent};
 use rust_gui_core::GuiCore;
 use std::collections::VecDeque;
 
-/// Backend implementation for GTK environments on Unix.
-/// This sample backend records drawing operations and stores events
-/// in a queue so it can be easily tested without a full GTK stack.
 #[derive(Default)]
-pub struct GtkBackend {
+pub struct MotifBackend {
     pub drawn: Vec<String>,
     pub events: VecDeque<GuiEvent>,
 }
 
-impl GtkBackend {
+impl MotifBackend {
     pub fn new() -> Self {
-        Self {
-            drawn: Vec::new(),
-            events: VecDeque::new(),
-        }
+        Self { drawn: Vec::new(), events: VecDeque::new() }
     }
 
-    /// Queue an event for later processing; primarily used in tests.
     pub fn push_event(&mut self, ev: GuiEvent) {
         self.events.push_back(ev);
     }
 }
 
-impl GuiBackend for GtkBackend {
+impl GuiBackend for MotifBackend {
     fn draw_text(&mut self, text: &str) {
         self.drawn.push(text.to_string());
     }
@@ -35,19 +28,14 @@ impl GuiBackend for GtkBackend {
     }
 }
 
-/// Expose a C ABI for running the GTK event loop and drawing logic.
-///
-/// The function creates a backend and GUI core, draws an initial message,
-/// and then processes events until none are left.  It is intentionally
-/// simplistic so it can be used in tests and as a stub for future work.
 #[no_mangle]
-pub extern "C" fn rs_gui_gtk_event_loop() {
-    let backend = GtkBackend::new();
+pub extern "C" fn rs_gui_motif_event_loop() {
+    let backend = MotifBackend::new();
     let mut gui = GuiCore::new(backend);
-    gui.draw_text("Vim Rust GTK GUI");
+    gui.draw_text("Vim Rust Motif GUI");
     while let Some(ev) = gui.backend_mut().poll_event() {
         if let GuiEvent::Expose = ev {
-            gui.draw_text("Vim Rust GTK GUI");
+            gui.draw_text("Vim Rust Motif GUI");
         }
     }
 }
@@ -58,7 +46,7 @@ mod tests {
 
     #[test]
     fn queue_and_draw() {
-        let mut backend = GtkBackend::new();
+        let mut backend = MotifBackend::new();
         backend.draw_text("hi");
         backend.push_event(GuiEvent::Key('a'));
         assert_eq!(backend.drawn, vec!["hi".to_string()]);

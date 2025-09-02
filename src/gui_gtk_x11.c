@@ -26,6 +26,7 @@
  */
 
 #include "vim.h"
+#include "gui_rust.h"
 #ifdef USE_GRESOURCE
 #include "auto/gui_gtk_gresources.h"
 #endif
@@ -7578,3 +7579,9 @@ gui_mch_destroy_sign(void *sign)
 }
 
 #endif // FEAT_SIGN_ICONS
+
+// Delegate the GTK event loop and drawing to the Rust implementation.
+void gui_mch_main_loop(void)
+{
+    rs_gui_gtk_event_loop();
+}

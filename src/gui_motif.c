@@ -9,6 +9,7 @@
  */
 
 #include "vim.h"
+#include "gui_rust.h"
 
 #include <Xm/Form.h>
 #include <Xm/RowColumn.h>
@@ -3906,5 +3907,11 @@ gui_motif_synch_fonts(void)
 	}
     }
 
-    XmFontListFree(font_list);
+XmFontListFree(font_list);
+}
+
+// Delegate the Motif event loop and drawing to the Rust implementation.
+void gui_mch_main_loop(void)
+{
+    rs_gui_motif_event_loop();
 }

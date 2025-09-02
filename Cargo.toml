@@ -24,6 +24,10 @@ rust_mzsch = { path = "rust_mzsch", optional = true }
 rust_xcmdsrv = { path = "rust_xcmdsrv", optional = true }
 rust_ole = { path = "rust_ole", optional = true }
 rust_alloc = { path = "rust_alloc" }
+rust_gui = { path = "rust_gui", optional = true }
+rust_gui_gtk = { path = "rust_gui_gtk", optional = true }
+rust_gui_motif = { path = "rust_gui_motif", optional = true }
+rust_gui_x11 = { path = "rust_gui_x11", optional = true }
 
 [features]
 default = []
@@ -34,6 +38,9 @@ tcl = ["rust_tcl"]
 mzsch = ["rust_mzsch"]
 xcmdsrv = ["rust_xcmdsrv"]
 ole = ["rust_ole"]
+gui_gtk = ["rust_gui", "rust_gui/gtk", "rust_gui_gtk"]
+gui_motif = ["rust_gui", "rust_gui/motif", "rust_gui_motif"]
+gui_x11 = ["rust_gui", "rust_gui/x11", "rust_gui_x11"]
 
 [target.'cfg(target_os = "windows")'.dependencies]
 rust_os_mswin = { path = "rust_os_mswin" }
