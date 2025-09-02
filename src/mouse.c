@@ -12,6 +12,7 @@
  */
 
 #include "vim.h"
+#include "rust_mouse.h"
 
 /*
  * Horiziontal and vertical steps used when scrolling.
@@ -177,6 +178,7 @@ get_fpos_of_mouse(pos_T *mpos)
 }
 #endif
 
+#if 0
 /*
  * Do the appropriate action for the current mouse click in the current mode.
  * Not used for Command-line mode.
@@ -1097,6 +1099,18 @@ do_mouse(
 	redraw_cmdline = TRUE;
 
     return moved;
+}
+#endif
+
+int
+do_mouse(
+    oparg_T     *oap,
+    int         c,
+    int         dir,
+    long        count,
+    int         fixindent)
+{
+    return rs_handle_mouse_event(oap, c, dir, count, fixindent);
 }
 
     void
