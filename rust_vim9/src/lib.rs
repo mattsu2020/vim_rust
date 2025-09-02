@@ -1,53 +1,34 @@
 use std::ffi::CStr;
 use std::os::raw::c_char;
 
-use rust_eval::{eval_expr_rs, typval_T, ValUnion, Vartype};
+use rust_eval::{typval_T, ValUnion, Vartype, eval_expr_rs};
 
-pub mod types {
-    #[derive(Debug, Clone, PartialEq)]
-    pub enum Vim9Type {
-        Any,
-        Number,
-        String,
-        Bool,
-    }
+mod types;
+mod parser;
+mod compiler;
+mod executor;
 
-    #[derive(Debug, Clone, PartialEq)]
-    pub enum Vim9Instr {
-        Const(i64),
-        Add,
-    }
-}
+use parser::parse_addition;
+use compiler::compile;
+use executor::execute;
 
-pub mod compile {
-    use super::types::{Vim9Instr, Vim9Type};
-
-    #[derive(Debug, Clone)]
-    pub struct Vim9Program {
-        pub instrs: Vec<Vim9Instr>,
-        pub result_type: Vim9Type,
-    }
-
-    pub fn compile_number(expr: &str) -> Vim9Program {
-        // very small compiler: only supports numbers and addition
-        let parts: Vec<&str> = expr.split('+').collect();
-        let mut instrs = Vec::new();
-        for p in parts {
-            if let Ok(n) = p.trim().parse::<i64>() {
-                instrs.push(Vim9Instr::Const(n));
-            }
-            instrs.push(Vim9Instr::Add);
-        }
-        Vim9Program { instrs, result_type: Vim9Type::Number }
-    }
+pub fn eval_expr(expr: &str) -> Option<i64> {
+    let ast = parse_addition(expr)?;
+    let prog = compile(&ast);
+    Some(execute(&prog))
 }
 
 pub mod cmds {
     use super::*;
-
     pub fn execute(expr: &str, out: *mut typval_T) -> bool {
-        let c_string = std::ffi::CString::new(expr).unwrap();
-        unsafe { eval_expr_rs(c_string.as_ptr(), out) }
+        match super::eval_expr(expr) {
+            Some(n) => unsafe {
+                (*out).v_type = Vartype::VAR_NUMBER;
+                (*out).vval = ValUnion { v_number: n };
+                true
+            },
+            None => false,
+        }
     }
 }
 
@@ -56,26 +37,10 @@ pub extern "C" fn vim9_eval_int(expr: *const c_char) -> i64 {
     if expr.is_null() {
         return 0;
     }
-    let mut tv = typval_T {
-        v_type: Vartype::VAR_UNKNOWN,
-        v_lock: 0,
-        vval: ValUnion { v_number: 0 },
-    };
-    let ok = unsafe { eval_expr_rs(expr, &mut tv as *mut typval_T) };
-    if !ok {
-        return 0;
-    }
-    unsafe {
-        match tv.v_type {
-            Vartype::VAR_NUMBER => tv.vval.v_number,
-            Vartype::VAR_STRING => {
-                if !tv.vval.v_string.is_null() {
-                    let _ = std::ffi::CString::from_raw(tv.vval.v_string);
-                }
-                0
-            }
-            _ => 0,
-        }
+    let c_str = unsafe { CStr::from_ptr(expr) };
+    match c_str.to_str().ok().and_then(|s| eval_expr(s)) {
+        Some(n) => n,
+        None => 0,
     }
 }
 
@@ -96,9 +61,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn eval_simple_int() {
-        let expr = std::ffi::CString::new("1 + 2 * 3").unwrap();
-        let res = unsafe { vim9_eval_int(expr.as_ptr()) };
-        assert_eq!(res, 7);
+    fn eval_simple_add() {
+        let expr = "1 + 2 + 3";
+        assert_eq!(eval_expr(expr), Some(6));
+    }
+
+    #[test]
+    fn compatibility_with_rust_eval() {
+        let expr = "1 + 2 + 3";
+        let ours = eval_expr(expr).unwrap();
+        let c_expr = std::ffi::CString::new(expr).unwrap();
+        let mut tv = typval_T { v_type: Vartype::VAR_UNKNOWN, v_lock: 0, vval: ValUnion { v_number: 0 } };
+        let ok = unsafe { eval_expr_rs(c_expr.as_ptr(), &mut tv as *mut typval_T) };
+        assert!(ok);
+        let theirs = unsafe { tv.vval.v_number };
+        assert_eq!(ours, theirs);
     }
 }
