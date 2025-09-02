@@ -12,6 +12,7 @@
  */
 
 #include "vim.h"
+#include "rust_spell.h"
 
 #if defined(FEAT_SPELL) || defined(PROTO)
 
@@ -735,6 +736,20 @@ spell_suggest_list(
     int		i;
     suggest_T	*stp;
     char_u	*wcopy;
+
+    char *rust_sug = rs_spell_best_suggestion((const char *)word);
+    if (rust_sug != NULL)
+    {
+        ga_init2(gap, sizeof(char_u *), 1);
+        if (ga_grow(gap, 1) == OK)
+        {
+            wcopy = vim_strsave((char_u *)rust_sug);
+            if (wcopy != NULL)
+                ((char_u **)gap->ga_data)[gap->ga_len++] = wcopy;
+        }
+        rs_spell_free_cstring(rust_sug);
+        return;
+    }
 
     spell_find_suggest(word, 0, &sug, maxcount, FALSE, need_cap, interactive);
 

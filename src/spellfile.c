@@ -238,6 +238,7 @@
  */
 
 #include "vim.h"
+#include "rust_spell.h"
 
 #if defined(FEAT_SPELL) || defined(PROTO)
 
@@ -3514,8 +3515,14 @@ spell_read_dic(spellinfo_T *spin, char_u *fname, afffile_T *affile)
     fd = mch_fopen((char *)fname, "r");
     if (fd == NULL)
     {
-	semsg(_(e_cant_open_file_str), fname);
-	return FAIL;
+        semsg(_(e_cant_open_file_str), fname);
+        return FAIL;
+    }
+
+    if (rs_spell_load_dictionary((const char *)fname))
+    {
+        fclose(fd);
+        return OK;
     }
 
     // The hashtable is only used to detect duplicated words.

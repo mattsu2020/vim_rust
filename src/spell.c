@@ -67,6 +67,7 @@
 
 #define IN_SPELL_C
 #include "vim.h"
+#include "rust_spell.h"
 
 #if defined(FEAT_SPELL) || defined(PROTO)
 
@@ -240,6 +241,20 @@ spell_check(
     // We always use the characters up to the next non-word character,
     // also for bad words.
     mi.mi_end = mi.mi_fend;
+
+    {
+        int wordlen = (int)(mi.mi_end - mi.mi_word);
+        char_u save = mi.mi_word[wordlen];
+        mi.mi_word[wordlen] = NUL;
+        if (rs_spell_check((const char *)mi.mi_word))
+        {
+            mi.mi_word[wordlen] = save;
+            if (attrp != NULL)
+                *attrp = HLF_COUNT;
+            return wordlen;
+        }
+        mi.mi_word[wordlen] = save;
+    }
 
     // Check caps type later.
     mi.mi_capflags = 0;
