@@ -413,8 +413,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust_os"
+name = "rust_os_mswin"
 version = "0.1.0"
+dependencies = [
+ "windows",
+]
 
 [[package]]
 name = "rust_profiler"
@@ -576,7 +579,7 @@ dependencies = [
  "diff",
  "rust_buffer",
  "rust_debugger",
- "rust_os",
+ "rust_os_mswin",
  "rust_profiler",
  "rust_pty",
  "rust_python",
@@ -638,6 +641,25 @@ dependencies = [
  "dlib",
  "log",
  "pkg-config",
+]
+
+[[package]]
+name = "windows"
+version = "0.52.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e48a53791691ab099e5e2ad123536d0fff50652600abaf43bbf952894110d0be"
+dependencies = [
+ "windows-core",
+ "windows-targets 0.52.6",
+]
+
+[[package]]
+name = "windows-core"
+version = "0.52.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "33ab640c8d7e35bf8ba19b884ba838ceb4fba93a4e8c65a9059d08afcfc683d9"
+dependencies = [
+ "windows-targets 0.52.6",
 ]
 
 [[package]]
