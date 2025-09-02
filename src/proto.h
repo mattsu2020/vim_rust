@@ -118,7 +118,6 @@ extern int _stricoll(char *a, char *b);
 #  include "menu.pro"
 # endif
 # ifdef FEAT_ARABIC
-#  include "arabic.pro"
 # endif
 # ifdef FEAT_VIMINFO
 #  include "viminfo.pro"

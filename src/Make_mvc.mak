@@ -671,7 +671,6 @@ INCL = vim.h alloc.h ascii.h ex_cmds.h feature.h errors.h globals.h \
 
 OBJ = \
 	$(OUTDIR)\alloc.obj \
-	$(OUTDIR)\arabic.obj \
 	$(OUTDIR)\arglist.obj \
 	$(OUTDIR)\autocmd.obj \
 	$(OUTDIR)\beval.obj \
@@ -1490,8 +1489,6 @@ test_vim9:
 
 $(OUTDIR)/alloc.obj: $(OUTDIR) alloc.c $(INCL)
 
-$(OUTDIR)/arabic.obj: $(OUTDIR) arabic.c $(INCL)
-
 $(OUTDIR)/arglist.obj: $(OUTDIR) arglist.c $(INCL)
 
 $(OUTDIR)/autocmd.obj: $(OUTDIR) autocmd.c $(INCL)
@@ -1894,7 +1891,6 @@ $(PATHDEF_SRC): Make_mvc.mak
 # End Custom Build
 proto.h: \
 	proto/alloc.pro \
-	proto/arabic.pro \
 	proto/arglist.pro \
 	proto/autocmd.pro \
 	proto/blob.pro \

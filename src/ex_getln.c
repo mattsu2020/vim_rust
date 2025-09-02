@@ -12,6 +12,7 @@
  */
 
 #include "vim.h"
+#include "rust_arabic.h"
 extern int rust_empty_pattern_magic(char_u *p, size_t len, int magic_val);
 
 // Return value when handling keys in command-line mode.

@@ -486,7 +486,6 @@ ALL_LIBS = $(LIBS) $(GUI_LIB_DIR) $(GUI_LIB) $(XPM_LIB)\
 
 SRC = \
  alloc.c \
- arabic.c \
  arglist.c \
  autocmd.c \
  beval.c \
@@ -619,7 +618,6 @@ SRC = \
 
 OBJ = \
  [.$(DEST)]alloc.obj \
- [.$(DEST)]arabic.obj \
  [.$(DEST)]arglist.obj \
  [.$(DEST)]autocmd.obj \
  [.$(DEST)]beval.obj \
@@ -1001,7 +999,6 @@ lua_env :
 [.$(DEST)]alloc.obj : alloc.c vim.h [.$(DEST)]config.h feature.h os_unix.h \
  ascii.h keymap.h termdefs.h macros.h structs.h regexp.h gui.h beval.h \
  [.proto]gui_beval.pro option.h ex_cmds.h proto.h errors.h globals.h
-[.$(DEST)]arabic.obj : arabic.c vim.h
 [.$(DEST)]arglist.obj : arglist.c vim.h [.$(DEST)]config.h feature.h os_unix.h
 [.$(DEST)]autocmd.obj : autocmd.c vim.h [.$(DEST)]config.h feature.h os_unix.h
 [.$(DEST)]blowfish.obj : blowfish.c vim.h [.$(DEST)]config.h feature.h os_unix.h
@@ -1193,8 +1190,7 @@ lua_env :
  errors.h globals.h
 [.$(DEST)]main.obj : main.c vim.h [.$(DEST)]config.h feature.h os_unix.h   \
  ascii.h keymap.h termdefs.h macros.h structs.h regexp.h gui.h beval.h \
- [.proto]gui_beval.pro option.h ex_cmds.h proto.h errors.h globals.h \
- arabic.c
+ [.proto]gui_beval.pro option.h ex_cmds.h proto.h errors.h globals.h
 [.$(DEST)]map.obj : map.c vim.h [.$(DEST)]config.h feature.h os_unix.h   \
  ascii.h keymap.h termdefs.h macros.h structs.h regexp.h gui.h beval.h \
  [.proto]gui_beval.pro option.h ex_cmds.h proto.h errors.h globals.h

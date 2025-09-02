@@ -79,6 +79,7 @@
 
 #include "vim.h"
 #include "rust_mbyte.h"
+#include "rust_arabic.h"
 
 #ifdef WIN32UNIX
 # ifndef WIN32_LEAN_AND_MEAN
