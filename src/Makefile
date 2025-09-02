@@ -290,7 +290,7 @@ VIEWNAME = view
 
 include auto/config.mk
 #.include "auto/config.mk"
-CFLAGS += -DUSE_RUST_REGEX -DUSE_RUST_BUFFER
+CFLAGS += -DUSE_RUST_BUFFER
 CClink = $(CC)
 
 #}}}

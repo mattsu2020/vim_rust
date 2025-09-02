@@ -1,6 +1,9 @@
 use regex::Regex;
 use std::ffi::{CStr, CString};
-use std::os::raw::{c_char, c_int};
+use std::os::raw::{c_char, c_int, c_long};
+use std::sync::mpsc;
+use std::thread;
+use std::time::Duration;
 
 #[repr(C)]
 pub struct RegProg {
@@ -34,6 +37,15 @@ pub extern "C" fn vim_regfree(prog: *mut RegProg) {
 pub struct RegMatch {
     pub startp: [*const c_char; 10],
     pub endp: [*const c_char; 10],
+}
+
+#[repr(C)]
+pub struct SearchStat {
+    pub cur: c_int,
+    pub cnt: c_int,
+    pub exact_match: c_int,
+    pub incomplete: c_int,
+    pub last_maxcount: c_int,
 }
 
 #[no_mangle]
@@ -73,4 +85,95 @@ pub extern "C" fn vim_regsub(prog: *mut RegProg, text: *const c_char, sub: *cons
     let sub_str = unsafe { CStr::from_ptr(sub).to_string_lossy() };
     let result = prog.regex.replace_all(&text_str, sub_str.as_ref()).into_owned();
     CString::new(result).unwrap().into_raw()
+}
+
+fn compile_pattern(pattern: &str, magic: bool) -> Result<Regex, regex::Error> {
+    let pat = if magic {
+        pattern.to_string()
+    } else {
+        regex::escape(pattern)
+    };
+    Regex::new(&pat)
+}
+
+#[no_mangle]
+pub extern "C" fn rust_search_update_stat(
+    pat: *const c_char,
+    text: *const c_char,
+    stat: *mut SearchStat,
+) {
+    if pat.is_null() || text.is_null() || stat.is_null() {
+        return;
+    }
+    let c_pat = unsafe { CStr::from_ptr(pat) };
+    let c_text = unsafe { CStr::from_ptr(text) };
+    let pattern = match c_pat.to_str() {
+        Ok(p) => p,
+        Err(_) => return,
+    };
+    let text = match c_text.to_str() {
+        Ok(t) => t,
+        Err(_) => return,
+    };
+    let re = match Regex::new(pattern) {
+        Ok(r) => r,
+        Err(_) => return,
+    };
+    let mut cur: c_int = -1;
+    let mut cnt: c_int = 0;
+    let mut exact: c_int = 0;
+    for (i, m) in re.find_iter(text).enumerate() {
+        if i == 0 {
+            cur = m.start() as c_int;
+            if m.start() == 0 {
+                exact = 1;
+            }
+        }
+        cnt = i as c_int + 1;
+    }
+    unsafe {
+        (*stat).cur = cur;
+        (*stat).cnt = cnt;
+        (*stat).exact_match = exact;
+        (*stat).incomplete = 0;
+        (*stat).last_maxcount = cnt;
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn rust_regex_match(
+    pat: *const c_char,
+    text: *const c_char,
+    magic: c_int,
+    timeout_ms: c_long,
+) -> c_int {
+    if pat.is_null() || text.is_null() {
+        return 0;
+    }
+    let c_pat = unsafe { CStr::from_ptr(pat) };
+    let c_text = unsafe { CStr::from_ptr(text) };
+    let pattern = match c_pat.to_str() {
+        Ok(p) => p,
+        Err(_) => return 0,
+    };
+    let text = match c_text.to_str() {
+        Ok(t) => t,
+        Err(_) => return 0,
+    };
+
+    let (tx, rx) = mpsc::channel();
+    let pattern = pattern.to_string();
+    let text = text.to_string();
+    let magic = magic != 0;
+    thread::spawn(move || {
+        let result = compile_pattern(&pattern, magic)
+            .map(|re| re.is_match(&text))
+            .unwrap_or(false);
+        let _ = tx.send(result);
+    });
+    let timeout = Duration::from_millis(timeout_ms as u64);
+    match rx.recv_timeout(timeout) {
+        Ok(v) => if v { 1 } else { 0 },
+        Err(_) => 0,
+    }
 }
