@@ -12,6 +12,7 @@
  */
 
 #include "vim.h"
+#include "help_rs.h"
 
 /*
  * ":help": open a read-only window on a help file
@@ -19,11 +20,9 @@
     void
 ex_help(exarg_T *eap)
 {
-    char_u	*arg;
-    char_u	*tag;
-    FILE	*helpfd;	// file descriptor of help file
-    int		n;
-    int		i;
+    char_u      *arg;
+    char_u      *tag;
+    int         i;
     win_T	*wp;
     int		num_matches;
     char_u	**matches;
@@ -31,6 +30,7 @@ ex_help(exarg_T *eap)
     int		empty_fnum = 0;
     int		alt_fnum = 0;
     buf_T	*buf;
+#endif
 #ifdef FEAT_MULTI_LANG
     int		len;
     char_u	*lang;
@@ -132,42 +132,14 @@ ex_help(exarg_T *eap)
 		if (bt_help(wp->w_buffer))
 		    break;
 	if (wp != NULL && wp->w_buffer->b_nwindows > 0)
-	    win_enter(wp, TRUE);
-	else
-	{
-	    // There is no help window yet.
-	    // Try to open the file specified by the "helpfile" option.
-	    if ((helpfd = mch_fopen((char *)p_hf, READBIN)) == NULL)
-	    {
-		smsg(_("Sorry, help file \"%s\" not found"), p_hf);
-		goto erret;
-	    }
-	    fclose(helpfd);
-
-	    // Split off help window; put it at far top if no position
-	    // specified, the current window is vertically split and
-	    // narrow.
-	    n = WSP_HELP;
-	    if (cmdmod.cmod_split == 0 && curwin->w_width != Columns
-						  && curwin->w_width < 80)
-		n |= p_sb ? WSP_BOT : WSP_TOP;
-	    if (win_split(0, n) == FAIL)
-		goto erret;
-
-	    if (curwin->w_height < p_hh)
-		win_setheight((int)p_hh);
-
-	    // Open help file (do_ecmd() will set b_help flag, readfile() will
-	    // set b_p_ro flag).
-	    // Set the alternate file to the previously edited file.
-	    alt_fnum = curbuf->b_fnum;
-	    (void)do_ecmd(0, NULL, NULL, NULL, ECMD_LASTL,
-			  ECMD_HIDE + ECMD_SET_HELP,
-			  NULL);  // buffer is still open, don't store info
-	    if ((cmdmod.cmod_flags & CMOD_KEEPALT) == 0)
-		curwin->w_alt_fnum = alt_fnum;
-	    empty_fnum = curbuf->b_fnum;
-	}
+            win_enter(wp, TRUE);
+        else
+        {
+            void *hwin = rs_help_open_window((int)curwin->w_width, (int)p_hh);
+            if (hwin == NULL)
+                goto erret;
+            (void)hwin;
+        }
     }
 
     if (!p_im)
@@ -316,7 +288,18 @@ help_compare(const void *s1, const void *s2)
  * When "keep_lang" is TRUE try keeping the language of the current buffer.
  */
     int
+int
 find_help_tags(
+    char_u      *arg,
+    int         *num_matches,
+    char_u      ***matches,
+    int         keep_lang)
+{
+    return rs_find_help_tags((const char *)arg, num_matches, (char ***)matches, keep_lang);
+}
+
+#if 0
+find_help_tags_c(
     char_u	*arg,
     int		*num_matches,
     char_u	***matches,
