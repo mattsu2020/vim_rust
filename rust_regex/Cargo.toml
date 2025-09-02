@@ -5,7 +5,7 @@ edition = "2021"
 
 [lib]
 name = "rust_regex"
-crate-type = ["staticlib"]
+crate-type = ["staticlib", "rlib"]
 
 [dependencies]
 regex = "1"
