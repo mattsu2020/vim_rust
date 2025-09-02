@@ -1388,6 +1388,8 @@ RUST_CHANNEL_DIR = ../rust_channel
 RUST_CHANNEL_LIB = $(RUST_CHANNEL_DIR)/target/release/librust_channel.a
 RUST_GUI_DIR = ../rust_gui
 RUST_GUI_LIB = $(RUST_GUI_DIR)/target/release/librust_gui.a
+RUST_PYTHON_DIR = ../rust_python
+RUST_PYTHON_LIB = $(RUST_PYTHON_DIR)/target/release/librust_python.a
 
 # Note: MZSCHEME_LIBS must come before LIBS, because LIBS adds -lm which is
 # needed by racket.
@@ -1407,6 +1409,7 @@ ALL_LIBS = \
            $(RUST_BUFFER_LIB) \
            $(RUST_CHANNEL_LIB) \
            $(RUST_GUI_LIB) \
+           $(RUST_PYTHON_LIB) \
            $(LUA_LIBS) \
            $(PERL_LIBS) \
            $(PYTHON_LIBS) \
@@ -1627,17 +1630,16 @@ SRC =	$(BASIC_SRC) \
 	$(TERM_SRC) \
 	$(XDIFF_SRC) \
 	$(LUA_SRC) \
-	$(MZSCHEME_SRC) \
-	$(PERL_SRC) \
-	$(PYTHON_SRC) $(PYTHON3_SRC) \
-	$(TCL_SRC) \
-	$(RUBY_SRC) \
-	$(WAYLAND_SRC)
+        $(MZSCHEME_SRC) \
+        $(PERL_SRC) \
+        $(TCL_SRC) \
+        $(RUBY_SRC) \
+        $(WAYLAND_SRC)
 
 EXTRA_SRC = if_lua.c if_mzsch.c auto/if_perl.c if_perlsfio.c \
-	    if_python.c if_python3.c if_tcl.c if_ruby.c \
-	    gui_beval.c netbeans.c job.c channel.c \
-	    $(GRESOURCE_SRC)
+           if_tcl.c if_ruby.c \
+           gui_beval.c netbeans.c job.c channel.c \
+            $(GRESOURCE_SRC)
 
 $(WAYLAND_SRC):
 	cd auto/wayland; $(MAKE)
@@ -1671,8 +1673,8 @@ ALL_SRC = $(ALL_LOCAL_SRC) $(TERM_SRC) $(XDIFF_SRC)
 # checks more, but may not work well for checking a GUI that wasn't configured.
 # The perl sources also don't work well with lint.
 LINT_SRC = $(BASIC_SRC) $(GUI_SRC) \
-	   $(PYTHON_SRC) $(PYTHON3_SRC) $(TCL_SRC) \
-	   $(NETBEANS_SRC) $(CHANNEL_SRC) $(TERM_SRC)
+           $(TCL_SRC) \
+           $(NETBEANS_SRC) $(CHANNEL_SRC) $(TERM_SRC)
 #LINT_SRC = $(SRC)
 #LINT_SRC = $(ALL_SRC)
 #LINT_SRC = $(BASIC_SRC)
@@ -1912,11 +1914,9 @@ PRO_AUTO = \
 	highlight.pro \
 	if_cscope.pro \
 	if_lua.pro \
-	if_mzsch.pro \
-	if_python.pro \
-	if_python3.pro \
-	if_ruby.pro \
-	if_xcmdsrv.pro \
+        if_mzsch.pro \
+        if_ruby.pro \
+        if_xcmdsrv.pro \
 	indent.pro \
 	insexpand.pro \
 	job.pro \
@@ -3413,16 +3413,9 @@ objects/if_perl.o: auto/if_perl.c
 	$(CCC_NF) $(PERL_CFLAGS) $(ALL_CFLAGS) $(PERL_CFLAGS_EXTRA) -o $@ auto/if_perl.c
 
 objects/if_perlsfio.o: if_perlsfio.c
-	$(CCC_NF) $(PERL_CFLAGS) $(ALL_CFLAGS) $(PERL_CFLAGS_EXTRA) -o $@ if_perlsfio.c
-
-objects/if_python.o: if_python.c if_py_both.h
-	$(CCC_NF) $(PYTHON_CFLAGS) $(ALL_CFLAGS) $(PYTHON_CFLAGS_EXTRA) -o $@ if_python.c
-
-objects/if_python3.o: if_python3.c if_py_both.h
-	$(CCC_NF) $(PYTHON3_CFLAGS) $(ALL_CFLAGS) $(PYTHON3_CFLAGS_EXTRA) -o $@ if_python3.c
-
+        $(CCC_NF) $(PERL_CFLAGS) $(ALL_CFLAGS) $(PERL_CFLAGS_EXTRA) -o $@ if_perlsfio.c
 objects/if_ruby.o: if_ruby.c
-	$(CCC_NF) $(RUBY_CFLAGS) $(ALL_CFLAGS) $(RUBY_CFLAGS_EXTRA) -o $@ if_ruby.c
+        $(CCC_NF) $(RUBY_CFLAGS) $(ALL_CFLAGS) $(RUBY_CFLAGS_EXTRA) -o $@ if_ruby.c
 
 objects/if_tcl.o: if_tcl.c
 	$(CCC_NF) $(TCL_CFLAGS) $(ALL_CFLAGS) $(TCL_CFLAGS_EXTRA) -o $@ if_tcl.c
@@ -4518,16 +4511,6 @@ objects/if_perlsfio.o: if_perlsfio.c vim.h protodef.h auto/config.h feature.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h errors.h
-objects/if_python.o: if_python.c vim.h protodef.h auto/config.h feature.h \
- os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
- beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h errors.h if_py_both.h
-objects/if_python3.o: if_python3.c vim.h protodef.h auto/config.h feature.h \
- os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
- beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h errors.h if_py_both.h
 objects/if_tcl.o: if_tcl.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
