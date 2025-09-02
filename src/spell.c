@@ -70,6 +70,7 @@
 
 #if defined(FEAT_SPELL) || defined(PROTO)
 
+#include "rust_spell.h"
 #include <time.h>
 
 #define REGION_ALL 0xff		// word valid in all regions
@@ -4369,6 +4370,37 @@ static int spell_expand_need_cap;
 spell_expand_check_cap(colnr_T col)
 {
     spell_expand_need_cap = check_need_cap(curwin, curwin->w_cursor.lnum, col);
+}
+
+/*
+ * Interface to the Rust spell suggestion engine.  "pat" is the word for
+ * which suggestions are requested.  The resulting strings are stored in
+ * "gap" as allocated copies owned by Vim.  The Rust side manages its own
+ * memory which we release once the suggestions have been copied.
+ */
+void
+spell_suggest_list(
+    garray_T   *gap,
+    char_u     *pat,
+    int         maxcount,
+    int         need_capital UNUSED,
+    int         respect_case UNUSED)
+{
+    size_t      len = 0;
+    char      **sugg;
+    int         i;
+
+    sugg = rs_spell_suggest((const char *)pat, (size_t)maxcount, &len);
+    ga_init2(gap, sizeof(char_u *), (int)len);
+    if (sugg == NULL)
+        return;
+    for (i = 0; i < (int)len; ++i)
+    {
+        if (ga_grow(gap, 1) == FAIL)
+            break;
+        ((char_u **)gap->ga_data)[gap->ga_len++] = vim_strsave((char_u *)sugg[i]);
+    }
+    rs_spell_free_suggestions(sugg, len);
 }
 
 /*

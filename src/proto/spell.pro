@@ -42,6 +42,7 @@ void spell_dump_compl(char_u *pat, int ic, int *dir, int dumpflags_arg);
 char_u *spell_to_word_end(char_u *start, win_T *win);
 int spell_word_start(int startcol);
 void spell_expand_check_cap(colnr_T col);
+void spell_suggest_list(garray_T *gap, char_u *pat, int maxcount, int need_capital, int respect_case);
 int expand_spelling(linenr_T lnum, char_u *pat, char_u ***matchp);
 int valid_spelllang(char_u *val);
 int valid_spellfile(char_u *val);
