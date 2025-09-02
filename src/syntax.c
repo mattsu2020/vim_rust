@@ -12,9 +12,7 @@
  */
 
 #include "vim.h"
-
-extern void rs_syntax_start(void *wp, long lnum);
-extern void rs_syn_update(int startofline);
+#include "rust_syntax.h"
 
 #if defined(FEAT_SYN_HL) || defined(PROTO)
 
