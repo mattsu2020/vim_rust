@@ -1,6 +1,6 @@
 use regex::Regex;
 use std::ffi::{CStr, CString};
-use std::os::raw::{c_char, c_int};
+use std::os::raw::{c_char, c_int, c_long, c_void};
 
 #[repr(C)]
 pub struct RegProg {
@@ -32,35 +32,83 @@ pub extern "C" fn vim_regfree(prog: *mut RegProg) {
 
 #[repr(C)]
 pub struct RegMatch {
+    pub regprog: *mut RegProg,
     pub startp: [*const c_char; 10],
     pub endp: [*const c_char; 10],
+    pub rm_matchcol: c_int,
+    pub rm_ic: c_int,
 }
 
-#[no_mangle]
-pub extern "C" fn vim_regexec(prog: *mut RegProg, text: *const c_char, matchp: *mut RegMatch) -> c_int {
-    if prog.is_null() || text.is_null() {
+#[repr(C)]
+pub struct Lpos {
+    pub lnum: c_long,
+    pub col: c_int,
+}
+
+#[repr(C)]
+pub struct RegMMMatch {
+    pub regprog: *mut RegProg,
+    pub startpos: [Lpos; 10],
+    pub endpos: [Lpos; 10],
+    pub rmm_matchcol: c_int,
+    pub rmm_ic: c_int,
+    pub rmm_maxcol: c_int,
+}
+
+fn regexec_internal(rmp: *mut RegMatch, line: *const c_char, col: c_int) -> c_int {
+    if rmp.is_null() || line.is_null() {
         return 0;
     }
-    let prog = unsafe { &*prog };
-    let text_str = unsafe { CStr::from_ptr(text).to_string_lossy().into_owned() };
-    match prog.regex.captures(&text_str) {
+    let prog_ptr = unsafe { (*rmp).regprog };
+    if prog_ptr.is_null() {
+        return 0;
+    }
+    let prog = unsafe { &*prog_ptr };
+    let line_bytes = unsafe { CStr::from_ptr(line).to_bytes() };
+    if (col as usize) > line_bytes.len() {
+        return 0;
+    }
+    let slice_bytes = &line_bytes[(col as usize)..];
+    let slice_str = match std::str::from_utf8(slice_bytes) {
+        Ok(s) => s,
+        Err(_) => return 0,
+    };
+    match prog.regex.captures(slice_str) {
         Some(caps) => {
-            if !matchp.is_null() {
-                let m = unsafe { &mut *matchp };
-                for i in 0..10 {
-                    if let Some(cap) = caps.get(i) {
-                        m.startp[i] = text_str.as_ptr().wrapping_add(cap.start()) as *const c_char;
-                        m.endp[i] = text_str.as_ptr().wrapping_add(cap.end()) as *const c_char;
-                    } else {
-                        m.startp[i] = std::ptr::null();
-                        m.endp[i] = std::ptr::null();
-                    }
+            let m = unsafe { &mut *rmp };
+            for i in 0..10 {
+                if let Some(cap) = caps.get(i) {
+                    let start = col as usize + cap.start();
+                    let end = col as usize + cap.end();
+                    m.startp[i] = unsafe { line.add(start) };
+                    m.endp[i] = unsafe { line.add(end) };
+                } else {
+                    m.startp[i] = std::ptr::null();
+                    m.endp[i] = std::ptr::null();
                 }
             }
             1
         }
         None => 0,
     }
+}
+
+#[no_mangle]
+pub extern "C" fn vim_regexec(rmp: *mut RegMatch, line: *const c_char, col: c_int) -> c_int {
+    regexec_internal(rmp, line, col)
+}
+
+#[no_mangle]
+pub extern "C" fn vim_regexec_nl(rmp: *mut RegMatch, line: *const c_char, col: c_int) -> c_int {
+    // For simplicity the implementation is the same as vim_regexec.
+    regexec_internal(rmp, line, col)
+}
+
+#[no_mangle]
+pub extern "C" fn vim_regexec_multi(_rmp: *mut RegMMMatch, _win: *mut c_void,
+                                     _buf: *mut c_void, _lnum: c_long, _col: c_int,
+                                     _timed_out: *mut c_int) -> c_long {
+    0
 }
 
 #[no_mangle]
