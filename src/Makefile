@@ -1394,7 +1394,10 @@ RUST_EVALFUNC_DIR = ../rust_evalfunc
 RUST_EVALFUNC_LIB = $(RUST_EVALFUNC_DIR)/target/release/librust_evalfunc.a
 RUST_ARABIC_DIR = ../rust_arabic
 RUST_ARABIC_LIB = $(RUST_ARABIC_DIR)/target/release/librust_arabic.a
+RUST_BEVAL_DIR = ../rust_beval
+RUST_BEVAL_LIB = $(RUST_BEVAL_DIR)/target/release/librust_beval.a
 EXTRA_IPATHS += -I$(RUST_ARABIC_DIR)/include
+EXTRA_IPATHS += -I$(RUST_BEVAL_DIR)/include
 
 # Note: MZSCHEME_LIBS must come before LIBS, because LIBS adds -lm which is
 # needed by racket.
@@ -1417,11 +1420,12 @@ ALL_LIBS = \
            $(RUST_PYTHON_LIB) \
            $(RUST_EVALFUNC_LIB) \
            $(RUST_ARABIC_LIB) \
+           $(RUST_BEVAL_LIB) \
            $(LUA_LIBS) \
            $(PERL_LIBS) \
            $(PYTHON_LIBS) \
            $(PYTHON3_LIBS) \
-	   $(TCL_LIBS) \
+           $(TCL_LIBS) \
 	   $(RUBY_LIBS) \
 	   $(PROFILE_LIBS) \
 	   $(SANITIZER_LIBS) \
@@ -1460,7 +1464,10 @@ $(RUST_EVALFUNC_LIB):
 	cd $(RUST_EVALFUNC_DIR) && cargo build --release
 
 $(RUST_ARABIC_LIB):
-	cd $(RUST_ARABIC_DIR) && cargo build --release
+       cd $(RUST_ARABIC_DIR) && cargo build --release
+
+$(RUST_BEVAL_LIB):
+       cd $(RUST_BEVAL_DIR) && cargo build --release
 DEST_LANG = $(DESTDIR)$(LANGSUBLOC)
 DEST_COMP = $(DESTDIR)$(COMPSUBLOC)
 DEST_KMAP = $(DESTDIR)$(KMAPSUBLOC)
@@ -1514,13 +1521,12 @@ include testdir/Make_all.mak
 #	       ALL_SRC: source files used for make depend and make lint
 
 BASIC_SRC = \
-	alloc.c \
-	arglist.c \
-	autocmd.c \
-	beval.c \
-	blob.c \
-	blowfish.c \
-	buffer.c \
+        alloc.c \
+        arglist.c \
+        autocmd.c \
+        blob.c \
+        blowfish.c \
+        buffer.c \
        # change.c replaced by rust_change crate \
 	charset.c \
 	cindent.c \
@@ -1682,14 +1688,13 @@ LINT_SRC = $(BASIC_SRC) $(GUI_SRC) \
 #LINT_SRC = $(BASIC_SRC)
 
 OBJ_COMMON = \
-	objects/alloc.o \
-	objects/arglist.o \
-	objects/autocmd.o \
-	objects/beval.o \
-	objects/buffer.o \
-	objects/change.o \
-	objects/blob.o \
-	objects/cindent.o \
+        objects/alloc.o \
+        objects/arglist.o \
+        objects/autocmd.o \
+        objects/buffer.o \
+        objects/change.o \
+        objects/blob.o \
+        objects/cindent.o \
 	objects/clientserver.o \
 	objects/clipboard.o \
 	objects/cmdexpand.o \
@@ -1825,14 +1830,13 @@ ALL_OBJ = $(OBJ_COMMON) \
 
 
 PRO_AUTO = \
-	alloc.pro \
-	arglist.pro \
-	autocmd.pro \
-	beval.pro \
-	blowfish.pro \
-	buffer.pro \
-	bufwrite.pro \
-	change.pro \
+        alloc.pro \
+        arglist.pro \
+        autocmd.pro \
+        blowfish.pro \
+        buffer.pro \
+        bufwrite.pro \
+        change.pro \
 	channel.pro \
 	charset.pro \
 	cindent.pro \
@@ -2071,7 +2075,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_BUFFER_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_ARABIC_LIB)
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_BUFFER_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB)
 	@$(BUILD_DATE_MSG)
 	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) $(OBJ) $(ALL_LIBS)" \
@@ -3269,9 +3273,6 @@ objects/help.o: help.c
 objects/gui.o: gui.c
 	$(CCC) -o $@ gui.c
 
-objects/beval.o: beval.c
-	$(CCC) -o $@ beval.c
-
 objects/gui_beval.o: gui_beval.c
 	$(CCC) -o $@ gui_beval.c
 
@@ -3716,10 +3717,6 @@ objects/autocmd.o: autocmd.c vim.h protodef.h auto/config.h feature.h os_unix.h 
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/beval.o: beval.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
 objects/blob.o: blob.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
