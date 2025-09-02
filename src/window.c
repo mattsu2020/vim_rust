@@ -9,11 +9,9 @@
 
 #include "vim.h"
 
-#ifdef FEAT_RUST_WINDOW
 extern void rs_win_new(void *wp, int width, int height);
 extern void rs_win_update(void *wp, int width, int height);
 extern void rs_win_free(void *wp);
-#endif
 
 static void cmd_with_count(char *cmd, char_u *bufp, size_t bufsize, long Prenum);
 static void win_init(win_T *newp, win_T *oldp, int flags);
@@ -3498,9 +3496,7 @@ win_free_mem(
     frp = win->w_frame;
     wp = winframe_remove(win, dirp, tp, NULL);
     vim_free(frp);
-#ifdef FEAT_RUST_WINDOW
     rs_win_free(win);
-#endif
     win_free(win, tp);
 
     // When deleting the current window in the tab, select a new current
@@ -5800,9 +5796,7 @@ win_alloc(win_T *after, int hidden)
 
     new_wp->w_id = ++last_win_id;
 
-#ifdef FEAT_RUST_WINDOW
     rs_win_new(new_wp, new_wp->w_width, new_wp->w_height);
-#endif
 
 #ifdef FEAT_EVAL
     // init w: variables
@@ -7225,9 +7219,7 @@ win_new_height(win_T *wp, int height)
         wp->w_skipcol = 0;
         scroll_to_fraction(wp, prev_height);
     }
-#ifdef FEAT_RUST_WINDOW
     rs_win_update(wp, wp->w_width, wp->w_height);
-#endif
 }
 
     void
@@ -7365,9 +7357,7 @@ win_new_width(win_T *wp, int width)
 
     redraw_win_later(wp, UPD_NOT_VALID);
     wp->w_redr_status = TRUE;
-#ifdef FEAT_RUST_WINDOW
     rs_win_update(wp, wp->w_width, wp->w_height);
-#endif
 }
 
     void
