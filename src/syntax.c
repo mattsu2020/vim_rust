@@ -13,10 +13,8 @@
 
 #include "vim.h"
 
-#ifdef USE_RUST_SYNTAX
 extern void rs_syntax_start(void *wp, long lnum);
 extern void rs_syn_update(int startofline);
-#endif
 
 #if defined(FEAT_SYN_HL) || defined(PROTO)
 
@@ -361,181 +359,9 @@ static void syn_combine_list(short **clstr1, short **clstr2, int list_op);
     void
 syntax_start(win_T *wp, linenr_T lnum)
 {
-#ifdef USE_RUST_SYNTAX
     rs_syntax_start((void *)wp, (long)lnum);
-    return;
-#else
-    synstate_T	*p;
-    synstate_T	*last_valid = NULL;
-    synstate_T	*last_min_valid = NULL;
-    synstate_T	*sp, *prev = NULL;
-    linenr_T	parsed_lnum;
-    linenr_T	first_stored;
-    int		dist;
-    static varnumber_T changedtick = 0;	// remember the last change ID
-
-#ifdef FEAT_CONCEAL
-    current_sub_char = NUL;
-#endif
-
-    /*
-     * After switching buffers, invalidate current_state.
-     * Also do this when a change was made, the current state may be invalid
-     * then.
-     */
-    if (syn_block != wp->w_s
-	    || syn_buf != wp->w_buffer
-	    || changedtick != CHANGEDTICK(syn_buf))
-    {
-	invalidate_current_state();
-	syn_buf = wp->w_buffer;
-	syn_block = wp->w_s;
-    }
-    changedtick = CHANGEDTICK(syn_buf);
-    syn_win = wp;
-
-    /*
-     * Allocate syntax stack when needed.
-     */
-    syn_stack_alloc();
-    if (syn_block->b_sst_array == NULL)
-	return;		// out of memory
-    syn_block->b_sst_lasttick = display_tick;
-
-    /*
-     * If the state of the end of the previous line is useful, store it.
-     */
-    if (VALID_STATE(&current_state)
-	    && current_lnum < lnum
-	    && current_lnum < syn_buf->b_ml.ml_line_count)
-    {
-	(void)syn_finish_line(FALSE);
-	if (!current_state_stored)
-	{
-	    ++current_lnum;
-	    (void)store_current_state();
-	}
-
-	/*
-	 * If the current_lnum is now the same as "lnum", keep the current
-	 * state (this happens very often!).  Otherwise invalidate
-	 * current_state and figure it out below.
-	 */
-	if (current_lnum != lnum)
-	    invalidate_current_state();
-    }
-    else
-	invalidate_current_state();
-
-    /*
-     * Try to synchronize from a saved state in b_sst_array[].
-     * Only do this if lnum is not before and not to far beyond a saved state.
-     */
-    if (INVALID_STATE(&current_state) && syn_block->b_sst_array != NULL)
-    {
-	// Find last valid saved state before start_lnum.
-	FOR_ALL_SYNSTATES(syn_block, p)
-	{
-	    if (p->sst_lnum > lnum)
-		break;
-	    if (p->sst_lnum <= lnum && p->sst_change_lnum == 0)
-	    {
-		last_valid = p;
-		if (p->sst_lnum >= lnum - syn_block->b_syn_sync_minlines)
-		    last_min_valid = p;
-	    }
-	}
-	if (last_min_valid != NULL)
-	    load_current_state(last_min_valid);
-    }
-
-    /*
-     * If "lnum" is before or far beyond a line with a saved state, need to
-     * re-synchronize.
-     */
-    if (INVALID_STATE(&current_state))
-    {
-	syn_sync(wp, lnum, last_valid);
-	if (current_lnum == 1)
-	    // First line is always valid, no matter "minlines".
-	    first_stored = 1;
-	else
-	    // Need to parse "minlines" lines before state can be considered
-	    // valid to store.
-	    first_stored = current_lnum + syn_block->b_syn_sync_minlines;
-    }
-    else
-	first_stored = current_lnum;
-
-    /*
-     * Advance from the sync point or saved state until the current line.
-     * Save some entries for syncing with later on.
-     */
-    if (syn_block->b_sst_len <= Rows)
-	dist = 999999;
-    else
-	dist = syn_buf->b_ml.ml_line_count / (syn_block->b_sst_len - Rows) + 1;
-    while (current_lnum < lnum)
-    {
-	syn_start_line();
-	(void)syn_finish_line(FALSE);
-	++current_lnum;
-
-	// If we parsed at least "minlines" lines or started at a valid
-	// state, the current state is considered valid.
-	if (current_lnum >= first_stored)
-	{
-	    // Check if the saved state entry is for the current line and is
-	    // equal to the current state.  If so, then validate all saved
-	    // states that depended on a change before the parsed line.
-	    if (prev == NULL)
-		prev = syn_stack_find_entry(current_lnum - 1);
-	    if (prev == NULL)
-		sp = syn_block->b_sst_first;
-	    else
-		sp = prev;
-	    while (sp != NULL && sp->sst_lnum < current_lnum)
-		sp = sp->sst_next;
-	    if (sp != NULL
-		    && sp->sst_lnum == current_lnum
-		    && syn_stack_equal(sp))
-	    {
-		parsed_lnum = current_lnum;
-		prev = sp;
-		while (sp != NULL && sp->sst_change_lnum <= parsed_lnum)
-		{
-		    if (sp->sst_lnum <= lnum)
-			// valid state before desired line, use this one
-			prev = sp;
-		    else if (sp->sst_change_lnum == 0)
-			// past saved states depending on change, break here.
-			break;
-		    sp->sst_change_lnum = 0;
-		    sp = sp->sst_next;
-		}
-		load_current_state(prev);
-	    }
-	    // Store the state at this line when it's the first one, the line
-	    // where we start parsing, or some distance from the previously
-	    // saved state.  But only when parsed at least 'minlines'.
-	    else if (prev == NULL
-			|| current_lnum == lnum
-			|| current_lnum >= prev->sst_lnum + dist)
-		prev = store_current_state();
-	}
-
-	// This can take a long time: break when CTRL-C pressed.  The current
-	// state will be wrong then.
-	line_breakcheck();
-	if (got_int)
-	{
-	    current_lnum = lnum;
-	    break;
-	}
-    }
-
-    syn_start_line();
 }
+
 
 /*
  * We cannot simply discard growarrays full of state_items or buf_states; we
@@ -936,71 +762,9 @@ syn_start_line(void)
     static void
 syn_update_ends(int startofline)
 {
-#ifdef USE_RUST_SYNTAX
     rs_syn_update(startofline);
-    return;
-#else
-    stateitem_T	*cur_si;
-    int		i;
-    int		seen_keepend;
-
-    if (startofline)
-    {
-	// Check for a match carried over from a previous line with a
-	// contained region.  The match ends as soon as the region ends.
-	for (i = 0; i < current_state.ga_len; ++i)
-	{
-	    cur_si = &CUR_STATE(i);
-	    if (cur_si->si_idx >= 0
-		    && (SYN_ITEMS(syn_block)[cur_si->si_idx]).sp_type
-							       == SPTYPE_MATCH
-		    && cur_si->si_m_endpos.lnum < current_lnum)
-	    {
-		cur_si->si_flags |= HL_MATCHCONT;
-		cur_si->si_m_endpos.lnum = 0;
-		cur_si->si_m_endpos.col = 0;
-		cur_si->si_h_endpos = cur_si->si_m_endpos;
-		cur_si->si_ends = TRUE;
-	    }
-	}
-    }
-
-    /*
-     * Need to update the end of a start/skip/end that continues from the
-     * previous line.  And regions that have "keepend", because they may
-     * influence contained items.  If we've just removed "extend"
-     * (startofline == 0) then we should update ends of normal regions
-     * contained inside "keepend" because "extend" could have extended
-     * these "keepend" regions as well as contained normal regions.
-     * Then check for items ending in column 0.
-     */
-    i = current_state.ga_len - 1;
-    if (keepend_level >= 0)
-	for ( ; i > keepend_level; --i)
-	    if (CUR_STATE(i).si_flags & HL_EXTEND)
-		break;
-
-    seen_keepend = FALSE;
-    for ( ; i < current_state.ga_len; ++i)
-    {
-	cur_si = &CUR_STATE(i);
-	if ((cur_si->si_flags & HL_KEEPEND)
-			    || (seen_keepend && !startofline)
-			    || (i == current_state.ga_len - 1 && startofline))
-	{
-	    cur_si->si_h_startpos.col = 0;	// start highl. in col 0
-	    cur_si->si_h_startpos.lnum = current_lnum;
-
-	    if (!(cur_si->si_flags & HL_MATCHCONT))
-		update_si_end(cur_si, (int)current_col, !startofline);
-
-	    if (!startofline && (cur_si->si_flags & HL_KEEPEND))
-		seen_keepend = TRUE;
-	}
-    }
-    check_keepend();
-#endif
 }
+
 
 /////////////////////////////////////////
 // Handling of the state stack cache.
