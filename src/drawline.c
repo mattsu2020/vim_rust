@@ -14,6 +14,7 @@
  */
 
 #include "vim.h"
+#include "rust_arabic.h"
 
 #ifdef FEAT_SYN_HL
 /*

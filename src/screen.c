@@ -43,6 +43,7 @@
 #include "vim.h"
 #include "screen_rs.h"
 #include "drawscreen_rs.h"
+#include "rust_arabic.h"
 
 /*
  * The attributes that are actually active for writing to the screen.
