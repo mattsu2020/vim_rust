@@ -12,7 +12,7 @@
 #include "vim.h"
 
 #ifdef USE_RUST_REGEX
-# include "../rust_regex/include/rust_regex.h"
+# include "../rust_regex_engine/include/rust_regex_engine.h"
 // FFI bindings to Rust regex implementation used for testing
 extern int rust_regex_match(const char *pat, const char *text, int magic, long timeout_ms);
 

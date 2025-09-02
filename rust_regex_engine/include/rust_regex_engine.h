@@ -1,5 +1,5 @@
-#ifndef RUST_REGEX_H
-#define RUST_REGEX_H
+#ifndef RUST_REGEX_ENGINE_H
+#define RUST_REGEX_ENGINE_H
 
 #include <stdint.h>
 
@@ -26,4 +26,4 @@ char* vim_regsub(RegProg *prog, const char *text, const char *sub);
 }
 #endif
 
-#endif // RUST_REGEX_H
+#endif // RUST_REGEX_ENGINE_H

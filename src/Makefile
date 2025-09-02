@@ -1380,8 +1380,8 @@ DEPEND_CFLAGS = -DPROTO -DDEPEND -DFEAT_GUI $(LINT_CFLAGS)
 # Location of the Rust memory management crate
 RUST_MEM_DIR = rust/mem
 RUST_MEM_LIB = $(RUST_MEM_DIR)/target/release/libvim_mem.a
-RUST_REGEX_DIR = ../rust_regex
-RUST_REGEX_LIB = $(RUST_REGEX_DIR)/target/release/librust_regex.a
+RUST_REGEX_DIR = ../rust_regex_engine
+RUST_REGEX_LIB = $(RUST_REGEX_DIR)/target/release/librust_regex_engine.a
 RUST_BUFFER_DIR = ../rust_buffer
 RUST_BUFFER_LIB = $(RUST_BUFFER_DIR)/target/release/librust_buffer.a
 RUST_CHANNEL_DIR = ../rust_channel
