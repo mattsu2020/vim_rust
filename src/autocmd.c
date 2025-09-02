@@ -12,6 +12,7 @@
  */
 
 #include "vim.h"
+#include "autocmd_rs.h"
 
 /*
  * The autocommands are stored in a list for each event.
@@ -798,57 +799,33 @@ find_end_event(
 }
 
 /*
- * Return TRUE if "event" is included in 'eventignore(win)'.
+ * Wrappers that call into the Rust implementation.
  */
     int
 event_ignored(event_T event, char_u *ei)
 {
-    int ignored = FALSE;
-    while (*ei != NUL)
-    {
-	int unignore = *ei == '-';
-	ei += unignore;
-	if (STRNICMP(ei, "all", 3) == 0 && (ei[3] == NUL || ei[3] == ','))
-	{
-	    ignored = ei == p_ei || (event_tab[event].key <= 0);
-	    ei += 3 + (ei[3] == ',');
-	}
-	else if (event_name2nr(ei, &ei) == event)
-	{
-	    if (unignore)
-		return FALSE;
-	    else
-		ignored = TRUE;
-	}
-    }
-
-    return ignored;
+    return rs_event_ignored(event, ei);
 }
 
-/*
- * Return OK when the contents of 'eventignore' or 'eventignorewin' is valid,
- * FAIL otherwise.
- */
     int
 check_ei(char_u *ei)
 {
-    int	win = ei != p_ei;
-
-    while (*ei)
-    {
-	if (STRNICMP(ei, "all", 3) == 0 && (ei[3] == NUL || ei[3] == ','))
-	    ei += 3 + (ei[3] == ',');
-	else
-	{
-	    ei += (*ei == '-');
-	    event_T event = event_name2nr(ei, &ei);
-	    if (event == NUM_EVENTS || (win && event_tab[event].key > 0))
-		return FAIL;
-	}
-    }
-
-    return OK;
+    return rs_check_ei(ei);
 }
+
+event_T
+event_name2nr_rs(char_u *start, char_u **end)
+{
+    event_T ev = event_name2nr(start, end);
+    return ev == NUM_EVENTS ? (event_T)-1 : ev;
+}
+
+int
+event_key_rs(event_T event)
+{
+    return event_tab[event].key;
+}
+
 
 # if defined(FEAT_SYN_HL) || defined(PROTO)
 
