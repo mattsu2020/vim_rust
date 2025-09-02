@@ -5,6 +5,7 @@
 #include "structs.h"
 
 void *buf_alloc(size_t size);
-void buf_freeall(buf_T *buf, int flags);
+void buf_free(void *buf);
+void buf_freeall(void *buf, int flags);
 
 #endif // RUST_BUFFER_H
