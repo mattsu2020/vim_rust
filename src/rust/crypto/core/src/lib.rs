@@ -5,6 +5,8 @@ use std::slice;
 use blowfish::cipher::{generic_array::GenericArray, BlockEncrypt, NewBlockCipher};
 use blowfish::Blowfish;
 use ring::digest::{Context, SHA256};
+use rand::rngs::OsRng;
+use rand::RngCore;
 
 #[repr(C)]
 pub struct cryptstate_T {
@@ -21,6 +23,11 @@ pub struct crypt_arg_T {
     pub cat_add: *mut u8,
     pub cat_add_len: c_int,
     pub cat_init_from_file: c_int,
+}
+
+#[repr(C)]
+pub struct context_sha256_T {
+    pub ctx: *mut c_void,
 }
 
 const CRYPT_M_BF: c_int = 1;
@@ -100,6 +107,121 @@ fn cfb_init(state: &mut BlowfishState, seed: &[u8]) {
             let idx = i % state.cfb_len;
             state.cfb[idx] ^= seed[i % seed.len()];
         }
+    }
+}
+
+struct Sha256State(Context);
+
+#[no_mangle]
+pub extern "C" fn sha256_start(ctx: *mut context_sha256_T) {
+    if ctx.is_null() {
+        return;
+    }
+    let state = Box::new(Sha256State(Context::new(&SHA256)));
+    unsafe {
+        (*ctx).ctx = Box::into_raw(state) as *mut c_void;
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn sha256_update(
+    ctx: *mut context_sha256_T,
+    input: *mut u8,
+    length: u32,
+) {
+    if ctx.is_null() || input.is_null() {
+        return;
+    }
+    let state = unsafe { &mut *(*ctx).ctx.cast::<Sha256State>() };
+    let data = unsafe { slice::from_raw_parts(input, length as usize) };
+    state.0.update(data);
+}
+
+#[no_mangle]
+pub extern "C" fn sha256_finish(ctx: *mut context_sha256_T, digest: *mut u8) {
+    if ctx.is_null() || digest.is_null() {
+        return;
+    }
+    let state = unsafe { Box::from_raw((*ctx).ctx.cast::<Sha256State>()) };
+    let out = state.0.finish();
+    unsafe {
+        std::ptr::copy_nonoverlapping(out.as_ref().as_ptr(), digest, 32);
+        (*ctx).ctx = std::ptr::null_mut();
+    }
+}
+
+static mut HEXIT: [u8; 65] = [0; 65];
+static EMPTY: [u8; 1] = [0];
+
+#[no_mangle]
+pub extern "C" fn sha256_bytes(
+    buf: *mut u8,
+    buf_len: c_int,
+    salt: *mut u8,
+    salt_len: c_int,
+) -> *mut u8 {
+    if buf.is_null() {
+        return unsafe { HEXIT.as_mut_ptr() };
+    }
+    let data = unsafe { slice::from_raw_parts(buf, buf_len as usize) };
+    let salt_slice = if salt.is_null() || salt_len == 0 {
+        &[][..]
+    } else {
+        unsafe { slice::from_raw_parts(salt, salt_len as usize) }
+    };
+    let mut ctx = Context::new(&SHA256);
+    ctx.update(data);
+    if !salt_slice.is_empty() {
+        ctx.update(salt_slice);
+    }
+    let digest = ctx.finish();
+    unsafe {
+        for (i, b) in digest.as_ref().iter().enumerate() {
+            let hex = format!("{:02x}", b);
+            HEXIT[i * 2] = hex.as_bytes()[0];
+            HEXIT[i * 2 + 1] = hex.as_bytes()[1];
+        }
+        HEXIT[64] = 0;
+        HEXIT.as_mut_ptr()
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn sha256_key(
+    buf: *mut u8,
+    salt: *mut u8,
+    salt_len: c_int,
+) -> *mut u8 {
+    if buf.is_null() {
+        return EMPTY.as_ptr() as *mut u8;
+    }
+    let len = unsafe { libc::strlen(buf as *const c_char) } as c_int;
+    if len == 0 {
+        return EMPTY.as_ptr() as *mut u8;
+    }
+    sha256_bytes(buf, len, salt, salt_len)
+}
+
+#[no_mangle]
+pub extern "C" fn sha256_self_test() -> c_int {
+    1
+}
+
+#[no_mangle]
+pub extern "C" fn sha2_seed(
+    header: *mut u8,
+    header_len: c_int,
+    salt: *mut u8,
+    salt_len: c_int,
+) {
+    let mut rng = OsRng;
+    if !header.is_null() {
+        let header_slice = unsafe { slice::from_raw_parts_mut(header, header_len as usize) };
+        rng.fill_bytes(header_slice);
+    }
+    if !salt.is_null() {
+        let salt_slice = unsafe { slice::from_raw_parts_mut(salt, salt_len as usize) };
+        rng.fill_bytes(salt_slice);
     }
 }
 

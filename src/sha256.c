@@ -23,7 +23,7 @@
 
 #include "vim.h"
 
-#if defined(FEAT_CRYPT) || defined(FEAT_PERSISTENT_UNDO)
+#if ((defined(FEAT_CRYPT) || defined(FEAT_PERSISTENT_UNDO)) && !defined(FEAT_RUST_CRYPT)) || defined(PROTO)
 
 #define GET_UINT32(n, b, i)		    \
 {					    \
@@ -425,4 +425,4 @@ sha2_seed(
 	    salt[i] = sha256sum[(i + header_len) % sizeof(sha256sum)];
 }
 
-#endif // FEAT_CRYPT
+#endif // ((FEAT_CRYPT || FEAT_PERSISTENT_UNDO) && !FEAT_RUST_CRYPT) || PROTO

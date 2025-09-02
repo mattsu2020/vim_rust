@@ -11,3 +11,4 @@ crate-type = ["staticlib"]
 ring = "0.17"
 blowfish = "0.8"
 libc = "0.2"
+rand = "0.8"

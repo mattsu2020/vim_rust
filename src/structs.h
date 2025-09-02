@@ -4629,11 +4629,17 @@ typedef struct
     void	*tn_search_ctx;
 } tagname_T;
 
+#ifdef FEAT_RUST_CRYPT
+typedef struct {
+    void    *ctx;
+} context_sha256_T;
+#else
 typedef struct {
     UINT32_T total[2];
     UINT32_T state[8];
     char_u   buffer[64];
 } context_sha256_T;
+#endif
 
 /*
  * types for expressions.
