@@ -18,70 +18,10 @@ pub trait GuiBackend {
 }
 
 #[cfg(target_os = "linux")]
-pub mod linux {
-    use super::{GuiBackend, GuiEvent};
-    use std::collections::VecDeque;
-
-    /// Simple backend used for tests and non-GUI environments on Linux.
-    /// Drawing operations are recorded and events are stored in a queue.
-    #[derive(Default)]
-    pub struct LinuxBackend {
-        pub drawn: Vec<String>,
-        pub events: VecDeque<GuiEvent>,
-    }
-
-    impl LinuxBackend {
-        pub fn new() -> Self {
-            Self { drawn: Vec::new(), events: VecDeque::new() }
-        }
-
-        /// Queue an event for later processing; primarily used in tests.
-        pub fn push_event(&mut self, ev: GuiEvent) {
-            self.events.push_back(ev);
-        }
-    }
-
-    impl GuiBackend for LinuxBackend {
-        fn draw_text(&mut self, text: &str) {
-            self.drawn.push(text.to_string());
-        }
-
-        fn poll_event(&mut self) -> Option<GuiEvent> {
-            self.events.pop_front()
-        }
-    }
-}
+pub mod gtk;
 
 #[cfg(target_os = "windows")]
-pub mod windows {
-    use super::{GuiBackend, GuiEvent};
-
-    #[derive(Default)]
-    pub struct WindowsBackend;
-
-    impl WindowsBackend {
-        pub fn new() -> Self { Self }
-    }
-
-    impl GuiBackend for WindowsBackend {
-        fn draw_text(&mut self, _text: &str) {}
-        fn poll_event(&mut self) -> Option<GuiEvent> { None }
-    }
-}
+pub mod w32;
 
 #[cfg(target_os = "macos")]
-pub mod macos {
-    use super::{GuiBackend, GuiEvent};
-
-    #[derive(Default)]
-    pub struct MacBackend;
-
-    impl MacBackend {
-        pub fn new() -> Self { Self }
-    }
-
-    impl GuiBackend for MacBackend {
-        fn draw_text(&mut self, _text: &str) {}
-        fn poll_event(&mut self) -> Option<GuiEvent> { None }
-    }
-}
+pub mod macos;

@@ -51,13 +51,13 @@ pub mod dialog {
 mod tests {
     use super::*;
     #[cfg(target_os = "linux")]
-    use crate::backend::linux::LinuxBackend;
+    use crate::backend::gtk::GtkBackend;
 
     /// Verify that drawing forwards to the backend and that queued
     /// events are processed in order.
     #[test]
     fn draw_and_process_events() {
-        let mut backend = LinuxBackend::new();
+        let mut backend = GtkBackend::new();
         backend.push_event(GuiEvent::Key('x'));
         backend.push_event(GuiEvent::Click { x: 10, y: 20 });
         let mut core = GuiCore::new(backend);
@@ -69,7 +69,9 @@ mod tests {
         {
             assert_eq!(core.backend_mut().drawn, vec!["hello".to_string()]);
         }
-        assert_eq!(seen,
-                   vec![GuiEvent::Key('x'), GuiEvent::Click { x: 10, y: 20 }]);
+        assert_eq!(
+            seen,
+            vec![GuiEvent::Key('x'), GuiEvent::Click { x: 10, y: 20 }]
+        );
     }
 }

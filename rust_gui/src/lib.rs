@@ -1,10 +1,10 @@
-use rust_gui_core::{GuiCore};
 #[cfg(target_os = "linux")]
-use rust_gui_core::backend::linux::LinuxBackend as Backend;
-#[cfg(target_os = "windows")]
-use rust_gui_core::backend::windows::WindowsBackend as Backend;
+use rust_gui_core::backend::gtk::GtkBackend as Backend;
 #[cfg(target_os = "macos")]
 use rust_gui_core::backend::macos::MacBackend as Backend;
+#[cfg(target_os = "windows")]
+use rust_gui_core::backend::w32::W32Backend as Backend;
+use rust_gui_core::GuiCore;
 use rust_gui_core::GuiEvent;
 
 /// Run the GUI.  This is exposed to the C code via `gui_rust.c`.

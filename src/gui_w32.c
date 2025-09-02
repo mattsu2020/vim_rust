@@ -25,6 +25,17 @@
 
 #include "vim.h"
 
+#ifdef FEAT_GUI_RUST
+# include "gui_rust.h"
+
+int gui_mch_init(void)
+{
+    rs_gui_run();
+    return OK;
+}
+
+#else
+
 #if defined(FEAT_DIRECTX)
 # include "gui_dwrite.h"
 #endif
@@ -9259,3 +9270,4 @@ test_gui_w32_sendevent(char_u *event, dict_T *args)
     }
 }
 #endif
+#endif /* FEAT_GUI_RUST */

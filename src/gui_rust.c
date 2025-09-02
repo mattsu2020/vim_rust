@@ -4,7 +4,9 @@
 /*
  * Minimal C shell delegating GUI handling to the Rust implementation.
  */
+#ifdef FEAT_GUI_RUST
 void gui_start(char_u *arg UNUSED)
 {
     rs_gui_run();
 }
+#endif
