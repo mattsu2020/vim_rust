@@ -295,6 +295,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_spell"
+version = "0.1.0"
+
+[[package]]
 name = "rustc-demangle"
 version = "0.1.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -327,10 +331,6 @@ dependencies = [
  "libc",
  "windows-sys",
 ]
-
-[[package]]
-name = "spell"
-version = "0.1.0"
 
 [[package]]
 name = "syn"
@@ -397,7 +397,7 @@ dependencies = [
  "diff",
  "rust_buffer",
  "rust_python",
- "spell",
+ "rust_spell",
  "tokio",
 ]
 
