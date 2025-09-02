@@ -148,3 +148,4 @@ src/rust/evallib/target/
 rust_fileio/target/
 >>>>>>> 79fbfe821a05c145effbf61c9cc488e5206238e2
 rust_option/target/
+rust_option/src/bindings.rs
