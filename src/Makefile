@@ -1386,6 +1386,10 @@ RUST_BUFFER_DIR = ../rust_buffer
 RUST_BUFFER_LIB = $(RUST_BUFFER_DIR)/target/release/librust_buffer.a
 RUST_CHANNEL_DIR = ../rust_channel
 RUST_CHANNEL_LIB = $(RUST_CHANNEL_DIR)/target/release/librust_channel.a
+RUST_ALLOC_DIR = ../rust_alloc
+RUST_ALLOC_LIB = $(RUST_ALLOC_DIR)/target/release/librust_alloc.a
+RUST_DICT_DIR = ../rust_dict
+RUST_DICT_LIB = $(RUST_DICT_DIR)/target/release/librust_dict.a
 RUST_GUI_DIR = ../rust_gui
 RUST_GUI_LIB = $(RUST_GUI_DIR)/target/release/librust_gui.a
 RUST_PYTHON_DIR = ../rust_python
@@ -1413,6 +1417,8 @@ ALL_LIBS = \
            $(RUST_MEM_LIB) \
            $(RUST_BUFFER_LIB) \
            $(RUST_CHANNEL_LIB) \
+           $(RUST_ALLOC_LIB) \
+           $(RUST_DICT_LIB) \
            $(RUST_GUI_LIB) \
            $(RUST_PYTHON_LIB) \
            $(RUST_EVALFUNC_LIB) \
@@ -1452,6 +1458,12 @@ $(RUST_BUFFER_LIB):
 
 $(RUST_CHANNEL_LIB):
 	cd $(RUST_CHANNEL_DIR) && cargo build --release
+
+$(RUST_ALLOC_LIB):
+	cd $(RUST_ALLOC_DIR) && cargo build --release
+
+$(RUST_DICT_LIB):
+	cd $(RUST_DICT_DIR) && cargo build --release
 
 $(RUST_GUI_LIB):
 	cd $(RUST_GUI_DIR) && cargo build --release

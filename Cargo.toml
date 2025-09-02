@@ -14,6 +14,8 @@ rust_debugger = { path = "rust_debugger" }
 rust_os = { path = "rust_os" }
 rust_pty = { path = "rust_pty" }
 rust_wayland = { path = "rust_wayland" }
+rust_alloc = { path = "rust_alloc" }
+rust_dict = { path = "rust_dict" }
 
 [lib]
 name = "vim_channel"

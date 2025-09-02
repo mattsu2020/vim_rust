@@ -398,6 +398,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_alloc"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rust_buffer"
 version = "0.1.0"
 dependencies = [
@@ -410,6 +417,13 @@ version = "0.1.0"
 dependencies = [
  "libc",
  "once_cell",
+]
+
+[[package]]
+name = "rust_dict"
+version = "0.1.0"
+dependencies = [
+ "libc",
 ]
 
 [[package]]
@@ -574,8 +588,10 @@ name = "vim_channel"
 version = "0.1.0"
 dependencies = [
  "diff",
+ "rust_alloc",
  "rust_buffer",
  "rust_debugger",
+ "rust_dict",
  "rust_os",
  "rust_profiler",
  "rust_pty",
