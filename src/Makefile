@@ -1521,7 +1521,7 @@ BASIC_SRC = \
 	blob.c \
 	blowfish.c \
 	buffer.c \
-	change.c \
+       # change.c replaced by rust_change crate \
 	charset.c \
 	cindent.c \
 	clientserver.c \
@@ -1542,7 +1542,7 @@ BASIC_SRC = \
 	evalfunc.c \
 	evalvars.c \
 	evalwindow.c \
-        ex_cmds.c \
+       # ex_cmds.c replaced by rust_excmd crate \
         ex_eval.c \
         ex_getln.c \
 	fileio.c \
@@ -3239,8 +3239,8 @@ objects/buffer.o: buffer.c
 objects/bufwrite.o: bufwrite.c
 	$(CCC) -o $@ bufwrite.c
 
-objects/change.o: change.c
-	$(CCC) -o $@ change.c
+objects/change.o: # change.c replaced by rust_change crate
+# $(CCC) -o $@ change.c
 
 objects/charset.o: charset.c
 	$(CCC) -o $@ charset.c
@@ -3302,8 +3302,8 @@ objects/evalvars.o: evalvars.c
 objects/evalwindow.o: evalwindow.c
 	$(CCC) -o $@ evalwindow.c
 
-objects/ex_cmds.o: ex_cmds.c
-	$(CCC) -o $@ ex_cmds.c
+objects/ex_cmds.o: # ex_cmds.c replaced by rust_excmd crate
+# $(CCC) -o $@ ex_cmds.c
 
 objects/ex_eval.o: ex_eval.c
        $(CCC) -o $@ ex_eval.c
@@ -3823,7 +3823,7 @@ objects/buffer.o: buffer.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h version.h
-objects/change.o: change.c vim.h protodef.h auto/config.h feature.h os_unix.h \
+objects/change.o: # change.c replaced by rust_change crate
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
@@ -3927,7 +3927,7 @@ objects/evalwindow.o: evalwindow.c vim.h protodef.h auto/config.h feature.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h errors.h
-objects/ex_cmds.o: ex_cmds.c vim.h protodef.h auto/config.h feature.h os_unix.h \
+objects/ex_cmds.o: # ex_cmds.c replaced by rust_excmd crate
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
