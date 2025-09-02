@@ -1659,18 +1659,12 @@ auto/wayland/primary-selection-unstable-v1.h: auto/wayland/primary-selection-uns
 auto/wayland/xdg-shell.h: auto/wayland/xdg-shell.c
 
 # Unittest files
-JSON_TEST_SRC = json_test.c
-JSON_TEST_TARGET = json_test$(EXEEXT)
-KWORD_TEST_SRC = kword_test.c
-KWORD_TEST_TARGET = kword_test$(EXEEXT)
-MEMFILE_TEST_SRC = memfile_test.c
-MEMFILE_TEST_TARGET = memfile_test$(EXEEXT)
-MESSAGE_TEST_SRC = message_test.c
-MESSAGE_TEST_TARGET = message_test$(EXEEXT)
-
-UNITTEST_SRC = $(JSON_TEST_SRC) $(KWORD_TEST_SRC) $(MEMFILE_TEST_SRC) $(MESSAGE_TEST_SRC)
-UNITTEST_TARGETS = $(JSON_TEST_TARGET) $(KWORD_TEST_TARGET) $(MEMFILE_TEST_TARGET) $(MESSAGE_TEST_TARGET)
-RUN_UNITTESTS = run_json_test run_kword_test run_memfile_test run_message_test
+# Legacy C unittests have been replaced by Rust equivalents in the
+# `rust_testsupport` crate.  Keep the variables for compatibility but do not
+# reference any sources or targets here.
+UNITTEST_SRC =
+UNITTEST_TARGETS =
+RUN_UNITTESTS = run_rust_testsupport
 
 # All sources, also the ones that are not configured
 ALL_LOCAL_SRC = $(BASIC_SRC) $(ALL_GUI_SRC) $(UNITTEST_SRC) $(EXTRA_SRC) \
@@ -1826,44 +1820,8 @@ OBJ_MAIN = \
 
 OBJ = $(OBJ_COMMON) $(OBJ_MAIN)
 
-OBJ_JSON_TEST = \
-	objects/charset.o \
-	objects/memfile.o \
-	objects/message.o \
-	objects/json_test.o
-
-JSON_TEST_OBJ = $(OBJ_COMMON) $(OBJ_JSON_TEST)
-
-OBJ_KWORD_TEST = \
-	objects/json.o \
-	objects/memfile.o \
-	objects/message.o \
-	objects/kword_test.o
-
-KWORD_TEST_OBJ = $(OBJ_COMMON) $(OBJ_KWORD_TEST)
-
-OBJ_MEMFILE_TEST = \
-	objects/charset.o \
-	objects/json.o \
-	objects/message.o \
-	objects/memfile_test.o
-
-MEMFILE_TEST_OBJ = $(OBJ_COMMON) $(OBJ_MEMFILE_TEST)
-
-OBJ_MESSAGE_TEST = \
-	objects/charset.o \
-	objects/json.o \
-	objects/memfile.o \
-	objects/message_test.o
-
-MESSAGE_TEST_OBJ = $(OBJ_COMMON) $(OBJ_MESSAGE_TEST)
-
 ALL_OBJ = $(OBJ_COMMON) \
-	  $(OBJ_MAIN) \
-	  $(OBJ_JSON_TEST) \
-	  $(OBJ_KWORD_TEST) \
-	  $(OBJ_MEMFILE_TEST) \
-	  $(OBJ_MESSAGE_TEST)
+         $(OBJ_MAIN)
 
 
 PRO_AUTO = \
@@ -2276,17 +2234,8 @@ VIMTESTTARGET = $(VIMTARGET)
 # Execute the unittests one by one.
 unittest unittests: $(RUN_UNITTESTS)
 
-run_json_test: $(JSON_TEST_TARGET)
-	$(VALGRIND) ./$(JSON_TEST_TARGET) || exit 1; echo $* passed;
-
-run_kword_test: $(KWORD_TEST_TARGET)
-	$(VALGRIND) ./$(KWORD_TEST_TARGET) || exit 1; echo $* passed;
-
-run_memfile_test: $(MEMFILE_TEST_TARGET)
-	$(VALGRIND) ./$(MEMFILE_TEST_TARGET) || exit 1; echo $* passed;
-
-run_message_test: $(MESSAGE_TEST_TARGET)
-	$(VALGRIND) ./$(MESSAGE_TEST_TARGET) || exit 1; echo $* passed;
+run_rust_testsupport:
+	cargo test --manifest-path ../rust_testsupport/Cargo.toml
 
 # Run the libvterm tests.
 # This works only on GNU make, not on BSD make.
@@ -2327,33 +2276,6 @@ testclean:
 
 # Unittests
 # It's build just like Vim to satisfy all dependencies.
-$(JSON_TEST_TARGET): auto/config.mk $(JSON_TEST_OBJ) objects/version.o
-	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
-		-o $(JSON_TEST_TARGET) $(JSON_TEST_OBJ) $(ALL_LIBS)" \
-		MAKE="$(MAKE)" LINK_AS_NEEDED=$(LINK_AS_NEEDED) \
-		PROG="json_test" \
-		sh $(srcdir)/link.sh
-
-$(KWORD_TEST_TARGET): auto/config.mk $(KWORD_TEST_OBJ) objects/version.o
-	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
-		-o $(KWORD_TEST_TARGET) $(KWORD_TEST_OBJ) $(ALL_LIBS)" \
-		MAKE="$(MAKE)" LINK_AS_NEEDED=$(LINK_AS_NEEDED) \
-		PROG="kword_test" \
-		sh $(srcdir)/link.sh
-
-$(MEMFILE_TEST_TARGET): auto/config.mk $(MEMFILE_TEST_OBJ) objects/version.o
-	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
-		-o $(MEMFILE_TEST_TARGET) $(MEMFILE_TEST_OBJ) $(ALL_LIBS)" \
-		MAKE="$(MAKE)" LINK_AS_NEEDED=$(LINK_AS_NEEDED) \
-		PROG="memfile_test" \
-		sh $(srcdir)/link.sh
-
-$(MESSAGE_TEST_TARGET): auto/config.mk $(MESSAGE_TEST_OBJ) objects/version.o
-	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
-		-o $(MESSAGE_TEST_TARGET) $(MESSAGE_TEST_OBJ) $(ALL_LIBS)" \
-		MAKE="$(MAKE)" LINK_AS_NEEDED=$(LINK_AS_NEEDED) \
-		PROG="message_test" \
-		sh $(srcdir)/link.sh
 
 # install targets
 
@@ -3427,14 +3349,8 @@ objects/job.o: job.c
 objects/json.o: json.c
 	$(CCC) -o $@ json.c
 
-objects/json_test.o: json_test.c
-	$(CCC) -o $@ json_test.c
-
-objects/kword_test.o: kword_test.c
-	$(CCC) -o $@ kword_test.c
-
 objects/linematch.o: linematch.c
-	$(CCC) -o $@ linematch.c
+$(CCC) -o $@ linematch.c
 
 objects/list.o: list.c
 	$(CCC) -o $@ list.c
@@ -3460,23 +3376,20 @@ objects/match.o: match.c
 objects/memfile.o: memfile.c
 	$(CCC) -o $@ memfile.c
 
-objects/memfile_test.o: memfile_test.c
-	$(CCC) -o $@ memfile_test.c
+objects/memfile.o: memfile.c
+$(CCC) -o $@ memfile.c
 
 objects/memline.o: memline.c
-	$(CCC) -o $@ memline.c
+$(CCC) -o $@ memline.c
 
 objects/menu.o: menu.c
-	$(CCC) -o $@ menu.c
+$(CCC) -o $@ menu.c
 
 objects/message.o: message.c
-	$(CCC) -o $@ message.c
-
-objects/message_test.o: message_test.c
-	$(CCC) -o $@ message_test.c
+$(CCC) -o $@ message.c
 
 objects/misc1.o: misc1.c
-	$(CCC) -o $@ misc1.c
+$(CCC) -o $@ misc1.c
 
 objects/misc2.o: misc2.c
 	$(CCC) -o $@ misc2.c
@@ -4435,26 +4348,6 @@ objects/gui_haiku.o: gui_haiku.cc vim.h protodef.h auto/config.h feature.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h version.h
-objects/json_test.o: json_test.c main.c vim.h protodef.h auto/config.h feature.h \
- os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
- beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h errors.h json.c
-objects/kword_test.o: kword_test.c main.c vim.h protodef.h auto/config.h \
- feature.h os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h \
- option.h beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h errors.h charset.c
-objects/memfile_test.o: memfile_test.c main.c vim.h protodef.h auto/config.h \
- feature.h os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h \
- option.h beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h errors.h memfile.c
-objects/message_test.o: message_test.c main.c vim.h protodef.h auto/config.h \
- feature.h os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h \
- option.h beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h errors.h message.c
 objects/if_lua.o: if_lua.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
