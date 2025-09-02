@@ -3,7 +3,24 @@ use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::sync::{Mutex, OnceLock};
 
+mod bindings {
+    include!("bindings.rs");
+}
+use bindings::rs_opt_t;
+unsafe impl Sync for rs_opt_t {}
+
 static OPTIONS: OnceLock<Mutex<HashMap<String, String>>> = OnceLock::new();
+
+static OPTION_DEFS: [rs_opt_t; 2] = [
+    rs_opt_t {
+        name: b"shell\0".as_ptr() as *const c_char,
+        default_value: b"/bin/sh\0".as_ptr() as *const c_char,
+    },
+    rs_opt_t {
+        name: b"compatible\0".as_ptr() as *const c_char,
+        default_value: b"true\0".as_ptr() as *const c_char,
+    },
+];
 
 fn options() -> &'static Mutex<HashMap<String, String>> {
     OPTIONS.get_or_init(|| Mutex::new(HashMap::new()))
@@ -64,6 +81,68 @@ pub extern "C" fn rs_free_cstring(s: *mut c_char) {
     }
 }
 
+#[no_mangle]
+pub extern "C" fn rs_get_option_defs(len: *mut usize) -> *const rs_opt_t {
+    if !len.is_null() {
+        unsafe { *len = OPTION_DEFS.len(); }
+    }
+    OPTION_DEFS.as_ptr()
+}
+
+#[no_mangle]
+pub extern "C" fn rs_verify_option(name: *const c_char) -> bool {
+    if name.is_null() {
+        return false;
+    }
+    let cstr = unsafe { CStr::from_ptr(name) };
+    let Ok(name) = cstr.to_str() else { return false };
+    OPTION_DEFS.iter().any(|opt| {
+        let opt_name = unsafe { CStr::from_ptr(opt.name).to_str().unwrap() };
+        opt_name == name
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn rs_save_options(path: *const c_char) -> bool {
+    if path.is_null() {
+        return false;
+    }
+    let cpath = unsafe { CStr::from_ptr(path) };
+    let Ok(path) = cpath.to_str() else { return false };
+    let opts = options().lock().unwrap();
+    let mut file = match std::fs::File::create(path) {
+        Ok(f) => f,
+        Err(_) => return false,
+    };
+    for (k, v) in opts.iter() {
+        if std::io::Write::write_all(&mut file, format!("{}={}\n", k, v).as_bytes()).is_err() {
+            return false;
+        }
+    }
+    true
+}
+
+#[no_mangle]
+pub extern "C" fn rs_load_options(path: *const c_char) -> bool {
+    if path.is_null() {
+        return false;
+    }
+    let cpath = unsafe { CStr::from_ptr(path) };
+    let Ok(path) = cpath.to_str() else { return false };
+    let content = match std::fs::read_to_string(path) {
+        Ok(c) => c,
+        Err(_) => return false,
+    };
+    let mut opts = options().lock().unwrap();
+    opts.clear();
+    for line in content.lines() {
+        if let Some((k, v)) = line.split_once('=') {
+            opts.insert(k.to_string(), v.to_string());
+        }
+    }
+    true
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -87,6 +166,32 @@ mod tests {
         assert!(!res_ptr.is_null());
         let res = unsafe { CString::from_raw(res_ptr) };
         assert_eq!(res.to_str().unwrap(), "123");
+    }
+
+    #[test]
+    fn verify_option() {
+        rs_options_init();
+        let good = CString::new("shell").unwrap();
+        assert!(rs_verify_option(good.as_ptr()));
+        let bad = CString::new("no_such_opt").unwrap();
+        assert!(!rs_verify_option(bad.as_ptr()));
+    }
+
+    #[test]
+    fn save_and_load() {
+        rs_options_init();
+        let name = CString::new("saveopt").unwrap();
+        let value = CString::new("foo").unwrap();
+        assert!(rs_set_option(name.as_ptr(), value.as_ptr()));
+        let file = tempfile::NamedTempFile::new().unwrap();
+        let path = CString::new(file.path().to_str().unwrap()).unwrap();
+        assert!(rs_save_options(path.as_ptr()));
+        options().lock().unwrap().clear();
+        assert!(rs_load_options(path.as_ptr()));
+        let res_ptr = rs_get_option(name.as_ptr());
+        assert!(!res_ptr.is_null());
+        let res = unsafe { CString::from_raw(res_ptr) };
+        assert_eq!(res.to_str().unwrap(), "foo");
     }
 }
 

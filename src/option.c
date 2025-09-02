@@ -38,6 +38,17 @@
 #define IN_OPTION_C
 #include "vim.h"
 #include "optiondefs.h"
+#include "rust_option.h"
+
+static const rs_opt_t *rs_option_table = NULL;
+static size_t rs_option_count = 0;
+
+static void
+init_rs_options(void)
+{
+    if (rs_option_table == NULL)
+        rs_option_table = rs_get_option_defs(&rs_option_count);
+}
 
 static void set_options_default(int opt_flags);
 static void set_string_default_esc(char *name, char_u *val, int escape);
@@ -122,6 +133,8 @@ set_init_default_shell(void)
 #else
 	set_string_default_esc("sh", p, TRUE);
 #endif
+    if (rs_verify_option("shell"))
+        rs_set_option("shell", (char *)p);
 }
 
 /*
@@ -749,6 +762,7 @@ set_options_default(
     int		opt_flags)	// OPT_FREE, OPT_LOCAL and/or OPT_GLOBAL
 {
     int		i;
+    init_rs_options();
     win_T	*wp;
     tabpage_T	*tp;
 
