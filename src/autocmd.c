@@ -12,6 +12,7 @@
  */
 
 #include "vim.h"
+#include "autocmd_rs.h"
 
 /*
  * The autocommands are stored in a list for each event.
@@ -2756,52 +2757,13 @@ getnextac(
     return retval;
 }
 
-/*
- * Return TRUE if there is a matching autocommand for "fname".
- * To account for buffer-local autocommands, function needs to know
- * in which buffer the file will be opened.
+/* Return TRUE if there is a matching autocommand for "fname".
+ * The heavy lifting is delegated to the Rust implementation.
  */
     int
 has_autocmd(event_T event, char_u *sfname, buf_T *buf)
 {
-    AutoPat	*ap;
-    char_u	*fname;
-    char_u	*tail = gettail(sfname);
-    int		retval = FALSE;
-
-    fname = FullName_save(sfname, FALSE);
-    if (fname == NULL)
-	return FALSE;
-
-#ifdef BACKSLASH_IN_FILENAME
-    /*
-     * Replace all backslashes with forward slashes.  This makes the
-     * autocommand patterns portable between Unix and MS-DOS.
-     */
-    sfname = vim_strsave(sfname);
-    if (sfname != NULL)
-	forward_slash(sfname);
-    forward_slash(fname);
-#endif
-
-    FOR_ALL_AUTOCMD_PATTERNS(event, ap)
-	if (ap->pat != NULL && ap->cmds != NULL
-	      && (ap->buflocal_nr == 0
-		? match_file_pat(NULL, &ap->reg_prog,
-					  fname, sfname, tail, ap->allow_dirs)
-		: buf != NULL && ap->buflocal_nr == buf->b_fnum
-	   ))
-	{
-	    retval = TRUE;
-	    break;
-	}
-
-    vim_free(fname);
-#ifdef BACKSLASH_IN_FILENAME
-    vim_free(sfname);
-#endif
-
-    return retval;
+    return rs_has_autocmd(event, sfname, buf);
 }
 
 /*
