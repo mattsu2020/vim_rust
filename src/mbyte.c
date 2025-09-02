@@ -78,6 +78,7 @@
  */
 
 #include "vim.h"
+#include "rust_mbyte.h"
 
 #ifdef WIN32UNIX
 # ifndef WIN32_LEAN_AND_MEAN
@@ -2056,16 +2057,7 @@ utfc_char2bytes(int off, char_u *buf)
     int
 utf_ptr2len(char_u *p)
 {
-    int		len;
-    int		i;
-
-    if (*p == NUL)
-	return 0;
-    len = utf8len_tab[*p];
-    for (i = 1; i < len; ++i)
-	if ((p[i] & 0xc0) != 0x80)
-	    return 1;
-    return len;
+    return rust_utf_ptr2len((const char *)p);
 }
 
 /*
@@ -2076,7 +2068,7 @@ utf_ptr2len(char_u *p)
     int
 utf_byte2len(int b)
 {
-    return utf8len_tab[b];
+    return rust_utf_byte2len(b);
 }
 
 /*
@@ -2087,7 +2079,7 @@ utf_byte2len(int b)
     int
 utf_byte2len_zero(int b)
 {
-    return utf8len_tab_zero[b];
+    return rust_utf_byte2len_zero(b);
 }
 
 /*
@@ -2231,17 +2223,7 @@ utfc_ptr2len_len(char_u *p, int size)
     int
 utf_char2len(int c)
 {
-    if (c < 0x80)
-	return 1;
-    if (c < 0x800)
-	return 2;
-    if (c < 0x10000)
-	return 3;
-    if (c < 0x200000)
-	return 4;
-    if (c < 0x4000000)
-	return 5;
-    return 6;
+    return rust_utf_char2len(c);
 }
 
 /*
@@ -2251,50 +2233,9 @@ utf_char2len(int c)
     int
 utf_char2bytes(int c, char_u *buf)
 {
-    if (c < 0x80)		// 7 bits
-    {
-	buf[0] = c;
-	return 1;
-    }
-    if (c < 0x800)		// 11 bits
-    {
-	buf[0] = 0xc0 + ((unsigned)c >> 6);
-	buf[1] = 0x80 + (c & 0x3f);
-	return 2;
-    }
-    if (c < 0x10000)		// 16 bits
-    {
-	buf[0] = 0xe0 + ((unsigned)c >> 12);
-	buf[1] = 0x80 + (((unsigned)c >> 6) & 0x3f);
-	buf[2] = 0x80 + (c & 0x3f);
-	return 3;
-    }
-    if (c < 0x200000)		// 21 bits
-    {
-	buf[0] = 0xf0 + ((unsigned)c >> 18);
-	buf[1] = 0x80 + (((unsigned)c >> 12) & 0x3f);
-	buf[2] = 0x80 + (((unsigned)c >> 6) & 0x3f);
-	buf[3] = 0x80 + (c & 0x3f);
-	return 4;
-    }
-    if (c < 0x4000000)		// 26 bits
-    {
-	buf[0] = 0xf8 + ((unsigned)c >> 24);
-	buf[1] = 0x80 + (((unsigned)c >> 18) & 0x3f);
-	buf[2] = 0x80 + (((unsigned)c >> 12) & 0x3f);
-	buf[3] = 0x80 + (((unsigned)c >> 6) & 0x3f);
-	buf[4] = 0x80 + (c & 0x3f);
-	return 5;
-    }
-				// 31 bits
-    buf[0] = 0xfc + ((unsigned)c >> 30);
-    buf[1] = 0x80 + (((unsigned)c >> 24) & 0x3f);
-    buf[2] = 0x80 + (((unsigned)c >> 18) & 0x3f);
-    buf[3] = 0x80 + (((unsigned)c >> 12) & 0x3f);
-    buf[4] = 0x80 + (((unsigned)c >> 6) & 0x3f);
-    buf[5] = 0x80 + (c & 0x3f);
-    return 6;
+    return rust_utf_char2bytes(c, (char *)buf);
 }
+
 
 #if defined(FEAT_TERMINAL) || defined(PROTO)
 /*
@@ -3665,29 +3606,14 @@ static convertStruct toUpper[] =
     int
 utf_toupper(int a)
 {
-    // If 'casemap' contains "keepascii" use ASCII style toupper().
-    if (a < 128 && (cmp_flags & CMP_KEEPASCII))
-	return TOUPPER_ASC(a);
-
-#if defined(HAVE_TOWUPPER) && defined(__STDC_ISO_10646__)
-    // If towupper() is available and handles Unicode, use it.
-    if (!(cmp_flags & CMP_INTERNAL))
-	return towupper(a);
-#endif
-
-    // For characters below 128 use locale sensitive toupper().
-    if (a < 128)
-	return TOUPPER_LOC(a);
-
-    // For any other characters use the above mapping table.
-    return utf_convert(a, toUpper, (int)sizeof(toUpper));
+    return rust_utf_toupper(a);
 }
+
 
     int
 utf_islower(int a)
 {
-    // German sharp s is lower case but has no upper case equivalent.
-    return (utf_toupper(a) != a) || a == 0xdf;
+    return rust_utf_islower(a);
 }
 
 /*
@@ -3697,28 +3623,14 @@ utf_islower(int a)
     int
 utf_tolower(int a)
 {
-    // If 'casemap' contains "keepascii" use ASCII style tolower().
-    if (a < 128 && (cmp_flags & CMP_KEEPASCII))
-	return TOLOWER_ASC(a);
-
-#if defined(HAVE_TOWLOWER) && defined(__STDC_ISO_10646__)
-    // If towlower() is available and handles Unicode, use it.
-    if (!(cmp_flags & CMP_INTERNAL))
-	return towlower(a);
-#endif
-
-    // For characters below 128 use locale sensitive tolower().
-    if (a < 128)
-	return TOLOWER_LOC(a);
-
-    // For any other characters use the above mapping table.
-    return utf_convert(a, toLower, (int)sizeof(toLower));
+    return rust_utf_tolower(a);
 }
+
 
     int
 utf_isupper(int a)
 {
-    return (utf_tolower(a) != a);
+    return rust_utf_isupper(a);
 }
 
     static int
@@ -4426,17 +4338,9 @@ mb_prevptr(
     int
 mb_charlen(char_u *str)
 {
-    char_u	*p = str;
-    int		count;
-
-    if (p == NULL)
-	return 0;
-
-    for (count = 0; *p != NUL; count++)
-	p += (*mb_ptr2len)(p);
-
-    return count;
+    return rust_mb_charlen((const char *)str);
 }
+
 
 /*
  * Like mb_charlen() but for a string with specified length.
