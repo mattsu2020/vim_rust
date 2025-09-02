@@ -1,12 +1,14 @@
 #ifndef CRYPT_RS_H
 #define CRYPT_RS_H
 
-#include "structs.h"
+// structs.h is included via vim.h in C sources; avoid double-including here.
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+struct cryptmethod_S;
+typedef struct cryptmethod_S cryptmethod_T;
 cryptmethod_T *rust_crypt_methods(void);
 int crypt_zip_init(cryptstate_T *state, char_u *key, crypt_arg_T *arg);
 void crypt_zip_encode(cryptstate_T *state, char_u *from, size_t len, char_u *to, int last);

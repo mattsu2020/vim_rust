@@ -53,6 +53,9 @@ extern int _stricoll(char *a, char *b);
 #  include "os_qnx.pro"
 # endif
 
+// xdiff の mmfile_t 定義が必要なプロトタイプに先行させる
+# include "xdiff/xdiff.h"
+
 # ifdef FEAT_CRYPT
 #  include "blowfish.pro"
 #  include "crypt.pro"
@@ -199,7 +202,14 @@ void mbyte_im_set_active(int active_arg);
 # include "tag.pro"
 # include "term.pro"
 # ifdef FEAT_TERMINAL
-#  include "terminal.pro"
+#  if defined(__has_include)
+#   if __has_include("terminal.pro")
+#    include "terminal.pro"
+#   endif
+#  else
+    // Fallback: include only when available in tree
+#   include "terminal.pro"
+#  endif
 # endif
 # if defined(HAVE_TGETENT) && (defined(AMIGA) || defined(VMS))
 #  include "termlib.pro"

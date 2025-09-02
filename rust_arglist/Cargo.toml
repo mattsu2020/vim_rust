@@ -9,3 +9,7 @@ libc = "0.2"
 [lib]
 name = "rust_arglist"
 crate-type = ["staticlib", "rlib"]
+
+[lib]
+name = "rust_arglist"
+crate-type = ["staticlib", "rlib"]

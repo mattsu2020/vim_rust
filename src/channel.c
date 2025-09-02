@@ -1,5 +1,6 @@
 // Minimal compatibility layer that bridges Vim's channel API to the Rust
 // implementation provided in src/rust/channel/.
+#if defined(FEAT_JOB_CHANNEL) || defined(PROTO)
 #include "vim.h"
 #include "channel_rs.h"
 // FFI declarations are provided by channel_rs.h, which exposes the Rust
@@ -89,6 +90,7 @@ int channel_send(channel_T *channel, ch_part_T part, char_u *buf_arg, int len_ar
     return rc == 0 ? OK : FAIL;
 }
 
+
 // Close the channel and free resources.
 void channel_close(channel_T *channel, int invoke_close_cb)
 {
@@ -167,3 +169,5 @@ char_u *channel_to_string_buf(typval_T *varp, char_u *buf) { (void)varp; buf[0] 
 
 // Provide a trivial fallback for eval_expr_rs so that linking succeeds
 int eval_expr_rs(const char *expr, typval_T *result) { (void)expr; if (result) { result->v_type = VAR_NUMBER; result->vval.v_number = 0; } return 0; }
+
+#endif // FEAT_JOB_CHANNEL || PROTO

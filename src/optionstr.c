@@ -14,6 +14,10 @@
 #include "vim.h"
 #include "option_rs.h"
 
+// 最小構成用：スペル設定検証関数の前方宣言
+int spell_check_msm(void);
+int spell_check_sps(void);
+
 static char_u shm_buf[SHM_LEN];
 static int set_shm_recursive = 0;
 

@@ -362,9 +362,10 @@
 /*
  * +spell		spell checking
  */
-#if (defined(FEAT_NORMAL) || defined(PROTO))
-# define FEAT_SPELL
-#endif
+// Disable +spell in minimal Rust-integrated build
+//#if (defined(FEAT_NORMAL) || defined(PROTO))
+//# define FEAT_SPELL
+//#endif
 
 /*
  * +cryptv		Encryption (originally by Mohsin Ahmed <mosh@sasi.com>).

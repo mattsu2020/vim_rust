@@ -2,7 +2,7 @@
 #define RUST_BUFFER_H
 
 #include <stddef.h>
-#include "structs.h"
+/* structs.h は vim.h 側で読み込まれる */
 
 void *buf_alloc(size_t size);
 void buf_free(void *buf);

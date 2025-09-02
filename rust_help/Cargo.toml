@@ -9,3 +9,7 @@ rust_window = { path = "../rust_window" }
 
 [dev-dependencies]
 tempfile = "3"
+
+[lib]
+name = "rust_help"
+crate-type = ["staticlib", "rlib"]

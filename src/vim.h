@@ -2031,11 +2031,11 @@ typedef int sock_T;
 // buffer-local options is used there.
 #include "option.h"	// options and default values
 
-#include "beval.h"	// BalloonEval
-
 // Note that gui.h is included by structs.h
 
 #include "structs.h"	// defines many structures
+
+#include "beval.h"	// BalloonEval
 
 #include "alloc.h"
 

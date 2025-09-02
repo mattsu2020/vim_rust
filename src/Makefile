@@ -291,6 +291,7 @@ VIEWNAME = view
 include auto/config.mk
 #.include "auto/config.mk"
 CFLAGS += -DUSE_RUST_REGEX
+CFLAGS += -I../rust_mbyte/include -I../rust_search/include
 CClink = $(CC)
 
 #}}}
@@ -1301,8 +1302,8 @@ ALL_GUI_PRO  = gui.pro gui_rust.pro gui_gtk.pro gui_motif.pro gui_xmdlg.pro gui_
 
 # }}}
 
-TERM_DEPS = $(RUST_TERMINAL_LIB)
-RUST_TERMINAL_LIB = rust/terminal/target/release/libterminal.a
+TERM_DEPS =
+RUST_TERMINAL_LIB =
 
 # libvterm sources are replaced by the Rust terminal crate
 TERM_SRC =
@@ -1355,8 +1356,7 @@ MKDIR_P = $(SHELL) install-sh -c -d
 
 VTERM_CFLAGS = -Ilibvterm/include
 
-$(RUST_TERMINAL_LIB):
-	cargo build --manifest-path rust/terminal/Cargo.toml --release
+# $(RUST_TERMINAL_LIB) is disabled in the minimal build
 
 PRE_DEFS = -Iproto $(DEFS) $(GUI_DEFS) $(GUI_IPATH) $(CPPFLAGS) $(EXTRA_IPATHS)
 POST_DEFS = $(X_CFLAGS) $(MZSCHEME_CFLAGS) $(EXTRA_DEFS)
@@ -1396,6 +1396,38 @@ RUST_ARABIC_DIR = ../rust_arabic
 RUST_ARABIC_LIB = $(RUST_ARABIC_DIR)/target/release/librust_arabic.a
 RUST_BEVAL_DIR = ../rust_beval
 RUST_BEVAL_LIB = $(RUST_BEVAL_DIR)/target/release/librust_beval.a
+RUST_MBYTE_DIR = ../rust_mbyte
+RUST_MBYTE_LIB = $(RUST_MBYTE_DIR)/target/release/librust_mbyte.a
+RUST_EXCMD_DIR = ../rust_excmd
+RUST_EXCMD_LIB = $(RUST_EXCMD_DIR)/target/release/librust_excmd.a
+RUST_AUTOCMD_DIR = ../rust_autocmd
+RUST_AUTOCMD_LIB = $(RUST_AUTOCMD_DIR)/target/release/librust_autocmd.a
+RUST_SEARCH_DIR = ../rust_search
+RUST_SEARCH_LIB = $(RUST_SEARCH_DIR)/target/release/librust_search.a
+RUST_USERFUNC_DIR = ../rust_userfunc
+RUST_USERFUNC_LIB = $(RUST_USERFUNC_DIR)/target/release/librust_userfunc.a
+RUST_ALLOC_DIR = ../rust_alloc
+RUST_ALLOC_LIB = $(RUST_ALLOC_DIR)/target/release/librust_alloc.a
+RUST_WINDOW_DIR = ../rust_window
+RUST_WINDOW_LIB = $(RUST_WINDOW_DIR)/target/release/librust_window.a
+RUST_UNDO_DIR = ../rust_undo
+RUST_UNDO_LIB = $(RUST_UNDO_DIR)/target/release/librust_undo.a
+RUST_DRAWSCREEN_DIR = ../rust_drawscreen
+RUST_DRAWSCREEN_LIB = $(RUST_DRAWSCREEN_DIR)/target/release/librust_drawscreen.a
+RUST_OPTION_DIR = ../rust_option
+RUST_OPTION_LIB = $(RUST_OPTION_DIR)/target/release/librust_option.a
+RUST_EVALVARS_DIR = ../rust_evalvars
+RUST_EVALVARS_LIB = $(RUST_EVALVARS_DIR)/target/release/librust_evalvars.a
+RUST_SCREEN_DIR = ../rust_screen
+RUST_SCREEN_LIB = $(RUST_SCREEN_DIR)/target/release/librust_screen.a
+RUST_SIGN_DIR = ../rust_sign
+RUST_SIGN_LIB = $(RUST_SIGN_DIR)/target/release/librust_sign.a
+
+# Additional Rust crates used by this configuration
+RUST_CHANGE_DIR = ../rust_change
+RUST_CHANGE_LIB = $(RUST_CHANGE_DIR)/target/release/librust_change.a
+RUST_EXCMD_DIR = ../rust_excmd
+RUST_EXCMD_LIB = $(RUST_EXCMD_DIR)/target/release/librust_excmd.a
 EXTRA_IPATHS += -I$(RUST_ARABIC_DIR)/include
 EXTRA_IPATHS += -I$(RUST_BEVAL_DIR)/include
 
@@ -1414,13 +1446,26 @@ ALL_LIBS = \
            $(LIBS) \
            $(EXTRA_LIBS) \
            $(RUST_MEM_LIB) \
+           $(RUST_REGEX_LIB) \
            $(RUST_BUFFER_LIB) \
            $(RUST_CHANNEL_LIB) \
            $(RUST_GUI_LIB) \
-           $(RUST_PYTHON_LIB) \
            $(RUST_EVALFUNC_LIB) \
            $(RUST_ARABIC_LIB) \
            $(RUST_BEVAL_LIB) \
+           $(RUST_MBYTE_LIB) \
+           $(RUST_EXCMD_LIB) \
+           $(RUST_AUTOCMD_LIB) \
+           $(RUST_SEARCH_LIB) \
+           $(RUST_USERFUNC_LIB) \
+           $(RUST_ALLOC_LIB) \
+           $(RUST_WINDOW_LIB) \
+           $(RUST_UNDO_LIB) \
+           $(RUST_DRAWSCREEN_LIB) \
+           $(RUST_OPTION_LIB) \
+           $(RUST_EVALVARS_LIB) \
+           $(RUST_SCREEN_LIB) \
+           $(RUST_SIGN_LIB) \
            $(LUA_LIBS) \
            $(PERL_LIBS) \
            $(PYTHON_LIBS) \
@@ -1430,6 +1475,39 @@ ALL_LIBS = \
 	   $(PROFILE_LIBS) \
 	   $(SANITIZER_LIBS) \
 	   $(LEAK_LIBS)
+
+# ---------------------------------------------------------------------------
+# xdiff (internal diff algorithm) sources and objects
+# ---------------------------------------------------------------------------
+
+# Headers that, when changed, should trigger recompilation of diff-related code
+XDIFF_INCL = \
+	xdiff/xinclude.h \
+	xdiff/xdiff.h \
+	xdiff/xdiffi.h \
+	xdiff/xemit.h \
+	xdiff/xtypes.h \
+	xdiff/xprepare.h \
+	xdiff/xutils.h \
+	xdiff/xmacros.h
+
+# Source files for the built-in xdiff implementation
+XDIFF_SRC = \
+	xdiff/xemit.c \
+	xdiff/xutils.c \
+	xdiff/xdiffi.c \
+	xdiff/xpatience.c \
+	xdiff/xprepare.c \
+	xdiff/xhistogram.c
+
+# Object files used at link time (prefixed to avoid subdir creation under objects/)
+XDIFF_OBJS_USED = \
+	objects/xdiff_xemit.o \
+	objects/xdiff_xutils.o \
+	objects/xdiff_xdiffi.o \
+	objects/xdiff_xpatience.o \
+	objects/xdiff_xprepare.o \
+	objects/xdiff_xhistogram.o
 
 # abbreviations
 DEST_BIN = $(DESTDIR)$(BINDIR)
@@ -1468,6 +1546,116 @@ $(RUST_ARABIC_LIB):
 
 $(RUST_BEVAL_LIB):
 	cd $(RUST_BEVAL_DIR) && cargo build --release
+
+$(RUST_MBYTE_LIB):
+	cd $(RUST_MBYTE_DIR) && cargo build --release
+
+$(RUST_EXCMD_LIB):
+	cd $(RUST_EXCMD_DIR) && cargo build --release
+
+$(RUST_AUTOCMD_LIB):
+	cd $(RUST_AUTOCMD_DIR) && cargo build --release
+
+$(RUST_SEARCH_LIB):
+	cd $(RUST_SEARCH_DIR) && cargo build --release
+
+$(RUST_USERFUNC_LIB):
+	cd $(RUST_USERFUNC_DIR) && cargo build --release
+
+$(RUST_ALLOC_LIB):
+	cd $(RUST_ALLOC_DIR) && cargo build --release
+
+$(RUST_WINDOW_LIB):
+	cd $(RUST_WINDOW_DIR) && cargo build --release
+
+$(RUST_UNDO_LIB):
+	cd $(RUST_UNDO_DIR) && cargo build --release
+
+$(RUST_DRAWSCREEN_LIB):
+	cd $(RUST_DRAWSCREEN_DIR) && cargo build --release
+
+$(RUST_OPTION_LIB):
+	cd $(RUST_OPTION_DIR) && cargo build --release
+
+$(RUST_EVALVARS_LIB):
+	cd $(RUST_EVALVARS_DIR) && cargo build --release
+
+$(RUST_SCREEN_LIB):
+	cd $(RUST_SCREEN_DIR) && cargo build --release
+
+$(RUST_SIGN_LIB):
+	cd $(RUST_SIGN_DIR) && cargo build --release
+
+# Additional Rust libraries providing rs_* APIs used across the C codebase
+RUST_ARGLIST_DIR = ../rust_arglist
+RUST_ARGLIST_LIB = $(RUST_ARGLIST_DIR)/target/release/librust_arglist.a
+RUST_MESSAGE_DIR = ../rust_message
+RUST_MESSAGE_LIB = $(RUST_MESSAGE_DIR)/target/release/librust_message.a
+RUST_DIGRAPH_DIR = ../rust_digraph
+RUST_DIGRAPH_LIB = $(RUST_DIGRAPH_DIR)/target/release/librust_digraph.a
+RUST_MOUSE_DIR = ../rust_mouse
+RUST_MOUSE_LIB = $(RUST_MOUSE_DIR)/target/release/librust_mouse.a
+RUST_INPUT_DIR = ../rust_input
+RUST_INPUT_LIB = $(RUST_INPUT_DIR)/target/release/librust_input.a
+RUST_MEMLINE_DIR = ../rust_memline
+RUST_MEMLINE_LIB = $(RUST_MEMLINE_DIR)/target/release/librust_memline.a
+RUST_HELP_DIR = ../rust_help
+RUST_HELP_LIB = $(RUST_HELP_DIR)/target/release/librust_help.a
+RUST_MAP_DIR = ../rust_map
+RUST_MAP_LIB = $(RUST_MAP_DIR)/target/release/librust_map.a
+RUST_PATH_DIR = ../rust_path
+RUST_PATH_LIB = $(RUST_PATH_DIR)/target/release/librust_path.a
+RUST_SESSION_DIR = ../rust_session
+RUST_SESSION_LIB = $(RUST_SESSION_DIR)/target/release/librust_session.a
+RUST_POPUPMENU_DIR = ../rust_popupmenu
+RUST_POPUPMENU_LIB = $(RUST_POPUPMENU_DIR)/target/release/librust_popupmenu.a
+RUST_POPUPWIN_DIR = ../rust_popupwin
+RUST_POPUPWIN_LIB = $(RUST_POPUPWIN_DIR)/target/release/librust_popupwin.a
+
+ALL_LIBS += \
+           $(RUST_ARGLIST_LIB) \
+           $(RUST_MESSAGE_LIB) \
+           $(RUST_DIGRAPH_LIB) \
+           $(RUST_MOUSE_LIB) \
+           $(RUST_INPUT_LIB) \
+           $(RUST_MEMLINE_LIB) \
+           $(RUST_HELP_LIB) \
+           $(RUST_MAP_LIB) \
+           $(RUST_PATH_LIB) \
+           $(RUST_SESSION_LIB) \
+           $(RUST_POPUPMENU_LIB) \
+           $(RUST_POPUPWIN_LIB)
+
+$(RUST_ARGLIST_LIB):
+	cd $(RUST_ARGLIST_DIR) && cargo build --release
+$(RUST_MESSAGE_LIB):
+	cd $(RUST_MESSAGE_DIR) && cargo build --release
+$(RUST_DIGRAPH_LIB):
+	cd $(RUST_DIGRAPH_DIR) && cargo build --release
+$(RUST_MOUSE_LIB):
+	cd $(RUST_MOUSE_DIR) && cargo build --release
+$(RUST_INPUT_LIB):
+	cd $(RUST_INPUT_DIR) && cargo build --release
+$(RUST_MEMLINE_LIB):
+	cd $(RUST_MEMLINE_DIR) && cargo build --release
+$(RUST_HELP_LIB):
+	cd $(RUST_HELP_DIR) && cargo build --release
+$(RUST_MAP_LIB):
+	cd $(RUST_MAP_DIR) && cargo build --release
+$(RUST_PATH_LIB):
+	cd $(RUST_PATH_DIR) && cargo build --release
+$(RUST_SESSION_LIB):
+	cd $(RUST_SESSION_DIR) && cargo build --release
+$(RUST_POPUPMENU_LIB):
+	cd $(RUST_POPUPMENU_DIR) && cargo build --release
+$(RUST_POPUPWIN_LIB):
+	cd $(RUST_POPUPWIN_DIR) && cargo build --release
+
+$(RUST_CHANGE_LIB):
+	cd $(RUST_CHANGE_DIR) && cargo build --release
+
+$(RUST_EXCMD_LIB):
+	cd $(RUST_EXCMD_DIR) && cargo build --release
 DEST_LANG = $(DESTDIR)$(LANGSUBLOC)
 DEST_COMP = $(DESTDIR)$(COMPSUBLOC)
 DEST_KMAP = $(DESTDIR)$(KMAPSUBLOC)
@@ -1562,7 +1750,7 @@ BASIC_SRC = \
 	gui_xim.c \
 	hardcopy.c \
 	hashtab.c \
-	help.c \
+	\
 	highlight.c \
 	if_cscope.c \
 	if_xcmdsrv.c \
@@ -1612,7 +1800,7 @@ BASIC_SRC = \
 	tabpanel.c \
 	tag.c \
 	term.c \
-	terminal.c \
+    \
 	testing.c \
 	textformat.c \
 	textobject.c \
@@ -1768,15 +1956,15 @@ OBJ_COMMON = \
 	objects/sign.o \
 	objects/sound.o \
 	objects/spell.o \
-	objects/spellfile.o \
-	objects/spellsuggest.o \
 	objects/strings.o \
 	objects/syntax.o \
 	objects/tabpanel.o \
 	objects/tag.o \
 	objects/term.o \
-	objects/terminal.o \
+    \
 	objects/testing.o \
+	objects/regex_compat.o \
+	objects/mbyte_compat.o \
 	objects/textformat.o \
 	objects/textobject.o \
 	objects/textprop.o \
@@ -1785,6 +1973,8 @@ OBJ_COMMON = \
 	objects/typval.o \
 	objects/ui.o \
 	objects/undo.o \
+	objects/undo_stubs.o \
+	objects/ex_docmd_compat.o \
 	objects/usercmd.o \
 	objects/userfunc.o \
 	objects/version.o \
@@ -1925,8 +2115,6 @@ PRO_AUTO = \
 	sign.pro \
 	sound.pro \
 	spell.pro \
-	spellfile.pro \
-	spellsuggest.pro \
 	strings.pro \
 	syntax.pro \
 	tabpanel.pro \
@@ -1964,7 +2152,7 @@ PRO_MANUAL = os_amiga.pro os_win32.pro \
 	os_mswin.pro winclip.pro os_vms.pro $(PERL_PRO)
 
 # Default target is making the executable and tools
-all: $(VIMTARGET) $(TOOLS) languages $(GUI_BUNDLE) rust-channel rust-spell
+all: $(VIMTARGET) $(TOOLS) languages $(GUI_BUNDLE)
 
 # Build the Rust channel library that exposes a minimal FFI API for Vim.
 # This is a placeholder; a full integration would link the resulting static
@@ -2075,7 +2263,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_BUFFER_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB)
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB)
 	@$(BUILD_DATE_MSG)
 	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) $(OBJ) $(ALL_LIBS)" \
@@ -3165,8 +3353,8 @@ objects/buffer.o: buffer.c
 objects/bufwrite.o: bufwrite.c
 	$(CCC) -o $@ bufwrite.c
 
-objects/change.o: # change.c replaced by rust_change crate
-# $(CCC) -o $@ change.c
+objects/change.o: change.c
+	$(CCC) -o $@ change.c
 
 objects/charset.o: charset.c
 	$(CCC) -o $@ charset.c
@@ -3210,6 +3398,15 @@ objects/drawline.o: drawline.c
 objects/drawscreen.o: drawscreen.c
 	$(CCC) -o $@ drawscreen.c
 
+objects/regex_compat.o: regex_compat.c
+	$(CCC) -o $@ regex_compat.c
+
+objects/mbyte_compat.o: mbyte_compat.c
+	$(CCC) -o $@ mbyte_compat.c
+
+objects/ex_docmd_compat.o: ex_docmd_compat.c
+	$(CCC) -o $@ ex_docmd_compat.c
+
 objects/edit.o: edit.c
 	$(CCC) -o $@ edit.c
 
@@ -3228,8 +3425,8 @@ objects/evalvars.o: evalvars.c
 objects/evalwindow.o: evalwindow.c
 	$(CCC) -o $@ evalwindow.c
 
-objects/ex_cmds.o: # ex_cmds.c replaced by rust_excmd crate
-# $(CCC) -o $@ ex_cmds.c
+objects/ex_cmds.o: ex_cmds.c
+	$(CCC) -o $@ ex_cmds.c
 
 objects/ex_eval.o: ex_eval.c
 	$(CCC) -o $@ ex_eval.c
@@ -3267,8 +3464,7 @@ objects/hardcopy.o: hardcopy.c
 objects/hashtab.o: hashtab.c
 	$(CCC) -o $@ hashtab.c
 
-objects/help.o: help.c
-	$(CCC) -o $@ help.c
+## help.c は Rust 連携版の最小構成ではビルド対象から外す
 
 objects/gui.o: gui.c
 	$(CCC) -o $@ gui.c
@@ -3635,6 +3831,35 @@ objects/vterm_vterm.o: libvterm/src/vterm.c $(TERM_DEPS)
 
 CCCDIFF = $(CCC_NF) $(ALL_CFLAGS)
 
+# Debug helper: dump object list
+.PHONY: print-obj print-libs
+print-obj:
+	@echo $(OBJ) > objects/obj_list.txt
+print-libs:
+	@echo $(ALL_LIBS) > objects/lib_list.txt
+# Build xdiff objects with a prefix to avoid subdirectories under objects/
+objects/xdiff_xemit.o: xdiff/xemit.c $(XDIFF_INCL)
+	$(CCCDIFF) -o $@ xdiff/xemit.c
+
+objects/xdiff_xutils.o: xdiff/xutils.c $(XDIFF_INCL)
+	$(CCCDIFF) -o $@ xdiff/xutils.c
+
+objects/xdiff_xdiffi.o: xdiff/xdiffi.c $(XDIFF_INCL)
+	$(CCCDIFF) -o $@ xdiff/xdiffi.c
+
+objects/xdiff_xpatience.o: xdiff/xpatience.c $(XDIFF_INCL)
+	$(CCCDIFF) -o $@ xdiff/xpatience.c
+
+objects/xdiff_xprepare.o: xdiff/xprepare.c $(XDIFF_INCL)
+	$(CCCDIFF) -o $@ xdiff/xprepare.c
+
+objects/xdiff_xhistogram.o: xdiff/xhistogram.c $(XDIFF_INCL)
+	$(CCCDIFF) -o $@ xdiff/xhistogram.c
+
+# Build stubbed undo compatibility layer
+objects/undo_stubs.o: undo_stubs.c $(VIM_H_DEPENDENCIES)
+	$(CCC) -o $@ undo_stubs.c
+
 
 
 
@@ -3899,6 +4124,7 @@ objects/help.o: help.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
+	$(CCC) -o $@ help.c
 objects/highlight.o: highlight.c vim.h protodef.h auto/config.h feature.h \
  os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \

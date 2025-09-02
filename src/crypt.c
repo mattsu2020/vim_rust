@@ -30,7 +30,7 @@
  * and sha256 by Christophe Devine.
  */
 
-typedef struct {
+typedef struct cryptmethod_S {
     char	*name;		// encryption name as used in 'cryptmethod'
     char	*magic;		// magic bytes stored in file header
     int		salt_len;	// length of salt, or 0 when not using salt

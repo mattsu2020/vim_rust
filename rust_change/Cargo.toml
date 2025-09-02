@@ -4,4 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-crate-type = ["rlib", "cdylib"]
+name = "rust_change"
+crate-type = ["staticlib", "rlib"]

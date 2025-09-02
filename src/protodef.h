@@ -16,3 +16,4 @@ typedef double _Float32x;
 typedef double _Float64x;
 #endif
 
+// 一部の .pro で参照される型は、各実装側ヘッダで提供される。

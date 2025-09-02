@@ -40,6 +40,10 @@
 #include "optiondefs.h"
 #include "option_rs.h"
 
+// 最小構成用：スペル設定検証関数の前方宣言（実体は Rust/別実装想定）
+int spell_check_msm(void);
+int spell_check_sps(void);
+
 static const rs_opt_t *rs_option_table = NULL;
 static size_t rs_option_count = 0;
 

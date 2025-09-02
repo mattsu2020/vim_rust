@@ -9,6 +9,7 @@
 
 #include "vim.h"
 #include "rust_mem.h"
+#include "xdiff/xdiff.h"
 
 #define LN_MAX_BUFS 8
 #define LN_DECISION_MAX 255  // pow(2, LN_MAX_BUFS(8)) - 1 = 255

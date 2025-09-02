@@ -19,6 +19,10 @@
 extern int rs_cmd_execute(const char *name);
 extern const char *rs_map_lookup(const char *lhs);
 
+// Rust 実装由来のスペル関数の前方宣言（最小ビルド用）
+void spell_add_word(char_u *ptr, int len, int add_good, int count1, int undo);
+void spell_suggest(int count0);
+
 void normal_cmd(oparg_T *oap, int toplevel)
 {
     rs_normal_cmd(oap, toplevel);

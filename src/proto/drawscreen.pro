@@ -1,5 +1,5 @@
 /* drawscreen.c */
-int update_screen(int type_arg);
+void update_screen(int type_arg);
 int statusline_row(win_T *wp);
 void win_redr_status(win_T *wp, int ignore_pum);
 void showruler(int always);

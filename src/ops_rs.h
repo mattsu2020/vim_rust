@@ -1,7 +1,7 @@
 #ifndef OPS_RS_H
 #define OPS_RS_H
 
-#include "structs.h"
+/* structs.h は vim.h 側で読み込まれる */
 
 #ifdef __cplusplus
 extern "C" {

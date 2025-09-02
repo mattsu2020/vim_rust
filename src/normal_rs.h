@@ -1,7 +1,7 @@
 #ifndef NORMAL_RS_H
 #define NORMAL_RS_H
 
-#include "structs.h"
+/* structs.h は vim.h 経由で読み込まれる前提 */
 
 #ifdef __cplusplus
 extern "C" {
