@@ -137,6 +137,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_autocmd"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rust_buffer"
 version = "0.1.0"
 dependencies = [
@@ -220,6 +227,7 @@ name = "vim_channel"
 version = "0.1.0"
 dependencies = [
  "diff",
+ "rust_autocmd",
  "rust_buffer",
  "spell",
  "tokio",
