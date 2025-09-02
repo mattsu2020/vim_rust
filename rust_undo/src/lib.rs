@@ -55,19 +55,19 @@ impl UndoHistory {
 }
 
 #[no_mangle]
-pub extern "C" fn undo_history_new() -> *mut UndoHistory {
+pub extern "C" fn rs_undo_history_new() -> *mut UndoHistory {
     Box::into_raw(Box::new(UndoHistory::new()))
 }
 
 #[no_mangle]
-pub extern "C" fn undo_history_free(ptr: *mut UndoHistory) {
+pub extern "C" fn rs_undo_history_free(ptr: *mut UndoHistory) {
     if !ptr.is_null() {
         unsafe { drop(Box::from_raw(ptr)); }
     }
 }
 
 #[no_mangle]
-pub extern "C" fn undo_push(ptr: *mut UndoHistory, text: *const c_char) -> bool {
+pub extern "C" fn rs_undo_push(ptr: *mut UndoHistory, text: *const c_char) -> bool {
     if ptr.is_null() || text.is_null() {
         return false;
     }
@@ -82,7 +82,7 @@ pub extern "C" fn undo_push(ptr: *mut UndoHistory, text: *const c_char) -> bool 
 }
 
 #[no_mangle]
-pub extern "C" fn undo_pop(ptr: *mut UndoHistory, buf: *mut c_char, len: usize) -> bool {
+pub extern "C" fn rs_undo_pop(ptr: *mut UndoHistory, buf: *mut c_char, len: usize) -> bool {
     if ptr.is_null() || buf.is_null() {
         return false;
     }
@@ -110,26 +110,26 @@ mod tests {
 
     #[test]
     fn push_and_pop_changes() {
-        let hist = undo_history_new();
+        let hist = rs_undo_history_new();
         let c1 = CString::new("one").unwrap();
         let c2 = CString::new("two").unwrap();
-        assert!(undo_push(hist, c1.as_ptr()));
-        assert!(undo_push(hist, c2.as_ptr()));
+        assert!(rs_undo_push(hist, c1.as_ptr()));
+        assert!(rs_undo_push(hist, c2.as_ptr()));
         let mut buf = [0i8; 10];
-        assert!(undo_pop(hist, buf.as_mut_ptr(), buf.len()));
+        assert!(rs_undo_pop(hist, buf.as_mut_ptr(), buf.len()));
         let s = unsafe { CStr::from_ptr(buf.as_ptr()) }.to_str().unwrap();
         assert_eq!(s, "two");
-        assert!(undo_pop(hist, buf.as_mut_ptr(), buf.len()));
+        assert!(rs_undo_pop(hist, buf.as_mut_ptr(), buf.len()));
         let s = unsafe { CStr::from_ptr(buf.as_ptr()) }.to_str().unwrap();
         assert_eq!(s, "one");
-        assert!(!undo_pop(hist, buf.as_mut_ptr(), buf.len()));
-        undo_history_free(hist);
+        assert!(!rs_undo_pop(hist, buf.as_mut_ptr(), buf.len()));
+        rs_undo_history_free(hist);
     }
 
     #[test]
     fn integrates_with_memline() {
         let mut buf = MemBuffer::new();
-        let hist = undo_history_new();
+        let hist = rs_undo_history_new();
 
         // Start with one line
         assert!(buf.ml_append(0, "hello"));
@@ -137,15 +137,15 @@ mod tests {
         // Replace line and record previous text for undo
         let previous = buf.ml_replace(1, "world").unwrap();
         let prev_c = CString::new(previous.clone()).unwrap();
-        assert!(undo_push(hist, prev_c.as_ptr()));
+        assert!(rs_undo_push(hist, prev_c.as_ptr()));
 
         // Undo the change
         let mut out = [0i8; 16];
-        assert!(undo_pop(hist, out.as_mut_ptr(), out.len()));
+        assert!(rs_undo_pop(hist, out.as_mut_ptr(), out.len()));
         let last = unsafe { CStr::from_ptr(out.as_ptr()) }.to_str().unwrap();
         assert_eq!(last, "hello");
         assert_eq!(buf.ml_replace(1, last), Some(String::from("world")));
 
-        undo_history_free(hist);
+        rs_undo_history_free(hist);
     }
 }
