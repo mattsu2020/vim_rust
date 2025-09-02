@@ -8,6 +8,7 @@ tokio = { version = "1", features = ["net", "time", "macros", "io-util", "rt"] }
 spell = { path = "rust/spell" }
 diff = { path = "rust/diff" }
 rust_buffer = { path = "rust_buffer" }
+rust_spell = { path = "rust_spell" }
 
 [lib]
 name = "vim_channel"
