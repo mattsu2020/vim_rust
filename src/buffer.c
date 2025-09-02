@@ -26,9 +26,7 @@
  */
 
 #include "vim.h"
-#ifdef USE_RUST_BUFFER
-# include "rust_buffer.h"
-#endif
+#include "rust_buffer.h"
 
 #ifdef FEAT_EVAL
 // Determines how deeply nested %{} blocks will be evaluated in statusline.
@@ -859,117 +857,6 @@ buf_clear_file(buf_T *buf)
 #endif
 }
 
-/*
- * buf_freeall() - free all things allocated for a buffer that are related to
- * the file.  Careful: get here with "curwin" NULL when exiting.
- * flags:
- * BFA_DEL	     buffer is going to be deleted
- * BFA_WIPE	     buffer is going to be wiped out
- * BFA_KEEP_UNDO     do not free undo information
- * BFA_IGNORE_ABORT  don't abort even when aborting() returns TRUE
- */
-#ifndef USE_RUST_BUFFER
-    void
-buf_freeall(buf_T *buf, int flags)
-{
-    int		is_curbuf = (buf == curbuf);
-    bufref_T	bufref;
-    int		is_curwin = (curwin != NULL && curwin->w_buffer == buf);
-    win_T	*the_curwin = curwin;
-    tabpage_T	*the_curtab = curtab;
-
-    // Make sure the buffer isn't closed by autocommands.
-    ++buf->b_locked;
-    ++buf->b_locked_split;
-    set_bufref(&bufref, buf);
-    if (buf->b_ml.ml_mfp != NULL)
-    {
-	if (apply_autocmds(EVENT_BUFUNLOAD, buf->b_fname, buf->b_fname,
-								  FALSE, buf)
-		&& !bufref_valid(&bufref))
-	    // autocommands deleted the buffer
-	    return;
-    }
-    if ((flags & BFA_DEL) && buf->b_p_bl)
-    {
-	if (apply_autocmds(EVENT_BUFDELETE, buf->b_fname, buf->b_fname,
-								   FALSE, buf)
-		&& !bufref_valid(&bufref))
-	    // autocommands deleted the buffer
-	    return;
-    }
-    if (flags & BFA_WIPE)
-    {
-	if (apply_autocmds(EVENT_BUFWIPEOUT, buf->b_fname, buf->b_fname,
-								  FALSE, buf)
-		&& !bufref_valid(&bufref))
-	    // autocommands deleted the buffer
-	    return;
-    }
-    --buf->b_locked;
-    --buf->b_locked_split;
-
-    // If the buffer was in curwin and the window has changed, go back to that
-    // window, if it still exists.  This avoids that ":edit x" triggering a
-    // "tabnext" BufUnload autocmd leaves a window behind without a buffer.
-    if (is_curwin && curwin != the_curwin && win_valid_any_tab(the_curwin))
-    {
-	block_autocmds();
-	goto_tabpage_win(the_curtab, the_curwin);
-	unblock_autocmds();
-    }
-
-#ifdef FEAT_EVAL
-    // autocmds may abort script processing
-    if ((flags & BFA_IGNORE_ABORT) == 0 && aborting())
-	return;
-#endif
-
-    // It's possible that autocommands change curbuf to the one being deleted.
-    // This might cause curbuf to be deleted unexpectedly.  But in some cases
-    // it's OK to delete the curbuf, because a new one is obtained anyway.
-    // Therefore only return if curbuf changed to the deleted buffer.
-    if (buf == curbuf && !is_curbuf)
-	return;
-#ifdef FEAT_DIFF
-    diff_buf_delete(buf);	    // Can't use 'diff' for unloaded buffer.
-#endif
-#ifdef FEAT_SYN_HL
-    // Remove any ownsyntax, unless exiting.
-    if (curwin != NULL && curwin->w_buffer == buf)
-	reset_synblock(curwin);
-#endif
-
-#ifdef FEAT_FOLDING
-    // No folds in an empty buffer.
-    {
-	win_T		*win;
-	tabpage_T	*tp;
-
-	FOR_ALL_TAB_WINDOWS(tp, win)
-	    if (win->w_buffer == buf)
-		clearFolding(win);
-    }
-#endif
-
-#ifdef FEAT_TCL
-    tcl_buffer_free(buf);
-#endif
-    ml_close(buf, TRUE);	    // close and delete the memline/memfile
-    buf->b_ml.ml_line_count = 0;    // no lines in buffer
-    if ((flags & BFA_KEEP_UNDO) == 0)
-	// free the memory allocated for undo
-	// and reset all undo information
-	u_clearallandblockfree(buf);
-#ifdef FEAT_SYN_HL
-    syntax_clear(&buf->b_s);	    // reset syntax info
-#endif
-#ifdef FEAT_PROP_POPUP
-    clear_buf_prop_types(buf);
-#endif
-    buf->b_flags &= ~BF_READERR;    // a read error is no longer relevant
-}
-#endif // !USE_RUST_BUFFER
 
 /*
  * Free a buffer structure and the things it contains related to the buffer
@@ -2247,17 +2134,12 @@ buflist_new(
     }
     if (buf != curbuf || curbuf == NULL)
     {
-        buf =
-#ifdef USE_RUST_BUFFER
-            (buf_T *)buf_alloc(sizeof(buf_T));
-#else
-            ALLOC_CLEAR_ONE(buf_T);
-#endif
-	if (buf == NULL)
-	{
-	    vim_free(ffname);
-	    return NULL;
-	}
+        buf = (buf_T *)buf_alloc(sizeof(buf_T));
+        if (buf == NULL)
+        {
+            vim_free(ffname);
+            return NULL;
+        }
 #ifdef FEAT_EVAL
 	// init b: variables
 	buf->b_vars = dict_alloc_id(aid_newbuf_bvars);
