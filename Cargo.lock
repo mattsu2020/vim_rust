@@ -296,6 +296,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_dict"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rust_profiler"
 version = "0.1.0"
 dependencies = [
@@ -413,6 +420,7 @@ dependencies = [
  "diff",
  "rust_buffer",
  "rust_debugger",
+ "rust_dict",
  "rust_profiler",
  "rust_python",
  "rust_spell",
