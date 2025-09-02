@@ -9,3 +9,6 @@ rust_gui_core = { path = "../rust_gui_core" }
 [lib]
 name = "rust_gui"
 crate-type = ["staticlib", "rlib"]
+
+[target.'cfg(target_os = "linux")'.dependencies]
+rust_gui_x11 = { path = "../rust_gui_x11" }

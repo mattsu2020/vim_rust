@@ -1,5 +1,5 @@
 #[cfg(target_os = "linux")]
-use rust_gui_core::backend::gtk::GtkBackend as Backend;
+use rust_gui_x11::X11Backend as Backend;
 #[cfg(target_os = "macos")]
 use rust_gui_core::backend::macos::MacBackend as Backend;
 #[cfg(target_os = "windows")]
