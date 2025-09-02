@@ -132,9 +132,11 @@ mod tests {
     use std::fs::File;
     use std::io::Write;
     use std::ptr;
+    static TEST_MUTEX: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
     #[test]
     fn captype_basic() {
+        let _g = TEST_MUTEX.lock().unwrap();
         let w = CString::new("vim").unwrap();
         assert_eq!(captype(w.as_ptr() as *const u8, ptr::null()), 0);
         let w = CString::new("Vim").unwrap();
@@ -147,6 +149,7 @@ mod tests {
 
     #[test]
     fn load_and_suggest() {
+        let _g = TEST_MUTEX.lock().unwrap();
         let mut path = std::env::temp_dir();
         path.push("dict.txt");
         let mut f = File::create(&path).unwrap();
@@ -170,5 +173,57 @@ mod tests {
         rs_spell_free_suggestions(ptr, len);
         res.sort();
         assert_eq!(res, vec!["apple", "apply"]);
+    }
+
+    #[test]
+    fn multilingual_and_performance() {
+        let _g = TEST_MUTEX.lock().unwrap();
+        use std::time::Instant;
+
+        // create a small dictionary with words from multiple languages
+        let mut path = std::env::temp_dir();
+        path.push("dict_multi.txt");
+        let mut f = File::create(&path).unwrap();
+        writeln!(f, "apple").unwrap(); // English
+        writeln!(f, "bonjour").unwrap(); // French
+        writeln!(f, "hola").unwrap(); // Spanish
+        writeln!(f, "こんにちは").unwrap(); // Japanese
+
+        let cpath = CString::new(path.to_str().unwrap()).unwrap();
+        assert!(rs_spell_load_dict(cpath.as_ptr()));
+
+        // verify suggestions across languages
+        let check = |w: &str, expected: &str| {
+            let w = CString::new(w).unwrap();
+            let mut len: usize = 0;
+            let ptr = rs_spell_suggest(w.as_ptr(), 5, &mut len as *mut usize);
+            assert!(!ptr.is_null());
+            let slice = unsafe { std::slice::from_raw_parts(ptr, len) };
+            let mut res: Vec<String> = slice
+                .iter()
+                .map(|&p| unsafe { CStr::from_ptr(p).to_string_lossy().into_owned() })
+                .collect();
+            rs_spell_free_suggestions(ptr, len);
+            assert!(res.contains(&expected.to_string()));
+        };
+        check("appl", "apple");
+        check("bonjou", "bonjour");
+        check("hol", "hola");
+        check("こんにちわ", "こんにちは");
+
+        // performance: load a larger dictionary and ensure it loads quickly
+        let mut big_path = std::env::temp_dir();
+        big_path.push("dict_big.txt");
+        let mut f = File::create(&big_path).unwrap();
+        for i in 0..10_000 {
+            writeln!(f, "word{}", i).unwrap();
+        }
+
+        let cpath = CString::new(big_path.to_str().unwrap()).unwrap();
+        let start = Instant::now();
+        assert!(rs_spell_load_dict(cpath.as_ptr()));
+        let elapsed = start.elapsed();
+        // basic sanity check: loading should be reasonably fast
+        assert!(elapsed.as_secs() < 1, "loading took {:?}", elapsed);
     }
 }
