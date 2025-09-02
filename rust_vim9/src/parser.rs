@@ -2,6 +2,7 @@
 pub enum Ast {
     Number(i64),
     Add(Box<Ast>, Box<Ast>),
+    Echo(Box<Ast>),
 }
 
 pub fn parse_addition(expr: &str) -> Option<Ast> {
@@ -14,4 +15,13 @@ pub fn parse_addition(expr: &str) -> Option<Ast> {
         ast = Ast::Add(Box::new(ast), Box::new(right));
     }
     Some(ast)
+}
+
+pub fn parse_line(line: &str) -> Option<Ast> {
+    let line = line.trim();
+    if let Some(rest) = line.strip_prefix("echo ") {
+        parse_addition(rest).map(|ast| Ast::Echo(Box::new(ast)))
+    } else {
+        parse_addition(line)
+    }
 }

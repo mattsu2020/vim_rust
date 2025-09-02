@@ -8,12 +8,12 @@ mod parser;
 mod compiler;
 mod executor;
 
-use parser::parse_addition;
+use parser::parse_line;
 use compiler::compile;
 use executor::execute;
 
 pub fn eval_expr(expr: &str) -> Option<i64> {
-    let ast = parse_addition(expr)?;
+    let ast = parse_line(expr)?;
     let prog = compile(&ast);
     Some(execute(&prog))
 }
@@ -64,6 +64,12 @@ mod tests {
     fn eval_simple_add() {
         let expr = "1 + 2 + 3";
         assert_eq!(eval_expr(expr), Some(6));
+    }
+
+    #[test]
+    fn echo_command_returns_value() {
+        let expr = "echo 4 + 5";
+        assert_eq!(eval_expr(expr), Some(9));
     }
 
     #[test]

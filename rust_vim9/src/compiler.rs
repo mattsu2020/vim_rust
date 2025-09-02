@@ -21,5 +21,9 @@ fn compile_node(ast: &Ast, instrs: &mut Vec<Vim9Instr>) {
             compile_node(b, instrs);
             instrs.push(Vim9Instr::Add);
         }
+        Ast::Echo(expr) => {
+            compile_node(expr, instrs);
+            instrs.push(Vim9Instr::Echo);
+        }
     }
 }
