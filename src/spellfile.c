@@ -242,6 +242,7 @@
 #if defined(FEAT_SPELL) || defined(PROTO)
 
 #include <time.h>	// for time_t
+extern int rs_spellfile_add_word(char *fname, char *word, int len, int what, int undo);
 
 // Special byte values for <byte>.  Some are only used in the tree for
 // postponed prefixes, some only in the other trees.  This is a bit messy...
@@ -6200,13 +6201,10 @@ spell_add_word(
 			    // 'spellfile'
     int		undo)	    // TRUE for "zug", "zuG", "zuw" and "zuW"
 {
-    FILE	*fd = NULL;
     buf_T	*buf = NULL;
     int		new_spf = FALSE;
     char_u	*fname;
     char_u	*fnamebuf = NULL;
-    char_u	line[MAXWLEN * 2];
-    long	fpos, fpos_next = 0;
     int		i;
     char_u	*spf;
 
@@ -6271,103 +6269,27 @@ spell_add_word(
 	fname = fnamebuf;
     }
 
-    if (what == SPELL_ADD_BAD || undo)
+    if (!rs_spellfile_add_word((char *)fname, (char *)word, len, what, undo))
     {
-	// When the word appears as good word we need to remove that one,
-	// since its flags sort before the one with WF_BANNED.
-	fd = mch_fopen((char *)fname, "r");
-	if (fd != NULL)
-	{
-	    while (!vim_fgets(line, MAXWLEN * 2, fd))
-	    {
-		fpos = fpos_next;
-		fpos_next = ftell(fd);
-		if (fpos_next < 0)
-		    break;  // should never happen
-		if (STRNCMP(word, line, len) == 0
-			&& (line[len] == '/' || line[len] < ' '))
-		{
-		    // Found duplicate word.  Remove it by writing a '#' at
-		    // the start of the line.  Mixing reading and writing
-		    // doesn't work for all systems, close the file first.
-		    fclose(fd);
-		    fd = mch_fopen((char *)fname, "r+");
-		    if (fd == NULL)
-			break;
-		    if (fseek(fd, fpos, SEEK_SET) == 0)
-		    {
-			fputc('#', fd);
-			if (undo)
-			{
-			    home_replace(NULL, fname, NameBuff, MAXPATHL, TRUE);
-			    smsg(_("Word '%.*s' removed from %s"),
-							 len, word, NameBuff);
-			}
-		    }
-		    if (fseek(fd, fpos_next, SEEK_SET) != 0)
-		    {
-			PERROR(_("Seek error in spellfile"));
-			break;
-		    }
-		}
-	    }
-	    if (fd != NULL)
-		fclose(fd);
-	}
+        semsg(_(e_cant_open_file_str), fname);
+        vim_free(fnamebuf);
+        return;
     }
 
-    if (!undo)
-    {
-	fd = mch_fopen((char *)fname, "a");
-	if (fd == NULL && new_spf)
-	{
-	    char_u *p;
+    home_replace(NULL, fname, NameBuff, MAXPATHL, TRUE);
+    if (undo)
+        smsg(_("Word '%.*s' removed from %s"), len, word, NameBuff);
+    else
+        smsg(_("Word '%.*s' added to %s"), len, word, NameBuff);
 
-	    // We just initialized the 'spellfile' option and can't open the
-	    // file.  We may need to create the "spell" directory first.  We
-	    // already checked the runtime directory is writable in
-	    // init_spellfile().
-	    if (!dir_of_file_exists(fname) && (p = gettail_sep(fname)) != fname)
-	    {
-		int c = *p;
+    // Update the .add.spl file.
+    mkspell(1, &fname, FALSE, TRUE, TRUE);
 
-		// The directory doesn't exist.  Try creating it and opening
-		// the file again.
-		*p = NUL;
-		vim_mkdir(fname, 0755);
-		*p = c;
-		fd = mch_fopen((char *)fname, "a");
-	    }
-	}
+    // If the .add file is edited somewhere, reload it.
+    if (buf != NULL)
+        buf_reload(buf, buf->b_orig_mode, FALSE);
 
-	if (fd == NULL)
-	    semsg(_(e_cant_open_file_str), fname);
-	else
-	{
-	    if (what == SPELL_ADD_BAD)
-		fprintf(fd, "%.*s/!\n", len, word);
-	    else if (what == SPELL_ADD_RARE)
-		fprintf(fd, "%.*s/?\n", len, word);
-	    else
-		fprintf(fd, "%.*s\n", len, word);
-	    fclose(fd);
-
-	    home_replace(NULL, fname, NameBuff, MAXPATHL, TRUE);
-	    smsg(_("Word '%.*s' added to %s"), len, word, NameBuff);
-	}
-    }
-
-    if (fd != NULL)
-    {
-	// Update the .add.spl file.
-	mkspell(1, &fname, FALSE, TRUE, TRUE);
-
-	// If the .add file is edited somewhere, reload it.
-	if (buf != NULL)
-	    buf_reload(buf, buf->b_orig_mode, FALSE);
-
-	redraw_all_later(UPD_SOME_VALID);
-    }
+    redraw_all_later(UPD_SOME_VALID);
     vim_free(fnamebuf);
 }
 
