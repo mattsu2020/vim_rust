@@ -12,43 +12,19 @@
  */
 
 #include "vim.h"
+#include "../rust_evalvars/include/rust_evalvars.h"
 
 #if defined(FEAT_EVAL) || defined(PROTO)
 
     static int
 win_getid(typval_T *argvars)
 {
-    int	    winnr;
-    win_T   *wp;
-
-    if (argvars[0].v_type == VAR_UNKNOWN)
-	return curwin->w_id;
-    winnr = tv_get_number(&argvars[0]);
-    if (winnr <= 0)
-	return 0;
-
-    if (argvars[1].v_type == VAR_UNKNOWN)
-	wp = firstwin;
-    else
-    {
-	tabpage_T	*tp;
-	int		tabnr = tv_get_number(&argvars[1]);
-
-	FOR_ALL_TABPAGES(tp)
-	    if (--tabnr == 0)
-		break;
-	if (tp == NULL)
-	    return -1;
-	if (tp == curtab)
-	    wp = firstwin;
-	else
-	    wp = tp->tp_firstwin;
-    }
-    for ( ; wp != NULL; wp = wp->w_next)
-	if (--winnr == 0)
-	    return wp->w_id;
-    return 0;
+    int winnr = 0;
+    if (argvars[0].v_type != VAR_UNKNOWN)
+        winnr = tv_get_number(&argvars[0]);
+    return rs_win_getid(winnr);
 }
+
 
     static void
 win_id2tabwin(typval_T *argvars, list_T *list)
