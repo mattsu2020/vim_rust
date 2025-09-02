@@ -1390,6 +1390,8 @@ RUST_GUI_DIR = ../rust_gui
 RUST_GUI_LIB = $(RUST_GUI_DIR)/target/release/librust_gui.a
 RUST_PYTHON_DIR = ../rust_python
 RUST_PYTHON_LIB = $(RUST_PYTHON_DIR)/target/release/librust_python.a
+RUST_AUTOCMD_DIR = ../rust_autocmd
+RUST_AUTOCMD_LIB = $(RUST_AUTOCMD_DIR)/target/release/librust_autocmd.a
 
 # Note: MZSCHEME_LIBS must come before LIBS, because LIBS adds -lm which is
 # needed by racket.
@@ -1410,6 +1412,7 @@ ALL_LIBS = \
            $(RUST_CHANNEL_LIB) \
            $(RUST_GUI_LIB) \
            $(RUST_PYTHON_LIB) \
+           $(RUST_AUTOCMD_LIB) \
            $(LUA_LIBS) \
            $(PERL_LIBS) \
            $(PYTHON_LIBS) \
@@ -1447,7 +1450,7 @@ $(RUST_CHANNEL_LIB):
 	cd $(RUST_CHANNEL_DIR) && cargo build --release
 
 $(RUST_GUI_LIB):
-        cd $(RUST_GUI_DIR) && cargo build --release
+	cd $(RUST_GUI_DIR) && cargo build --release
 DEST_LANG = $(DESTDIR)$(LANGSUBLOC)
 DEST_COMP = $(DESTDIR)$(COMPSUBLOC)
 DEST_KMAP = $(DESTDIR)$(KMAPSUBLOC)
@@ -2109,7 +2112,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_BUFFER_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB)
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_BUFFER_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_AUTOCMD_LIB)
 	@$(BUILD_DATE_MSG)
 	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) $(OBJ) $(ALL_LIBS)" \
@@ -4621,3 +4624,6 @@ objects/vterm_vterm.o: libvterm/src/vterm.c libvterm/src/vterm_internal.h \
  libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h \
+
+$(RUST_AUTOCMD_LIB):
+	cd $(RUST_AUTOCMD_DIR) && cargo build --release
