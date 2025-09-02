@@ -61,7 +61,10 @@ mod tests {
 
     impl TestBackend {
         fn new() -> Self {
-            Self { drawn: Vec::new(), events: VecDeque::new() }
+            Self {
+                drawn: Vec::new(),
+                events: VecDeque::new(),
+            }
         }
         fn push_event(&mut self, ev: GuiEvent) {
             self.events.push_back(ev);
@@ -85,6 +88,7 @@ mod tests {
         let mut backend = TestBackend::new();
         backend.push_event(GuiEvent::Key('x'));
         backend.push_event(GuiEvent::Click { x: 10, y: 20 });
+        backend.push_event(GuiEvent::Expose);
         let mut core = GuiCore::new(backend);
         core.draw_text("hello");
         let mut seen = Vec::new();
@@ -92,7 +96,11 @@ mod tests {
         assert_eq!(core.backend_mut().drawn, vec!["hello".to_string()]);
         assert_eq!(
             seen,
-            vec![GuiEvent::Key('x'), GuiEvent::Click { x: 10, y: 20 }]
+            vec![
+                GuiEvent::Key('x'),
+                GuiEvent::Click { x: 10, y: 20 },
+                GuiEvent::Expose,
+            ]
         );
     }
 }

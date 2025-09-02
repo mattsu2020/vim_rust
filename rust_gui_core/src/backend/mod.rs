@@ -5,6 +5,8 @@ pub enum GuiEvent {
     Key(char),
     /// Mouse click at the given coordinates.
     Click { x: i32, y: i32 },
+    /// The window was exposed and needs to be redrawn.
+    Expose,
 }
 
 /// Abstraction over platform specific drawing and event handling.
