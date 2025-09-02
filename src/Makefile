@@ -1411,6 +1411,8 @@ RUST_BUFFER_DIR = ../rust_buffer
 RUST_BUFFER_LIB = $(RUST_BUFFER_DIR)/target/release/librust_buffer.a
 RUST_CHANNEL_DIR = ../rust_channel
 RUST_CHANNEL_LIB = $(RUST_CHANNEL_DIR)/target/release/librust_channel.a
+RUST_MBYTE_DIR = ../rust_mbyte
+RUST_MBYTE_LIB = $(RUST_MBYTE_DIR)/target/release/librust_mbyte.a
 
 # Note: MZSCHEME_LIBS must come before LIBS, because LIBS adds -lm which is
 # needed by racket.
@@ -1429,6 +1431,7 @@ ALL_LIBS = \
            $(RUST_MEM_LIB) \
            $(RUST_BUFFER_LIB) \
            $(RUST_CHANNEL_LIB) \
+           $(RUST_MBYTE_LIB) \
            $(LUA_LIBS) \
            $(PERL_LIBS) \
            $(PYTHON_LIBS) \
@@ -1463,7 +1466,10 @@ $(RUST_BUFFER_LIB):
         cd $(RUST_BUFFER_DIR) && cargo build --release
 
 $(RUST_CHANNEL_LIB):
-	cd $(RUST_CHANNEL_DIR) && cargo build --release
+        cd $(RUST_CHANNEL_DIR) && cargo build --release
+
+$(RUST_MBYTE_LIB):
+        cd $(RUST_MBYTE_DIR) && cargo build --release
 DEST_LANG = $(DESTDIR)$(LANGSUBLOC)
 DEST_COMP = $(DESTDIR)$(COMPSUBLOC)
 DEST_KMAP = $(DESTDIR)$(KMAPSUBLOC)
@@ -1571,15 +1577,14 @@ BASIC_SRC = \
 	json.c \
 	linematch.c \
 	list.c \
-	locale.c \
-	logfile.c \
-	main.c \
-	map.c \
-	mark.c \
-	match.c \
-	mbyte.c \
-	memfile.c \
-	memline.c \
+        locale.c \
+        logfile.c \
+        main.c \
+        map.c \
+        mark.c \
+        match.c \
+        memfile.c \
+        memline.c \
 	menu.c \
 	message.c \
 	misc1.c \
@@ -2128,7 +2133,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_BUFFER_LIB) $(RUST_CHANNEL_LIB)
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_BUFFER_LIB) $(RUST_CHANNEL_LIB) $(RUST_MBYTE_LIB)
 	@$(BUILD_DATE_MSG)
 	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) $(OBJ) $(ALL_LIBS)" \
@@ -3521,11 +3526,8 @@ objects/mouse.o: mouse.c
 objects/move.o: move.c
 	$(CCC) -o $@ move.c
 
-objects/mbyte.o: mbyte.c
-	$(CCC) -o $@ mbyte.c
-
 objects/normal.o: normal.c
-	$(CCC) -o $@ normal.c
+       $(CCC) -o $@ normal.c
 
 objects/ops.o: ops.c
 	$(CCC) -o $@ ops.c

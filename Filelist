@@ -107,9 +107,8 @@ SRC_ALL =	\
 		src/main.c \
 		src/map.c \
 		src/mark.c \
-		src/match.c \
-		src/mbyte.c \
-		src/memfile.c \
+            src/match.c \
+            src/memfile.c \
                 src/memfile_test.c \
                 src/memline.c \
                 src/rust/mem/Cargo.toml \
