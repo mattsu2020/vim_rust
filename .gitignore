@@ -134,7 +134,6 @@ rust/terminal/target/
 
 rust_undo/target/
 src/rust/job/target/
-<<<<<<< HEAD
 src/rust/spell/target/
 rust/spell/target/release/
 src/rust/crypto/core/target/
@@ -144,8 +143,7 @@ src/rust_regex/target/
 src/rust_regex/target/release/
 src/rust/jsonlib/target/
 src/rust/evallib/target/
-=======
 rust_fileio/target/
->>>>>>> 79fbfe821a05c145effbf61c9cc488e5206238e2
 rust_option/target/
 rust_option/src/bindings.rs
+rust_path/target/
