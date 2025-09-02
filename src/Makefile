@@ -1307,31 +1307,6 @@ RUST_TERMINAL_LIB = rust/terminal/target/release/libterminal.a
 # libvterm sources are replaced by the Rust terminal crate
 TERM_SRC =
 
-XDIFF_SRC = \
-	xdiff/xdiffi.c \
-	xdiff/xemit.c \
-	xdiff/xprepare.c \
-	xdiff/xutils.c \
-	xdiff/xhistogram.c \
-	xdiff/xpatience.c \
-
-XDIFF_OBJS = \
-	objects/xdiffi.o \
-	objects/xemit.o \
-	objects/xprepare.o \
-	objects/xutils.o \
-	objects/xhistogram.o \
-	objects/xpatience.o \
-
-XDIFF_INCL = \
-	xdiff/xdiff.h \
-	xdiff/xdiffi.h \
-	xdiff/xemit.h \
-	xdiff/xinclude.h \
-	xdiff/xmacros.h \
-	xdiff/xprepare.h \
-	xdiff/xtypes.h \
-	xdiff/xutils.h \
 
 ### Command to create dependencies based on #include "..."
 ### prototype headers are ignored due to -DPROTO, system
@@ -3055,8 +3030,6 @@ shadow:	runtime pixmaps
 	cp config.mk.dist $(SHADOWDIR)
 	$(MKDIR_P) $(SHADOWDIR)/xxd
 	cd $(SHADOWDIR)/xxd; ln -s ../../xxd/*.[ch] ../../xxd/Make* .
-	$(MKDIR_P) $(SHADOWDIR)/xdiff
-	cd $(SHADOWDIR)/xdiff; ln -s ../../xdiff/*.[ch] .
 	$(MKDIR_P) $(SHADOWDIR)/testdir
 	cd $(SHADOWDIR)/testdir; ln -s ../../testdir/Makefile \
 				 ../../testdir/Make_all.mak \
@@ -3137,7 +3110,6 @@ depend:
 		sed -e 's+^\([^ ]*\.o\)+objects/vterm_\1+' >> tmp_make; done
 	-for i in $(XDIFF_SRC); do echo $$i; \
 		$(CPP_DEPEND) $$i | \
-		sed -e 's+^\([^ ]*\.o\)+objects/\1+' -e 's+xdiff/\.\./++g' >> tmp_make; done
 	mv tmp_make Makefile
 
 # Run lint.  Clean up the *.ln files that are sometimes left behind.
@@ -3761,23 +3733,11 @@ objects/vterm_vterm.o: libvterm/src/vterm.c $(TERM_DEPS)
 
 CCCDIFF = $(CCC_NF) $(ALL_CFLAGS)
 
-objects/xdiffi.o: xdiff/xdiffi.c $(XDIFF_INCL)
-	$(CCCDIFF) -o $@ xdiff/xdiffi.c
 
-objects/xprepare.o: xdiff/xprepare.c $(XDIFF_INCL)
-	$(CCCDIFF) -o $@ xdiff/xprepare.c
 
-objects/xutils.o: xdiff/xutils.c $(XDIFF_INCL)
-	$(CCCDIFF) -o $@ xdiff/xutils.c
 
-objects/xemit.o: xdiff/xemit.c $(XDIFF_INCL)
-	$(CCCDIFF) -o $@ xdiff/xemit.c
 
-objects/xhistogram.o: xdiff/xhistogram.c $(XDIFF_INCL)
-	$(CCCDIFF) -o $@ xdiff/xhistogram.c
 
-objects/xpatience.o: xdiff/xpatience.c $(XDIFF_INCL)
-	$(CCCDIFF) -o $@ xdiff/xpatience.c
 
 
 Makefile:
@@ -3939,7 +3899,6 @@ objects/diff.o: diff.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h xdiff/xdiff.h xdiff/../vim.h
 objects/digraph.o: digraph.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
@@ -4103,8 +4062,6 @@ objects/json.o: json.c vim.h protodef.h auto/config.h feature.h os_unix.h \
 objects/linematch.o: linematch.c vim.h protodef.h auto/config.h feature.h \
  os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h xdiff/xdiff.h \
- xdiff/../vim.h alloc.h ex_cmds.h spell.h proto.h globals.h errors.h
 objects/list.o: list.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
@@ -4604,7 +4561,6 @@ objects/primary-selection-unstable-v1.o: \
 objects/wayland.o: wayland.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h xdiff/xdiff.h xdiff/../vim.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h errors.h \
  auto/wayland/wlr-data-control-unstable-v1.h \
  auto/wayland/ext-data-control-v1.h auto/wayland/xdg-shell.h \
@@ -4634,8 +4590,6 @@ objects/vterm_unicode.o: libvterm/src/unicode.c libvterm/src/vterm_internal.h \
 objects/vterm_vterm.o: libvterm/src/vterm.c libvterm/src/vterm_internal.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h \
  libvterm/src/utf8.h
-objects/xdiffi.o: xdiff/xdiffi.c xdiff/xinclude.h auto/config.h \
- xdiff/xmacros.h xdiff/xdiff.h vim.h protodef.h \
  auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h \
  termdefs.h macros.h option.h beval.h \
@@ -4643,10 +4597,6 @@ objects/xdiffi.o: xdiff/xdiffi.c xdiff/xinclude.h auto/config.h \
  libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h \
- errors.h xdiff/xtypes.h xdiff/xutils.h xdiff/xprepare.h \
- xdiff/xdiffi.h xdiff/xemit.h
-objects/xemit.o: xdiff/xemit.c xdiff/xinclude.h auto/config.h \
- xdiff/xmacros.h xdiff/xdiff.h vim.h protodef.h \
  auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h \
  termdefs.h macros.h option.h beval.h \
@@ -4654,10 +4604,6 @@ objects/xemit.o: xdiff/xemit.c xdiff/xinclude.h auto/config.h \
  libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h \
- errors.h xdiff/xtypes.h xdiff/xutils.h xdiff/xprepare.h \
- xdiff/xdiffi.h xdiff/xemit.h
-objects/xprepare.o: xdiff/xprepare.c xdiff/xinclude.h auto/config.h \
- xdiff/xmacros.h xdiff/xdiff.h vim.h protodef.h \
  auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h \
  termdefs.h macros.h option.h beval.h \
@@ -4665,10 +4611,6 @@ objects/xprepare.o: xdiff/xprepare.c xdiff/xinclude.h auto/config.h \
  libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h \
- errors.h xdiff/xtypes.h xdiff/xutils.h xdiff/xprepare.h \
- xdiff/xdiffi.h xdiff/xemit.h
-objects/xutils.o: xdiff/xutils.c xdiff/xinclude.h auto/config.h \
- xdiff/xmacros.h xdiff/xdiff.h vim.h protodef.h \
  auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h \
  termdefs.h macros.h option.h beval.h \
@@ -4676,10 +4618,6 @@ objects/xutils.o: xdiff/xutils.c xdiff/xinclude.h auto/config.h \
  libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h \
- errors.h xdiff/xtypes.h xdiff/xutils.h xdiff/xprepare.h \
- xdiff/xdiffi.h xdiff/xemit.h
-objects/xhistogram.o: xdiff/xhistogram.c xdiff/xinclude.h auto/config.h \
- xdiff/xmacros.h xdiff/xdiff.h vim.h protodef.h \
  auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h \
  termdefs.h macros.h option.h beval.h \
@@ -4687,10 +4625,6 @@ objects/xhistogram.o: xdiff/xhistogram.c xdiff/xinclude.h auto/config.h \
  libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h \
- errors.h xdiff/xtypes.h xdiff/xutils.h xdiff/xprepare.h \
- xdiff/xdiffi.h xdiff/xemit.h
-objects/xpatience.o: xdiff/xpatience.c xdiff/xinclude.h auto/config.h \
- xdiff/xmacros.h xdiff/xdiff.h vim.h protodef.h \
  auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h \
  termdefs.h macros.h option.h beval.h \
@@ -4698,5 +4632,3 @@ objects/xpatience.o: xdiff/xpatience.c xdiff/xinclude.h auto/config.h \
  libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h \
- errors.h xdiff/xtypes.h xdiff/xutils.h xdiff/xprepare.h \
- xdiff/xdiffi.h xdiff/xemit.h

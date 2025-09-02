@@ -857,7 +857,6 @@ CUI_OBJ = $(OUTDIR)\iscygpty.obj
 !ENDIF
 SUBSYSTEM_TOOLS = console
 
-XDIFF_OBJ = $(OBJDIR)/xdiffi.obj \
 	$(OBJDIR)/xemit.obj \
 	$(OBJDIR)/xprepare.obj \
 	$(OBJDIR)/xutils.obj \
@@ -865,14 +864,6 @@ XDIFF_OBJ = $(OBJDIR)/xdiffi.obj \
 	$(OBJDIR)/xpatience.obj
 
 XDIFF_DEPS = \
-	xdiff/xdiff.h \
-	xdiff/xdiffi.h \
-	xdiff/xemit.h \
-	xdiff/xinclude.h \
-	xdiff/xmacros.h \
-	xdiff/xprepare.h \
-	xdiff/xtypes.h \
-	xdiff/xutils.h
 
 
 !IF "$(SUBSYSTEM_VER)" != ""
@@ -1493,8 +1484,6 @@ test_vim9:
 .c{$(OUTDIR)}.obj::
 	$(CC) $(CFLAGS_OUTDIR) $<
 
-# Create a default rule for xdiff.
-{xdiff}.c{$(OUTDIR)}.obj::
 	$(CC) $(CFLAGS_OUTDIR) $<
 
 # Create a default rule for transforming .cpp files to .obj files in $(OUTDIR)
@@ -1543,17 +1532,11 @@ $(OUTDIR)/dict.obj: $(OUTDIR) dict.c $(INCL)
 
 $(OUTDIR)/diff.obj: $(OUTDIR) diff.c $(INCL)
 
-$(OUTDIR)/xdiffi.obj: $(OUTDIR) xdiff/xdiffi.c $(XDIFF_DEPS)
 
-$(OUTDIR)/xemit.obj: $(OUTDIR) xdiff/xemit.c $(XDIFF_DEPS)
 
-$(OUTDIR)/xprepare.obj: $(OUTDIR) xdiff/xprepare.c $(XDIFF_DEPS)
 
-$(OUTDIR)/xutils.obj: $(OUTDIR) xdiff/xutils.c $(XDIFF_DEPS)
 
-$(OUTDIR)/xhistogram.obj: $(OUTDIR) xdiff/xhistogram.c $(XDIFF_DEPS)
 
-$(OUTDIR)/xpatience.obj: $(OUTDIR) xdiff/xpatience.c $(XDIFF_DEPS)
 
 $(OUTDIR)/digraph.obj: $(OUTDIR) digraph.c $(INCL)
 

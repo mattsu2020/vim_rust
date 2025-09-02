@@ -976,8 +976,6 @@ ifeq ($(SOUND),yes)
 OBJ += $(OUTDIR)/sound.o
 endif
 
-# Include xdiff
-OBJ +=  $(OUTDIR)/xdiffi.o \
 	$(OUTDIR)/xemit.o \
 	$(OUTDIR)/xprepare.o \
 	$(OUTDIR)/xutils.o \
@@ -985,14 +983,6 @@ OBJ +=  $(OUTDIR)/xdiffi.o \
 	$(OUTDIR)/xpatience.o
 
 XDIFF_DEPS = \
-	xdiff/xdiff.h \
-	xdiff/xdiffi.h \
-	xdiff/xemit.h \
-	xdiff/xinclude.h \
-	xdiff/xmacros.h \
-	xdiff/xprepare.h \
-	xdiff/xtypes.h \
-	xdiff/xutils.h
 
 ifdef MZSCHEME
 MZSCHEME_SUFFIX = Z
@@ -1409,7 +1399,6 @@ $(OUTDIR)/vterm_%.o : libvterm/src/%.c $(TERM_DEPS)
 	$(CCCTERM) $< -o $@
 
 
-$(OUTDIR)/%.o : xdiff/%.c $(XDIFF_DEPS)
 	$(CC) -c $(CFLAGS) $< -o $@
 
 

@@ -434,16 +434,13 @@ ICONV_DEF = ,"USE_ICONV"
 .ENDIF
 
 # XDIFF related setup.
-XDIFF_SRC = xdiffi.c,xemit.c,xprepare.c,xutils.c,xhistogram.c,xpatience.c
 XDIFF_OBJ = \
-[.$(DEST)]xdiffi.obj,\
 [.$(DEST)]xemit.obj,\
 [.$(DEST)]xprepare.obj,\
 [.$(DEST)]xutils.obj,\
 [.$(DEST)]xhistogram.obj,\
 [.$(DEST)]xpatience.obj
 
-XDIFF_INC = ,[.xdiff]
 
 .IFDEF MODIFIED_BY
 DEF_MODIFIED = YES
@@ -1538,9 +1535,3 @@ lua_env :
  errors.h globals.h version.h
 [.$(DEST)]gui_xmdlg.obj : gui_xmdlg.c [.$(DEST)]config.h vim.h feature.h os_unix.h
 [.$(DEST)]gui_xmebw.obj : gui_xmebw.c [.$(DEST)]config.h vim.h feature.h os_unix.h
-[.$(DEST)]xdiffi.obj : [.xdiff]xdiffi.c [.xdiff]xinclude.h [.$(DEST)]config.h vim.h feature.h os_unix.h
-[.$(DEST)]xemit.obj : [.xdiff]xemit.c [.xdiff]xinclude.h [.$(DEST)]config.h vim.h feature.h os_unix.h
-[.$(DEST)]xprepare.obj : [.xdiff]xprepare.c [.xdiff]xinclude.h [.$(DEST)]config.h vim.h feature.h os_unix.h
-[.$(DEST)]xutils.obj : [.xdiff]xutils.c [.xdiff]xinclude.h [.$(DEST)]config.h vim.h feature.h os_unix.h
-[.$(DEST)]xhistogram.obj : [.xdiff]xhistogram.c [.xdiff]xinclude.h [.$(DEST)]config.h vim.h feature.h os_unix.h
-[.$(DEST)]xpatience.obj : [.xdiff]xpatience.c [.xdiff]xinclude.h [.$(DEST)]config.h vim.h feature.h os_unix.h
