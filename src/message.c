@@ -11,12 +11,13 @@
  * message.c: functions for displaying messages on the command line
  */
 
-#define MESSAGE_FILE		// don't include prototype for smsg()
 
 #include "vim.h"
+// Functions implemented in Rust (see rust_message crate)
+extern void rs_add_msg_hist(char_u *s, int len, int attr);
+extern int rs_delete_first_msg(void);
+extern void rs_check_msg_hist(void);
 
-static void add_msg_hist(char_u *s, int len, int attr);
-static void check_msg_hist(void);
 static void hit_return_msg(void);
 static void msg_home_replace_attr(char_u *fname, int attr);
 static void msg_puts_attr_len(char *str, int maxlen, int attr);
@@ -49,10 +50,10 @@ struct msg_hist
     int			attr;
 };
 
-static struct msg_hist *first_msg_hist = NULL;
-static struct msg_hist *last_msg_hist = NULL;
-static int msg_hist_len = 0;
-static int msg_hist_max = 500;		// The default max value is 500
+struct msg_hist *first_msg_hist = NULL;
+struct msg_hist *last_msg_hist = NULL;
+int msg_hist_len = 0;
+int msg_hist_max = 500;		// The default max value is 500
 
 // flags obtained from the 'messagesopt' option
 #define MESSAGES_HIT_ENTER	0x001
@@ -175,7 +176,7 @@ msg_attr_keep(
 		&& last_msg_hist != NULL
 		&& last_msg_hist->msg != NULL
 		&& STRCMP(s, last_msg_hist->msg)))
-	add_msg_hist((char_u *)s, -1, attr);
+	rs_add_msg_hist((char_u *)s, -1, attr);
 
 #ifdef FEAT_EVAL
     if (emsg_to_channel_log)
@@ -963,7 +964,7 @@ msg_trunc_attr(char *s, int force, int attr)
     char	*ts;
 
     // Add message to history before truncating
-    add_msg_hist((char_u *)s, -1, attr);
+    rs_add_msg_hist((char_u *)s, -1, attr);
 
     ts = (char *)msg_may_trunc(force, (char_u *)s);
 
@@ -1014,73 +1015,6 @@ msg_may_trunc(int force, char_u *s)
     return s;
 }
 
-    static void
-add_msg_hist(
-    char_u	*s,
-    int		len,		// -1 for undetermined length
-    int		attr)
-{
-    struct msg_hist *p;
-
-    if (msg_hist_off || msg_silent != 0)
-	return;
-
-    // allocate an entry and add the message at the end of the history
-    p = ALLOC_ONE(struct msg_hist);
-    if (p == NULL)
-	return;
-
-    if (len < 0)
-	len = (int)STRLEN(s);
-    // remove leading and trailing newlines
-    while (len > 0 && *s == '\n')
-    {
-	++s;
-	--len;
-    }
-    while (len > 0 && s[len - 1] == '\n')
-	--len;
-    p->msg = vim_strnsave(s, len);
-    p->next = NULL;
-    p->attr = attr;
-    if (last_msg_hist != NULL)
-	last_msg_hist->next = p;
-    last_msg_hist = p;
-    if (first_msg_hist == NULL)
-	first_msg_hist = last_msg_hist;
-    ++msg_hist_len;
-
-    check_msg_hist();
-}
-
-/*
- * Delete the first (oldest) message from the history.
- * Returns FAIL if there are no messages.
- */
-    int
-delete_first_msg(void)
-{
-    struct msg_hist *p;
-
-    if (msg_hist_len <= 0)
-	return FAIL;
-    p = first_msg_hist;
-    first_msg_hist = p->next;
-    if (first_msg_hist == NULL)
-	last_msg_hist = NULL;  // history is empty
-    vim_free(p->msg);
-    vim_free(p);
-    --msg_hist_len;
-    return OK;
-}
-
-    static void
-check_msg_hist(void)
-{
-    // Don't let the message history get too big
-    while (msg_hist_len > 0 && msg_hist_len > msg_hist_max)
-	(void)delete_first_msg();
-}
 
 
     int
@@ -1141,7 +1075,7 @@ messagesopt_changed(void)
     msg_wait = messages_wait_new;
 
     msg_hist_max = messages_history_new;
-    check_msg_hist();
+    rs_check_msg_hist();
 
     return OK;
 }
@@ -1161,7 +1095,7 @@ ex_messages(exarg_T *eap)
 	int keep = eap->addr_count == 0 ? 0 : eap->line2;
 
 	while (msg_hist_len > keep)
-	    (void)delete_first_msg();
+	    (void)rs_delete_first_msg();
 	return;
     }
 
@@ -1740,7 +1674,7 @@ msg_outtrans_len_attr(char_u *msgstr, int len, int attr)
     // if MSG_HIST flag set, add message to history
     if (attr & MSG_HIST)
     {
-	add_msg_hist(str, len, attr);
+	rs_add_msg_hist(str, len, attr);
 	attr &= ~MSG_HIST;
     }
 
@@ -2336,7 +2270,7 @@ msg_puts_attr_len(char *str, int maxlen, int attr)
     // if MSG_HIST flag set, add message to history
     if ((attr & MSG_HIST) && maxlen < 0)
     {
-	add_msg_hist((char_u *)str, -1, attr);
+	rs_add_msg_hist((char_u *)str, -1, attr);
 	attr &= ~MSG_HIST;
     }
 
