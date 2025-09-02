@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 magnus = { version = "0.6", features = ["embed"] }
+rust_ffi = { path = "../rust_ffi" }
 
 [lib]
 name = "rust_ruby"
