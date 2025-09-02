@@ -1,0 +1,11 @@
+[package]
+name = "rust_indent"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+libc = "0.2"
+
+[lib]
+name = "rust_indent"
+crate-type = ["staticlib", "rlib"]
