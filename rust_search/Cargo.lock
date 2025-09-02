@@ -115,6 +115,7 @@ name = "rust_search"
 version = "0.1.0"
 dependencies = [
  "libc",
+ "once_cell",
  "regex",
  "tempfile",
 ]

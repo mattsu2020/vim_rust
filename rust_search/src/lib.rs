@@ -1,6 +1,8 @@
 use libc::{c_int, c_long, c_void, size_t, c_uchar};
 use regex::Regex;
 use std::ffi::{CStr, CString};
+use once_cell::sync::Lazy;
+use std::sync::Mutex;
 
 extern "C" {
     fn ml_get_buf(buf: *mut buf_T, lnum: c_long, will_change: c_int) -> *const c_uchar;
@@ -149,6 +151,171 @@ pub extern "C" fn rust_find_pattern_in_path(
             }
         }
     }
+}
+
+const RE_SEARCH: usize = 0;
+const RE_SUBST: usize = 1;
+
+static LAST_PATTERNS: Lazy<Mutex<[Option<Vec<u8>>; 2]>> =
+    Lazy::new(|| Mutex::new([None, None]));
+static MR_PATTERN: Lazy<Mutex<Option<Vec<u8>>>> = Lazy::new(|| Mutex::new(None));
+static LAST_IDX: Lazy<Mutex<i32>> = Lazy::new(|| Mutex::new(0));
+static SAVED_PATTERNS: Lazy<Mutex<Vec<([Option<Vec<u8>>; 2], Option<Vec<u8>>, i32)>>> =
+    Lazy::new(|| Mutex::new(Vec::new()));
+static SAVED_LAST_SEARCH: Lazy<Mutex<Vec<(Option<Vec<u8>>, i32)>>> =
+    Lazy::new(|| Mutex::new(Vec::new()));
+
+fn store_pattern(slice: &[u8]) -> Vec<u8> {
+    let mut v = slice.to_vec();
+    if !v.ends_with(&[0]) {
+        v.push(0);
+    }
+    v
+}
+
+#[no_mangle]
+pub extern "C" fn rust_search_regcomp(
+    pat: *mut c_uchar,
+    patlen: size_t,
+    used_pat: *mut *mut c_uchar,
+    pat_save: c_int,
+    pat_use: c_int,
+    _options: c_int,
+    _regmatch: *mut c_void,
+) -> c_int {
+    unsafe {
+        if pat.is_null() || patlen == 0 {
+            let idx = if pat_use < 0 {
+                *LAST_IDX.lock().unwrap()
+            } else {
+                pat_use
+            } as usize;
+            let patterns = LAST_PATTERNS.lock().unwrap();
+            if let Some(ref p) = patterns[idx] {
+                if !used_pat.is_null() {
+                    *used_pat = p.as_ptr() as *mut c_uchar;
+                }
+                *MR_PATTERN.lock().unwrap() = Some(p.clone());
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+        let slice = std::slice::from_raw_parts(pat, patlen as usize);
+        let pat_str = match std::str::from_utf8(slice) {
+            Ok(s) => s,
+            Err(_) => return 0,
+        };
+        if Regex::new(pat_str).is_err() {
+            return 0;
+        }
+        let stored = store_pattern(slice);
+        if !used_pat.is_null() {
+            *used_pat = pat;
+        }
+        if pat_save == RE_SEARCH as c_int || pat_save == 2 {
+            LAST_PATTERNS.lock().unwrap()[RE_SEARCH] = Some(stored.clone());
+            *LAST_IDX.lock().unwrap() = RE_SEARCH as i32;
+        }
+        if pat_save == RE_SUBST as c_int || pat_save == 2 {
+            LAST_PATTERNS.lock().unwrap()[RE_SUBST] = Some(stored.clone());
+            *LAST_IDX.lock().unwrap() = RE_SUBST as i32;
+        }
+        *MR_PATTERN.lock().unwrap() = Some(stored);
+        1
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn rust_get_search_pat(len: *mut size_t) -> *const c_uchar {
+    let guard = MR_PATTERN.lock().unwrap();
+    if let Some(ref p) = *guard {
+        if !len.is_null() {
+            unsafe { *len = p.len().saturating_sub(1) };
+        }
+        p.as_ptr()
+    } else {
+        std::ptr::null()
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn rust_save_re_pat(
+    idx: c_int,
+    pat: *mut c_uchar,
+    patlen: size_t,
+    _magic: c_int,
+) {
+    if pat.is_null() {
+        return;
+    }
+    let slice = unsafe { std::slice::from_raw_parts(pat, patlen as usize) };
+    let stored = store_pattern(slice);
+    LAST_PATTERNS.lock().unwrap()[idx as usize] = Some(stored.clone());
+    *LAST_IDX.lock().unwrap() = idx;
+    *MR_PATTERN.lock().unwrap() = Some(stored);
+}
+
+#[no_mangle]
+pub extern "C" fn rust_save_search_patterns() {
+    let patterns = LAST_PATTERNS.lock().unwrap().clone();
+    let mr = MR_PATTERN.lock().unwrap().clone();
+    let idx = *LAST_IDX.lock().unwrap();
+    SAVED_PATTERNS.lock().unwrap().push((patterns, mr, idx));
+}
+
+#[no_mangle]
+pub extern "C" fn rust_restore_search_patterns() {
+    if let Some((pat, mr, idx)) = SAVED_PATTERNS.lock().unwrap().pop() {
+        *LAST_PATTERNS.lock().unwrap() = pat;
+        *MR_PATTERN.lock().unwrap() = mr;
+        *LAST_IDX.lock().unwrap() = idx;
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn rust_free_search_patterns() {
+    *LAST_PATTERNS.lock().unwrap() = [None, None];
+    *MR_PATTERN.lock().unwrap() = None;
+    SAVED_PATTERNS.lock().unwrap().clear();
+    SAVED_LAST_SEARCH.lock().unwrap().clear();
+    *LAST_IDX.lock().unwrap() = 0;
+}
+
+#[no_mangle]
+pub extern "C" fn rust_save_last_search_pattern() {
+    let pat = LAST_PATTERNS.lock().unwrap()[RE_SEARCH].clone();
+    let idx = *LAST_IDX.lock().unwrap();
+    SAVED_LAST_SEARCH.lock().unwrap().push((pat, idx));
+}
+
+#[no_mangle]
+pub extern "C" fn rust_restore_last_search_pattern() {
+    if let Some((pat, idx)) = SAVED_LAST_SEARCH.lock().unwrap().pop() {
+        LAST_PATTERNS.lock().unwrap()[RE_SEARCH] = pat;
+        *LAST_IDX.lock().unwrap() = idx;
+        let patterns = LAST_PATTERNS.lock().unwrap();
+        *MR_PATTERN.lock().unwrap() = patterns[idx as usize].clone();
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn rust_last_search_pattern() -> *const c_uchar {
+    let patterns = LAST_PATTERNS.lock().unwrap();
+    if let Some(ref p) = patterns[RE_SEARCH] {
+        p.as_ptr()
+    } else {
+        std::ptr::null()
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn rust_last_search_pattern_len() -> size_t {
+    let patterns = LAST_PATTERNS.lock().unwrap();
+    patterns[RE_SEARCH]
+        .as_ref()
+        .map(|p| p.len().saturating_sub(1))
+        .unwrap_or(0) as size_t
 }
 
 #[cfg(test)]

@@ -127,6 +127,7 @@ typedef struct SearchedFile
  * returns FAIL if failed, OK otherwise.
  */
     int
+#ifndef FEAT_RUST_SEARCH
 search_regcomp(
     char_u	*pat,
     size_t	patlen,
@@ -203,41 +204,69 @@ search_regcomp(
     regmatch->rmm_maxcol = 0;
     regmatch->regprog = vim_regcomp(pat, magic ? RE_MAGIC : 0);
     if (regmatch->regprog == NULL)
-	return FAIL;
+        return FAIL;
     return OK;
 }
+#else
+int
+search_regcomp(
+    char_u *pat,
+    size_t patlen,
+    char_u **used_pat,
+    int pat_save,
+    int pat_use,
+    int options,
+    regmmatch_T *regmatch)
+{
+    return rust_search_regcomp(pat, patlen, used_pat, pat_save, pat_use, options, regmatch);
+}
+#endif
 
 /*
  * Get search pattern used by search_regcomp().
  */
-    char_u *
+char_u *
+#ifndef FEAT_RUST_SEARCH
 get_search_pat(void)
 {
     return mr_pattern;
 }
+#else
+get_search_pat(void)
+{
+    return rust_get_search_pat(NULL);
+}
+#endif
 
     void
+#ifndef FEAT_RUST_SEARCH
 save_re_pat(int idx, char_u *pat, size_t patlen, int magic)
-{
+{ 
     if (spats[idx].pat == pat)
-	return;
+        return;
 
     vim_free(spats[idx].pat);
     spats[idx].pat = vim_strnsave(pat, patlen);
     if (spats[idx].pat == NULL)
-	spats[idx].patlen = 0;
+        spats[idx].patlen = 0;
     else
-	spats[idx].patlen = patlen;
+        spats[idx].patlen = patlen;
     spats[idx].magic = magic;
     spats[idx].no_scs = no_smartcase;
     last_idx = idx;
 #ifdef FEAT_SEARCH_EXTRA
     // If 'hlsearch' set and search pat changed: need redraw.
     if (p_hls)
-	redraw_all_later(UPD_SOME_VALID);
+        redraw_all_later(UPD_SOME_VALID);
     set_no_hlsearch(FALSE);
 #endif
 }
+#else
+save_re_pat(int idx, char_u *pat, size_t patlen, int magic)
+{
+    rust_save_re_pat(idx, pat, patlen, magic);
+}
+#endif
 
 /*
  * Save the search patterns, so they can be restored later.
@@ -245,52 +274,53 @@ save_re_pat(int idx, char_u *pat, size_t patlen, int magic)
  */
 static int save_level = 0;
 
-    void
+#ifndef FEAT_RUST_SEARCH
+void
 save_search_patterns(void)
 {
     int i;
 
     if (save_level++ != 0)
-	return;
+        return;
 
     for (i = 0; i < (int)ARRAY_LENGTH(spats); ++i)
     {
-	saved_spats[i] = spats[i];
-	if (spats[i].pat != NULL)
-	{
-	    saved_spats[i].pat = vim_strnsave(spats[i].pat, spats[i].patlen);
-	    if (saved_spats[i].pat == NULL)
-		saved_spats[i].patlen = 0;
-	    else
-		saved_spats[i].patlen = spats[i].patlen;
-	}
+        saved_spats[i] = spats[i];
+        if (spats[i].pat != NULL)
+        {
+            saved_spats[i].pat = vim_strnsave(spats[i].pat, spats[i].patlen);
+            if (saved_spats[i].pat == NULL)
+                saved_spats[i].patlen = 0;
+            else
+                saved_spats[i].patlen = spats[i].patlen;
+        }
     }
     if (mr_pattern == NULL)
-	saved_mr_pattern = NULL;
+        saved_mr_pattern = NULL;
     else
-	saved_mr_pattern = vim_strnsave(mr_pattern, mr_patternlen);
+        saved_mr_pattern = vim_strnsave(mr_pattern, mr_patternlen);
     if (saved_mr_pattern == NULL)
-	saved_mr_patternlen = 0;
+        saved_mr_patternlen = 0;
     else
-	saved_mr_patternlen = mr_patternlen;
+        saved_mr_patternlen = mr_patternlen;
 #ifdef FEAT_SEARCH_EXTRA
     saved_spats_last_idx = last_idx;
     saved_spats_no_hlsearch = no_hlsearch;
 #endif
 }
 
-    void
+void
 restore_search_patterns(void)
 {
     int i;
 
     if (--save_level != 0)
-	return;
+        return;
 
     for (i = 0; i < (int)ARRAY_LENGTH(spats); ++i)
     {
-	vim_free(spats[i].pat);
-	spats[i] = saved_spats[i];
+        vim_free(spats[i].pat);
+        spats[i] = saved_spats[i];
     }
 #if defined(FEAT_EVAL)
     set_vv_searchforward();
@@ -305,19 +335,26 @@ restore_search_patterns(void)
 }
 
 #if defined(EXITFREE) || defined(PROTO)
-    void
+void
 free_search_patterns(void)
 {
     int i;
 
     for (i = 0; i < (int)ARRAY_LENGTH(spats); ++i)
     {
-	VIM_CLEAR(spats[i].pat);
-	spats[i].patlen = 0;
+        VIM_CLEAR(spats[i].pat);
+        spats[i].patlen = 0;
     }
     VIM_CLEAR(mr_pattern);
     mr_patternlen = 0;
 }
+#endif
+#else
+void save_search_patterns(void) { rust_save_search_patterns(); }
+void restore_search_patterns(void) { rust_restore_search_patterns(); }
+#if defined(EXITFREE) || defined(PROTO)
+void free_search_patterns(void) { rust_free_search_patterns(); }
+#endif
 #endif
 
 #ifdef FEAT_SEARCH_EXTRA
@@ -401,16 +438,30 @@ restore_incsearch_state(void)
 }
 
     char_u *
+#ifndef FEAT_RUST_SEARCH
 last_search_pattern(void)
 {
     return spats[RE_SEARCH].pat;
 }
+#else
+last_search_pattern(void)
+{
+    return rust_last_search_pattern();
+}
+#endif
 
     size_t
+#ifndef FEAT_RUST_SEARCH
 last_search_pattern_len(void)
 {
     return spats[RE_SEARCH].patlen;
 }
+#else
+last_search_pattern_len(void)
+{
+    return rust_last_search_pattern_len();
+}
+#endif
 #endif
 
 /*
