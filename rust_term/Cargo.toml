@@ -7,4 +7,4 @@ edition = "2021"
 libc = "0.2"
 
 [target.'cfg(unix)'.dependencies]
-nix = { version = "0.27", features = ["term"] }
+termios = "0.3"
