@@ -12,6 +12,8 @@
  */
 
 #include "vim.h"
+extern void rust_update_force_abort(int cause_abort);
+extern int rust_should_abort(int retcode);
 
 #if defined(FEAT_EVAL) || defined(PROTO)
 
@@ -101,8 +103,7 @@ aborting(void)
     void
 update_force_abort(void)
 {
-    if (cause_abort)
-	force_abort = TRUE;
+    rust_update_force_abort(cause_abort);
 }
 
 /*
@@ -114,7 +115,7 @@ update_force_abort(void)
     int
 should_abort(int retcode)
 {
-    return ((retcode == FAIL && trylevel != 0 && !emsg_silent) || aborting());
+    return rust_should_abort(retcode);
 }
 
 /*
