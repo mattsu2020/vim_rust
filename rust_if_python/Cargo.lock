@@ -183,7 +183,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust_python"
+name = "rust_if_python"
 version = "0.1.0"
 dependencies = [
  "pyo3",

@@ -413,6 +413,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_if_lua"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
+name = "rust_if_python"
+version = "0.1.0"
+dependencies = [
+ "pyo3",
+]
+
+[[package]]
 name = "rust_os"
 version = "0.1.0"
 
@@ -430,13 +444,6 @@ version = "0.1.0"
 dependencies = [
  "nix 0.27.1",
  "tokio",
-]
-
-[[package]]
-name = "rust_python"
-version = "0.1.0"
-dependencies = [
- "pyo3",
 ]
 
 [[package]]
@@ -576,10 +583,11 @@ dependencies = [
  "diff",
  "rust_buffer",
  "rust_debugger",
+ "rust_if_lua",
+ "rust_if_python",
  "rust_os",
  "rust_profiler",
  "rust_pty",
- "rust_python",
  "rust_spell",
  "rust_wayland",
  "tokio",

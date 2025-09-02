@@ -781,9 +781,9 @@ if test "$enable_luainterp" = "yes" -o "$enable_luainterp" = "dynamic"; then
     fi
     if test "x$lua_ok" = "xyes"; then
       LUA_CFLAGS="-I${vi_cv_path_lua_pfx}/include${LUA_INC}"
-      LUA_SRC="if_lua.c"
-      LUA_OBJ="objects/if_lua.o"
-      LUA_PRO="if_lua.pro"
+      LUA_SRC="rust_if_lua"
+      LUA_OBJ=""
+      LUA_PRO=""
       AC_DEFINE(FEAT_LUA)
     fi
     if test "$enable_luainterp" = "dynamic"; then
@@ -1461,8 +1461,8 @@ eof
 	  PYTHON_CFLAGS="${PYTHON_CFLAGS} -DPYTHON_HOME='\"${vi_cv_path_python_pfx}\"'"
 
 	fi
-	PYTHON_SRC="if_python.c"
-	PYTHON_OBJ="objects/if_python.o"
+        PYTHON_SRC="rust_if_python"
+        PYTHON_OBJ=""
 
 	dnl On FreeBSD linking with "-pthread" is required to use threads.
 	dnl _THREAD_SAFE must be used for compiling then.
@@ -1722,8 +1722,8 @@ eof
         if test "X$vi_cv_var_python3_stable_abi_hex" != "X"; then
           PYTHON3_CFLAGS="${PYTHON3_CFLAGS} -DPy_LIMITED_API=${vi_cv_var_python3_stable_abi_hex}"
         fi
-        PYTHON3_SRC="if_python3.c"
-        PYTHON3_OBJ="objects/if_python3.o"
+        PYTHON3_SRC="rust_if_python"
+        PYTHON3_OBJ=""
 
         dnl On FreeBSD linking with "-pthread" is required to use threads.
         dnl _THREAD_SAFE must be used for compiling then.
@@ -1896,18 +1896,18 @@ if test "$python_ok" = yes && test "$python3_ok" = yes; then
   CFLAGS=$cflags_save
   LIBS=$libs_save
 
-  PYTHON_SRC="if_python.c"
-  PYTHON_OBJ="objects/if_python.o"
+  PYTHON_SRC="rust_if_python"
+  PYTHON_OBJ=""
   PYTHON_CFLAGS="$PYTHON_CFLAGS -DDYNAMIC_PYTHON_DLL=\\\"${vi_cv_dll_name_python}\\\""
   PYTHON_LIBS=
-  PYTHON3_SRC="if_python3.c"
-  PYTHON3_OBJ="objects/if_python3.o"
+  PYTHON3_SRC="rust_if_python"
+  PYTHON3_OBJ=""
   PYTHON3_CFLAGS="$PYTHON3_CFLAGS -DDYNAMIC_PYTHON3_DLL=\\\"${vi_cv_dll_name_python3}\\\""
   PYTHON3_LIBS=
 elif test "$python_ok" = yes && test "$enable_pythoninterp" = "dynamic"; then
   AC_DEFINE(DYNAMIC_PYTHON)
-  PYTHON_SRC="if_python.c"
-  PYTHON_OBJ="objects/if_python.o"
+  PYTHON_SRC="rust_if_python"
+  PYTHON_OBJ=""
   PYTHON_CFLAGS="$PYTHON_CFLAGS -DDYNAMIC_PYTHON_DLL=\\\"${vi_cv_dll_name_python}\\\""
   PYTHON_LIBS=
 elif test "$python_ok" = yes; then

@@ -1,11 +1,11 @@
 [package]
-name = "rust_python"
+name = "rust_if_lua"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-pyo3 = { version = "0.21", features = ["auto-initialize"] }
+libc = "0.2"
 
 [lib]
-name = "rust_python"
+name = "rust_if_lua"
 crate-type = ["staticlib", "rlib"]

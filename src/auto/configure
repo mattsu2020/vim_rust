@@ -6263,9 +6263,9 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam \
     fi
     if test "x$lua_ok" = "xyes"; then
       LUA_CFLAGS="-I${vi_cv_path_lua_pfx}/include${LUA_INC}"
-      LUA_SRC="if_lua.c"
-      LUA_OBJ="objects/if_lua.o"
-      LUA_PRO="if_lua.pro"
+      LUA_SRC="rust_if_lua"
+      LUA_OBJ=""
+      LUA_PRO=""
       printf "%s\n" "#define FEAT_LUA 1" >>confdefs.h
 
     fi
@@ -7288,8 +7288,8 @@ printf "%s\n" "$vi_cv_dll_name_python" >&6; }
 	  	  PYTHON_CFLAGS="${PYTHON_CFLAGS} -DPYTHON_HOME='\"${vi_cv_path_python_pfx}\"'"
 
 	fi
-	PYTHON_SRC="if_python.c"
-	PYTHON_OBJ="objects/if_python.o"
+	PYTHON_SRC="rust_if_python"
+	PYTHON_OBJ=""
 
 								{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if -pthread should be used" >&5
 printf %s "checking if -pthread should be used... " >&6; }
@@ -7741,8 +7741,8 @@ printf "%s\n" "$vi_cv_dll_name_python3" >&6; }
         if test "X$vi_cv_var_python3_stable_abi_hex" != "X"; then
           PYTHON3_CFLAGS="${PYTHON3_CFLAGS} -DPy_LIMITED_API=${vi_cv_var_python3_stable_abi_hex}"
         fi
-        PYTHON3_SRC="if_python3.c"
-        PYTHON3_OBJ="objects/if_python3.o"
+        PYTHON3_SRC="rust_if_python"
+        PYTHON3_OBJ=""
 
                                                                 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if -pthread should be used" >&5
 printf %s "checking if -pthread should be used... " >&6; }
@@ -7997,19 +7997,19 @@ fi
   CFLAGS=$cflags_save
   LIBS=$libs_save
 
-  PYTHON_SRC="if_python.c"
-  PYTHON_OBJ="objects/if_python.o"
+  PYTHON_SRC="rust_if_python"
+  PYTHON_OBJ=""
   PYTHON_CFLAGS="$PYTHON_CFLAGS -DDYNAMIC_PYTHON_DLL=\\\"${vi_cv_dll_name_python}\\\""
   PYTHON_LIBS=
-  PYTHON3_SRC="if_python3.c"
-  PYTHON3_OBJ="objects/if_python3.o"
+  PYTHON3_SRC="rust_if_python"
+  PYTHON3_OBJ=""
   PYTHON3_CFLAGS="$PYTHON3_CFLAGS -DDYNAMIC_PYTHON3_DLL=\\\"${vi_cv_dll_name_python3}\\\""
   PYTHON3_LIBS=
 elif test "$python_ok" = yes && test "$enable_pythoninterp" = "dynamic"; then
   printf "%s\n" "#define DYNAMIC_PYTHON 1" >>confdefs.h
 
-  PYTHON_SRC="if_python.c"
-  PYTHON_OBJ="objects/if_python.o"
+  PYTHON_SRC="rust_if_python"
+  PYTHON_OBJ=""
   PYTHON_CFLAGS="$PYTHON_CFLAGS -DDYNAMIC_PYTHON_DLL=\\\"${vi_cv_dll_name_python}\\\""
   PYTHON_LIBS=
 elif test "$python_ok" = yes; then
@@ -8053,8 +8053,8 @@ elif test "$python3_ok" = yes && test "$enable_python3interp" = "dynamic"; then
     printf "%s\n" "#define DYNAMIC_PYTHON3_STABLE_ABI 1" >>confdefs.h
 
   fi
-  PYTHON3_SRC="if_python3.c"
-  PYTHON3_OBJ="objects/if_python3.o"
+  PYTHON3_SRC="rust_if_python"
+  PYTHON3_OBJ=""
   PYTHON3_CFLAGS="$PYTHON3_CFLAGS -DDYNAMIC_PYTHON3_DLL=\\\"${vi_cv_dll_name_python3}\\\""
   PYTHON3_LIBS=
 elif test "$python3_ok" = yes; then

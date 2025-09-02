@@ -1388,8 +1388,10 @@ RUST_CHANNEL_DIR = ../rust_channel
 RUST_CHANNEL_LIB = $(RUST_CHANNEL_DIR)/target/release/librust_channel.a
 RUST_GUI_DIR = ../rust_gui
 RUST_GUI_LIB = $(RUST_GUI_DIR)/target/release/librust_gui.a
-RUST_PYTHON_DIR = ../rust_python
-RUST_PYTHON_LIB = $(RUST_PYTHON_DIR)/target/release/librust_python.a
+RUST_IF_PYTHON_DIR = ../rust_if_python
+RUST_IF_PYTHON_LIB = $(RUST_IF_PYTHON_DIR)/target/release/librust_if_python.a
+RUST_IF_LUA_DIR = ../rust_if_lua
+RUST_IF_LUA_LIB = $(RUST_IF_LUA_DIR)/target/release/librust_if_lua.a
 RUST_EVALFUNC_DIR = ../rust_evalfunc
 RUST_EVALFUNC_LIB = $(RUST_EVALFUNC_DIR)/target/release/librust_evalfunc.a
 RUST_ARABIC_DIR = ../rust_arabic
@@ -1414,7 +1416,8 @@ ALL_LIBS = \
            $(RUST_BUFFER_LIB) \
            $(RUST_CHANNEL_LIB) \
            $(RUST_GUI_LIB) \
-           $(RUST_PYTHON_LIB) \
+           $(RUST_IF_PYTHON_LIB) \
+           $(RUST_IF_LUA_LIB) \
            $(RUST_EVALFUNC_LIB) \
            $(RUST_ARABIC_LIB) \
            $(LUA_LIBS) \
@@ -1455,6 +1458,12 @@ $(RUST_CHANNEL_LIB):
 
 $(RUST_GUI_LIB):
 	cd $(RUST_GUI_DIR) && cargo build --release
+
+$(RUST_IF_PYTHON_LIB):
+	cd $(RUST_IF_PYTHON_DIR) && cargo build --release
+
+$(RUST_IF_LUA_LIB):
+	cd $(RUST_IF_LUA_DIR) && cargo build --release
 
 $(RUST_EVALFUNC_LIB):
 	cd $(RUST_EVALFUNC_DIR) && cargo build --release
@@ -1644,7 +1653,7 @@ SRC =	$(BASIC_SRC) \
         $(RUBY_SRC) \
         $(WAYLAND_SRC)
 
-EXTRA_SRC = if_lua.c if_mzsch.c auto/if_perl.c if_perlsfio.c \
+EXTRA_SRC = if_mzsch.c auto/if_perl.c if_perlsfio.c \
            if_tcl.c if_ruby.c \
            gui_beval.c netbeans.c job.c channel.c \
             $(GRESOURCE_SRC)
