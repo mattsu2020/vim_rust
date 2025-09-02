@@ -2023,7 +2023,7 @@ vim_getenv(char_u *name, int *mustfree)
 vim_unsetenv(char_u *var)
 {
 #ifdef HAVE_UNSETENV
-    unsetenv((char *)var);
+    mch_unsetenv((char *)var);
 #else
     vim_setenv(var, (char_u *)"");
 #endif

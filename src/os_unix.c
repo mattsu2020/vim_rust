@@ -21,6 +21,7 @@
 #include "vim.h"
 
 #include "rust_term.h"
+#include "os_unix_rs.h"
 
 #ifdef FEAT_MZSCHEME
 # include "if_mzsch.h"
@@ -539,7 +540,7 @@ mch_chdir(char *path)
 #ifdef VMS
     return chdir(vms_fixfilename(path));
 #else
-    return chdir(path);
+    return rs_chdir(path);
 #endif
 }
 
