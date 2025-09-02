@@ -1,0 +1,11 @@
+[package]
+name = "rust_mzsch"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+libloading = "0.7"
+
+[lib]
+name = "rust_mzsch"
+crate-type = ["staticlib", "rlib"]
