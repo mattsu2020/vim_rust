@@ -1,0 +1,13 @@
+[package]
+name = "rust_crypto"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "rust_crypto"
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+blowfish = "0.8"
+ring = "0.17"
+once_cell = "1.18"
