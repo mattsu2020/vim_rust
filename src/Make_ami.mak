@@ -189,12 +189,6 @@ SRC += \
 	vim9script.c \
 	vim9type.c \
 	window.c \
-	xdiff/xdiffi.c \
-	xdiff/xemit.c \
-	xdiff/xhistogram.c \
-	xdiff/xpatience.c \
-	xdiff/xprepare.c \
-	xdiff/xutils.c
 
 OBJ = $(SRC:.c=.o)
 

@@ -12,5 +12,3 @@ TAGS_FILES = \
 	libvterm/src/*.c \
 	libvterm/src/*.h \
 	libvterm/include/*.h \
-	xdiff/*.c \
-	xdiff/*.h
