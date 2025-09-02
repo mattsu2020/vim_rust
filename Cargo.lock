@@ -420,6 +420,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_os_amiga"
+version = "0.1.0"
+
+[[package]]
 name = "rust_profiler"
 version = "0.1.0"
 dependencies = [
@@ -580,6 +584,7 @@ dependencies = [
  "rust_buffer",
  "rust_debugger",
  "rust_os_mswin",
+ "rust_os_amiga",
  "rust_profiler",
  "rust_pty",
  "rust_python",

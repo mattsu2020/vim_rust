@@ -22,6 +22,8 @@ rust_tcl = { path = "rust_tcl", optional = true }
 rust_mzsch = { path = "rust_mzsch", optional = true }
 rust_xcmdsrv = { path = "rust_xcmdsrv", optional = true }
 rust_ole = { path = "rust_ole", optional = true }
+rust_os_mswin = { path = "rust_os_mswin", optional = true }
+rust_os_amiga = { path = "rust_os_amiga", optional = true }
 
 [features]
 default = []
@@ -32,9 +34,8 @@ tcl = ["rust_tcl"]
 mzsch = ["rust_mzsch"]
 xcmdsrv = ["rust_xcmdsrv"]
 ole = ["rust_ole"]
-
-[target.'cfg(target_os = "windows")'.dependencies]
-rust_os_mswin = { path = "rust_os_mswin" }
+os_mswin = ["rust_os_mswin"]
+os_amiga = ["rust_os_amiga"]
 
 [lib]
 name = "vim_channel"

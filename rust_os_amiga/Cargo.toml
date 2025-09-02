@@ -1,0 +1,10 @@
+[package]
+name = "rust_os_amiga"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[lib]
+name = "rust_os_amiga"
+crate-type = ["staticlib", "rlib"]

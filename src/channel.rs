@@ -4,10 +4,10 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpStream, ToSocketAddrs};
 use tokio::time::timeout;
 
-#[cfg(not(target_os = "windows"))]
-use std::os::unix::io::{AsRawFd, RawFd};
-#[cfg(target_os = "windows")]
+#[cfg(feature = "os_mswin")]
 use std::os::windows::io::{AsRawSocket, RawSocket as RawFd};
+#[cfg(not(feature = "os_mswin"))]
+use std::os::unix::io::{AsRawFd, RawFd};
 
 /// Channel wraps a `TcpStream` and provides timeout aware read and write
 /// operations.  The API mimics the original `channel.c` behaviour but uses
