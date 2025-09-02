@@ -281,6 +281,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_blob"
+version = "0.1.0"
+
+[[package]]
 name = "rust_buffer"
 version = "0.1.0"
 dependencies = [
@@ -411,6 +415,7 @@ name = "vim_channel"
 version = "0.1.0"
 dependencies = [
  "diff",
+ "rust_blob",
  "rust_buffer",
  "rust_debugger",
  "rust_profiler",

@@ -41,7 +41,6 @@ SRC_ALL =	\
 		src/autocmd.c \
 		src/beval.c \
 		src/beval.h \
-		src/blob.c \
 		src/blowfish.c \
 		src/buffer.c \
 		src/bufwrite.c \
@@ -256,7 +255,6 @@ SRC_ALL =	\
 		src/proto/arglist.pro \
 		src/proto/autocmd.pro \
 		src/proto/beval.pro \
-		src/proto/blob.pro \
 		src/proto/blowfish.pro \
 		src/proto/buffer.pro \
 		src/proto/bufwrite.pro \

@@ -107,7 +107,7 @@ extern int _stricoll(char *a, char *b);
 # include "list.pro"
 # include "locale.pro"
 # include "logfile.pro"
-# include "blob.pro"
+# include "rust_blob.h"
 # include "main.pro"
 # include "map.pro"
 # include "mark.pro"

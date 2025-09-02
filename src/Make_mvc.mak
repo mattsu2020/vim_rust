@@ -675,7 +675,6 @@ OBJ = \
 	$(OUTDIR)\arglist.obj \
 	$(OUTDIR)\autocmd.obj \
 	$(OUTDIR)\beval.obj \
-	$(OUTDIR)\blob.obj \
 	$(OUTDIR)\blowfish.obj \
 	$(OUTDIR)\buffer.obj \
 	$(OUTDIR)\bufwrite.obj \
@@ -1500,7 +1499,6 @@ $(OUTDIR)/autocmd.obj: $(OUTDIR) autocmd.c $(INCL)
 
 $(OUTDIR)/beval.obj: $(OUTDIR) beval.c $(INCL)
 
-$(OUTDIR)/blob.obj: $(OUTDIR) blob.c $(INCL)
 
 $(OUTDIR)/blowfish.obj: $(OUTDIR) blowfish.c $(INCL)
 
@@ -1905,7 +1903,6 @@ proto.h: \
 	proto/arabic.pro \
 	proto/arglist.pro \
 	proto/autocmd.pro \
-	proto/blob.pro \
 	proto/blowfish.pro \
 	proto/buffer.pro \
 	proto/bufwrite.pro \

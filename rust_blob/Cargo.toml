@@ -1,0 +1,8 @@
+[package]
+name = "rust_blob"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "rust_blob"
+crate-type = ["staticlib", "rlib"]
