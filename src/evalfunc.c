@@ -9561,10 +9561,9 @@ f_matchstrpos(typval_T *argvars, typval_T *rettv)
     find_some_match(argvars, rettv, MATCH_POS);
 }
 
-    static void
+static void
 f_rust_regex_match(typval_T *argvars, typval_T *rettv)
 {
-#ifdef USE_RUST_REGEX
     char_u *pattern = tv_get_string(&argvars[0]);
     char_u *text = tv_get_string(&argvars[1]);
     int magic = (argvars[2].v_type == VAR_UNKNOWN)
@@ -9575,10 +9574,6 @@ f_rust_regex_match(typval_T *argvars, typval_T *rettv)
                     : tv_get_number(&argvars[3]);
     rettv->v_type = VAR_NUMBER;
     rettv->vval.v_number = vim_rust_regex_match_wrapper(pattern, text, magic, timeout);
-#else
-    rettv->v_type = VAR_NUMBER;
-    rettv->vval.v_number = 0;
-#endif
 }
 
     static void
