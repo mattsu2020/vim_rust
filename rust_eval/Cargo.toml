@@ -8,4 +8,5 @@ name = "rust_eval"
 crate-type = ["staticlib", "rlib"]
 
 [dependencies]
+once_cell = "1"
 
