@@ -81,8 +81,7 @@
 # endif
 #endif
 
-// Enable the Rust implementation of memline by default.
-#define USE_RUST_MEMLINE
+// The memline implementation is provided by Rust.
 // Enable the Rust implementation of quickfix by default.
 #define USE_RUST_QUICKFIX
 

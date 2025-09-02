@@ -14,6 +14,12 @@ impl MemBuffer {
     }
 
     pub fn ml_append(&mut self, lnum: usize, line: &str) -> bool {
+        // Valid line numbers are in the range [0, line_count].  Appending past
+        // the end of the buffer is an error.
+        if lnum > self.lines.len() {
+            return false;
+        }
+
         let insert_at = lnum + 1;
         let mut tail: BTreeMap<usize, String> = self.lines.split_off(&insert_at);
         self.lines.insert(insert_at, line.to_string());
@@ -24,9 +30,14 @@ impl MemBuffer {
     }
 
     pub fn ml_delete(&mut self, lnum: usize) -> Option<String> {
+        if lnum == 0 || lnum > self.lines.len() {
+            return None;
+        }
+
         let removed = self.lines.remove(&lnum);
         if removed.is_some() {
-            let mut keys: Vec<usize> = self.lines.range(lnum + 1..).map(|(&k, _)| k).collect();
+            let keys: Vec<usize> =
+                self.lines.range(lnum + 1..).map(|(&k, _)| k).collect();
             for k in keys {
                 if let Some(v) = self.lines.remove(&k) {
                     self.lines.insert(k - 1, v);
@@ -37,6 +48,9 @@ impl MemBuffer {
     }
 
     pub fn ml_replace(&mut self, lnum: usize, line: &str) -> Option<String> {
+        if lnum == 0 || lnum > self.lines.len() {
+            return None;
+        }
         self.lines.insert(lnum, line.to_string())
     }
 }
