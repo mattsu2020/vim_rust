@@ -1380,6 +1380,8 @@ DEPEND_CFLAGS = -DPROTO -DDEPEND -DFEAT_GUI $(LINT_CFLAGS)
 # Location of the Rust memory management crate
 RUST_MEM_DIR = rust/mem
 RUST_MEM_LIB = $(RUST_MEM_DIR)/target/release/libvim_mem.a
+RUST_ALLOC_DIR = ../rust_alloc
+RUST_ALLOC_LIB = $(RUST_ALLOC_DIR)/target/release/librust_alloc.a
 RUST_REGEX_DIR = ../rust_regex_engine
 RUST_REGEX_LIB = $(RUST_REGEX_DIR)/target/release/librust_regex_engine.a
 RUST_BUFFER_DIR = ../rust_buffer
@@ -1411,6 +1413,7 @@ ALL_LIBS = \
            $(LIBS) \
            $(EXTRA_LIBS) \
            $(RUST_MEM_LIB) \
+           $(RUST_ALLOC_LIB) \
            $(RUST_BUFFER_LIB) \
            $(RUST_CHANNEL_LIB) \
            $(RUST_GUI_LIB) \
@@ -1443,6 +1446,9 @@ DEST_FTP = $(DESTDIR)$(FTPLUGSUBLOC)
 # Build the Rust memory management library
 $(RUST_MEM_LIB):
 	cd $(RUST_MEM_DIR) && cargo build --release
+
+$(RUST_ALLOC_LIB):
+	cd $(RUST_ALLOC_DIR) && cargo build --release
 
 $(RUST_REGEX_LIB):
 	cd $(RUST_REGEX_DIR) && cargo build --release
@@ -2071,7 +2077,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_BUFFER_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_ARABIC_LIB)
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_ALLOC_LIB) $(RUST_BUFFER_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_ARABIC_LIB)
 	@$(BUILD_DATE_MSG)
 	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) $(OBJ) $(ALL_LIBS)" \
