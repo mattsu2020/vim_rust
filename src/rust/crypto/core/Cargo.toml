@@ -8,6 +8,5 @@ name = "vim_crypto_core"
 crate-type = ["staticlib"]
 
 [dependencies]
-ring = "0.17"
 blowfish = "0.8"
 libc = "0.2"
