@@ -7,3 +7,5 @@ edition = "2021"
 crate-type = ["staticlib", "rlib"]
 
 [dependencies]
+rust_spellfile = { path = "../rust_spellfile" }
+rust_spellsuggest = { path = "../rust_spellsuggest" }

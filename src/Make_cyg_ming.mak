@@ -855,8 +855,6 @@ OBJ = \
 	$(OUTDIR)/sha256.o \
 	$(OUTDIR)/sign.o \
 	$(OUTDIR)/spell.o \
-	$(OUTDIR)/spellfile.o \
-	$(OUTDIR)/spellsuggest.o \
 	$(OUTDIR)/strings.o \
 	$(OUTDIR)/syntax.o \
 	$(OUTDIR)/tabpanel.o \

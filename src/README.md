@@ -81,8 +81,8 @@ search.c	| pattern searching
 session.c	| sessions and views
 sign.c		| signs
 spell.c		| spell checking core
-spellfile.c	| spell file handling
-spellsuggest.c	| spell correction suggestions
+rust_spellfile/    | spell file handling
+rust_spellsuggest/ | spell correction suggestions
 strings.c	| string manipulation functions
 syntax.c	| syntax and other highlighting
 tag.c		| tags

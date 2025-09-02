@@ -158,8 +158,6 @@ SRC += \
 	sha256.c \
 	sign.c \
 	spell.c \
-	spellfile.c \
-	spellsuggest.c \
 	strings.c \
 	syntax.c \
 	tag.c \

@@ -579,8 +579,6 @@ SRC = \
  sign.c \
  sound.c \
  spell.c \
- spellfile.c \
- spellsuggest.c \
  strings.c \
  syntax.c \
  tabpanel.c \
@@ -717,8 +715,6 @@ OBJ = \
  [.$(DEST)]sign.obj \
  [.$(DEST)]sound.obj \
  [.$(DEST)]spell.obj \
- [.$(DEST)]spellfile.obj \
- [.$(DEST)]spellsuggest.obj \
  [.$(DEST)]strings.obj \
  [.$(DEST)]syntax.obj \
  [.$(DEST)]tabpanel.obj \
@@ -1330,11 +1326,9 @@ lua_env :
  ascii.h keymap.h termdefs.h macros.h structs.h regexp.h \
  gui.h beval.h [.proto]gui_beval.pro option.h ex_cmds.h proto.h \
  errors.h globals.h
-[.$(DEST)]spellfile.obj : spellfile.c vim.h [.$(DEST)]config.h feature.h os_unix.h \
  ascii.h keymap.h termdefs.h macros.h option.h structs.h \
  regexp.h gui.h beval.h [.proto]gui_beval.pro alloc.h ex_cmds.h spell.h \
  proto.h errors.h globals.h
-[.$(DEST)]spellsuggest.obj : spellsuggest.c vim.h [.$(DEST)]config.h feature.h os_unix.h \
  ascii.h keymap.h termdefs.h macros.h option.h structs.h \
  regexp.h gui.h beval.h [.proto]gui_beval.pro alloc.h ex_cmds.h spell.h \
  proto.h errors.h globals.h

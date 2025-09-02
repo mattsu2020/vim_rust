@@ -759,8 +759,6 @@ OBJ = \
 	$(OUTDIR)\sha256.obj \
 	$(OUTDIR)\sign.obj \
 	$(OUTDIR)\spell.obj \
-	$(OUTDIR)\spellfile.obj \
-	$(OUTDIR)\spellsuggest.obj \
 	$(OUTDIR)\strings.obj \
 	$(OUTDIR)\syntax.obj \
 	$(OUTDIR)\tabpanel.obj \
@@ -1740,9 +1738,7 @@ $(OUTDIR)/sign.obj: $(OUTDIR) sign.c $(INCL)
 
 $(OUTDIR)/spell.obj: $(OUTDIR) spell.c $(INCL)
 
-$(OUTDIR)/spellfile.obj: $(OUTDIR) spellfile.c $(INCL)
 
-$(OUTDIR)/spellsuggest.obj: $(OUTDIR) spellsuggest.c $(INCL)
 
 $(OUTDIR)/strings.obj: $(OUTDIR) strings.c $(INCL)
 
@@ -1986,8 +1982,6 @@ proto.h: \
 	proto/session.pro \
 	proto/sha256.pro \
         proto/spell.pro \
-	proto/spellfile.pro \
-	proto/spellsuggest.pro \
 	proto/strings.pro \
 	proto/syntax.pro \
 	proto/tabpanel.pro \
