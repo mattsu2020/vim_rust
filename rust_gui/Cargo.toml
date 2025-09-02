@@ -4,10 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-gtk = "0.18"
-
-[build-dependencies]
-pkg-config = "0.3"
+rust_gui_core = { path = "../rust_gui_core" }
 
 [lib]
 name = "rust_gui"
