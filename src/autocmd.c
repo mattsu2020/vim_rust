@@ -12,6 +12,7 @@
  */
 
 #include "vim.h"
+#include "rust_autocmd.h"
 
 /*
  * The autocommands are stored in a list for each event.
@@ -2067,6 +2068,7 @@ has_modechanged(void)
  * Execute autocommands for "event" and file name "fname".
  * Return TRUE if some commands were executed.
  */
+#if 0
     static int
 apply_autocmds_group(
     event_T	event,
@@ -2525,9 +2527,30 @@ BYPASS_AU:
 	aubuflocal_remove(buf);
 
     if (retval == OK && event == EVENT_FILETYPE)
-	curbuf->b_au_did_filetype = TRUE;
+        curbuf->b_au_did_filetype = TRUE;
 
     return retval;
+}
+#endif
+
+static int
+apply_autocmds_group(
+    event_T event,
+    char_u *fname,
+    char_u *fname_io,
+    int force,
+    int group,
+    buf_T *buf,
+    exarg_T *eap UNUSED)
+{
+    (void)fname_io;
+    (void)force;
+    (void)group;
+    (void)buf;
+    (void)eap;
+    if (fname == NULL)
+        return rust_autocmd_do(event, "") ? TRUE : FALSE;
+    return rust_autocmd_do(event, (const char *)fname) ? TRUE : FALSE;
 }
 
 # ifdef FEAT_EVAL
