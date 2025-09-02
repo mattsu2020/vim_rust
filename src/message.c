@@ -17,6 +17,7 @@
 extern void rs_add_msg_hist(char_u *s, int len, int attr);
 extern int rs_delete_first_msg(void);
 extern void rs_check_msg_hist(void);
+extern void rs_render_msg(char_u *s, int attr);
 
 static void hit_return_msg(void);
 static void msg_home_replace_attr(char_u *fname, int attr);
@@ -190,9 +191,8 @@ msg_attr_keep(
     if (buf != NULL)
 	s = (char *)buf;
 
-    msg_outtrans_attr((char_u *)s, attr);
-    msg_clr_eos();
-    retval = msg_end();
+    rs_render_msg((char_u *)s, attr);
+    retval = TRUE;
 
     if (keep && retval && vim_strsize((char_u *)s)
 			    < (int)(Rows - cmdline_row - 1) * Columns + sc_col)
