@@ -48,6 +48,7 @@ pub struct RegMatch {
 }
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct Lpos {
     pub lnum: c_long,
     pub col: c_int,
@@ -114,13 +115,55 @@ pub extern "C" fn vim_regexec_nl(rmp: *mut RegMatch, line: *const c_char, col: c
 
 #[no_mangle]
 pub extern "C" fn vim_regexec_multi(
-    _rmp: *mut RegMMMatch,
+    rmp: *mut RegMMMatch,
     _win: *mut c_void,
-    _buf: *mut c_void,
-    _lnum: c_long,
-    _col: c_int,
-    _timed_out: *mut c_int,
+    buf: *mut c_void,
+    lnum: c_long,
+    col: c_int,
+    timed_out: *mut c_int,
 ) -> c_long {
+    // For now we only support searching within the specified line.
+    // "buf" is expected to be a pointer to an array of C string pointers,
+    // each representing a line of text.
+    if !timed_out.is_null() {
+        unsafe {
+            *timed_out = 0;
+        }
+    }
+    if rmp.is_null() || buf.is_null() {
+        return 0;
+    }
+    unsafe {
+        let lines = buf as *const *const c_char;
+        // lnum is 1-based
+        let line_ptr = *lines.add((lnum - 1) as usize);
+        if line_ptr.is_null() {
+            return 0;
+        }
+        let mut rm = RegMatch {
+            regprog: (*rmp).regprog,
+            startp: [std::ptr::null(); 10],
+            endp: [std::ptr::null(); 10],
+            rm_matchcol: 0,
+            rm_ic: (*rmp).rmm_ic,
+        };
+        if regexec_internal(&mut rm, line_ptr, col) == 1 {
+            let m = &mut *rmp;
+            for i in 0..10 {
+                if !rm.startp[i].is_null() && !rm.endp[i].is_null() {
+                    let start_col = rm.startp[i].offset_from(line_ptr) as c_int;
+                    let end_col = rm.endp[i].offset_from(line_ptr) as c_int;
+                    m.startpos[i] = Lpos { lnum, col: start_col };
+                    m.endpos[i] = Lpos { lnum, col: end_col };
+                } else {
+                    m.startpos[i] = Lpos { lnum: 0, col: 0 };
+                    m.endpos[i] = Lpos { lnum: 0, col: 0 };
+                }
+            }
+            m.rmm_matchcol = col;
+            return lnum;
+        }
+    }
     0
 }
 
