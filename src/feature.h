@@ -89,6 +89,9 @@
 // Enable Rust implementations for syntax highlighting helpers.
 #define USE_RUST_SYNTAX
 
+// Enable Rust command-line history implementation.
+#define USE_RUST_CMDLINE
+
 /*
  * Each feature implies including the "smaller" ones.
  */

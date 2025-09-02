@@ -1,0 +1,11 @@
+[package]
+name = "rust_cmdline"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+once_cell = "1"
+
+[lib]
+name = "rust_cmdline"
+crate-type = ["staticlib", "rlib"]

@@ -12,6 +12,10 @@
  */
 
 #include "vim.h"
+#ifdef USE_RUST_CMDLINE
+# include "rust_cmdline.h"
+# define hist_char2type hist_char2type_rs
+#endif
 
 static histentry_T *(history[HIST_COUNT]) = {NULL, NULL, NULL, NULL, NULL};
 static int	hisidx[HIST_COUNT] = {-1, -1, -1, -1, -1};  // lastused entry
@@ -62,6 +66,7 @@ get_hisnum(int hist_type)
 /*
  * Translate a history character to the associated type number.
  */
+#ifndef USE_RUST_CMDLINE
     int
 hist_char2type(int c)
 {
@@ -75,6 +80,7 @@ hist_char2type(int c)
 	return HIST_DEBUG;
     return HIST_SEARCH;	    // must be '?' or '/'
 }
+#endif
 
 /*
  * Table of history names.
