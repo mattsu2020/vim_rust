@@ -22,7 +22,13 @@
 
 #include "vim.h"
 
-#if defined(FEAT_CRYPT) || defined(PROTO)
+/*
+ * This file implements the Blowfish cipher in C.  It is kept for
+ * backwards compatibility but is deprecated when the Rust based crypto
+ * implementation is available.  When FEAT_RUST_CRYPT is defined the
+ * Rust code provides the Blowfish routines and this file becomes empty.
+ */
+#if (defined(FEAT_CRYPT) && !defined(FEAT_RUST_CRYPT)) || defined(PROTO)
 
 #define BF_BLOCK    8
 #define BF_BLOCK_MASK 7
@@ -683,4 +689,4 @@ blowfish_self_test(void)
     }
     return OK;
 }
-#endif // FEAT_CRYPT
+#endif // (FEAT_CRYPT && !FEAT_RUST_CRYPT) || PROTO

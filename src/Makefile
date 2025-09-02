@@ -1457,10 +1457,10 @@ $(RUST_MEM_LIB):
 	cd $(RUST_MEM_DIR) && cargo build --release
 
 $(RUST_REGEX_LIB):
-        cd $(RUST_REGEX_DIR) && cargo build --release
+	cd $(RUST_REGEX_DIR) && cargo build --release
 
 $(RUST_BUFFER_LIB):
-        cd $(RUST_BUFFER_DIR) && cargo build --release
+	cd $(RUST_BUFFER_DIR) && cargo build --release
 
 $(RUST_CHANNEL_LIB):
 	cd $(RUST_CHANNEL_DIR) && cargo build --release

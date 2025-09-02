@@ -88,6 +88,8 @@ static void crypt_sodium_report_hash_params(unsigned long long opslimit, unsigne
 #endif
 
 #ifdef FEAT_RUST_CRYPT
+// Blowfish and other crypt methods implemented in Rust; see
+// src/rust/crypto/core.
 extern cryptmethod_T *rust_crypt_methods(void);
 # define cryptmethods rust_crypt_methods()
 #else
