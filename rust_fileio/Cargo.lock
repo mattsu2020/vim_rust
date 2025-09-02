@@ -5,3 +5,10 @@ version = 4
 [[package]]
 name = "rust_fileio"
 version = "0.1.0"
+dependencies = [
+ "rust_path",
+]
+
+[[package]]
+name = "rust_path"
+version = "0.1.0"
