@@ -12,7 +12,10 @@ pub struct GtkBackend {
 
 impl GtkBackend {
     pub fn new() -> Self {
-        Self { drawn: Vec::new(), events: VecDeque::new() }
+        Self {
+            drawn: Vec::new(),
+            events: VecDeque::new(),
+        }
     }
 
     /// Queue an event for later processing; primarily used in tests.

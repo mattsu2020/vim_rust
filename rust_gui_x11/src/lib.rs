@@ -1,6 +1,9 @@
 use rust_gui_core::backend::{GuiBackend, GuiEvent};
 use x11rb::connection::Connection;
-use x11rb::protocol::xproto::{ConnectionExt as _, EventMask, KeyPressEvent, ButtonPressEvent, WindowClass, CreateWindowAux, CreateGCAux, Gcontext, Window};
+use x11rb::protocol::xproto::{
+    ButtonPressEvent, ConnectionExt as _, CreateGCAux, CreateWindowAux, EventMask, ExposeEvent,
+    Gcontext, KeyPressEvent, Window, WindowClass,
+};
 use x11rb::rust_connection::RustConnection;
 
 /// Backend implementation using the X11 protocol via x11rb.
@@ -26,9 +29,8 @@ impl X11Backend {
             0,
             WindowClass::INPUT_OUTPUT,
             0,
-            &CreateWindowAux::new().event_mask(
-                EventMask::EXPOSURE | EventMask::KEY_PRESS | EventMask::BUTTON_PRESS,
-            ),
+            &CreateWindowAux::new()
+                .event_mask(EventMask::EXPOSURE | EventMask::KEY_PRESS | EventMask::BUTTON_PRESS),
         )
         .unwrap();
         conn.map_window(window).unwrap();
@@ -59,9 +61,13 @@ impl GuiBackend for X11Backend {
                     let ch = char::from_u32(detail.into()).unwrap_or('\0');
                     Some(GuiEvent::Key(ch))
                 }
-                Event::ButtonPress(ButtonPressEvent { event_x, event_y, .. }) => {
-                    Some(GuiEvent::Click { x: event_x.into(), y: event_y.into() })
-                }
+                Event::ButtonPress(ButtonPressEvent {
+                    event_x, event_y, ..
+                }) => Some(GuiEvent::Click {
+                    x: event_x.into(),
+                    y: event_y.into(),
+                }),
+                Event::Expose(ExposeEvent { .. }) => Some(GuiEvent::Expose),
                 _ => None,
             }
         } else {

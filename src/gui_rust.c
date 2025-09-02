@@ -3,6 +3,7 @@
 
 /*
  * Minimal C shell delegating GUI handling to the Rust implementation.
+ * The Rust side owns the event loop and drawing logic.
  */
 #ifdef FEAT_GUI_RUST
 void gui_start(char_u *arg UNUSED)
