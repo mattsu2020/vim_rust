@@ -26,6 +26,10 @@
 # include "winclip.pro"
 #endif
 
+extern char_u *rs_clipboard_get(size_t *len);
+extern int rs_clipboard_set(const char_u *data, size_t len);
+extern void rs_clipboard_free(char_u *data, size_t len);
+
 /*
  * When generating prototypes for Win32 on Unix, these lines make the syntax
  * errors disappear.  They do not need to be correct.
@@ -293,159 +297,14 @@ vim_open_clipboard(void)
     void
 clip_mch_request_selection(Clipboard_T *cbd)
 {
-    VimClipType_t	metadata = { -1, -1, -1, -1 };
-    HGLOBAL		hMem = NULL;
-    char_u		*str = NULL;
-    char_u		*to_free = NULL;
-    HGLOBAL		rawh = NULL;
-    int			str_size = 0;
-    int			maxlen;
-    size_t		n;
-
-    /*
-     * Don't pass GetActiveWindow() as an argument to OpenClipboard() because
-     * then we can't paste back into the same window for some reason - webb.
-     */
-    if (!vim_open_clipboard())
-	return;
-
-    // Check for vim's own clipboard format first.  This only gets the type of
-    // the data, still need to use CF_UNICODETEXT or CF_TEXT for the text.
-    if (IsClipboardFormatAvailable(cbd->format))
-    {
-	VimClipType_t	*meta_p;
-	HGLOBAL		meta_h;
-
-	// We have metadata on the clipboard; try to get it.
-	if ((meta_h = GetClipboardData(cbd->format)) != NULL
-		&& (meta_p = (VimClipType_t *)GlobalLock(meta_h)) != NULL)
-	{
-	    // The size of "VimClipType_t" changed, "rawlen" was added later.
-	    // Only copy what is available for backwards compatibility.
-	    n = sizeof(VimClipType_t);
-	    if (GlobalSize(meta_h) < n)
-		n = GlobalSize(meta_h);
-	    memcpy(&metadata, meta_p, n);
-	    GlobalUnlock(meta_h);
-	}
-    }
-
-    // Check for Vim's raw clipboard format first.  This is used without
-    // conversion, but only if 'encoding' matches.
-    if (IsClipboardFormatAvailable(cbd->format_raw)
-				      && metadata.rawlen > (int)STRLEN(p_enc))
-    {
-	// We have raw data on the clipboard; try to get it.
-	if ((rawh = GetClipboardData(cbd->format_raw)) != NULL)
-	{
-	    char_u	*rawp;
-
-	    rawp = (char_u *)GlobalLock(rawh);
-	    if (rawp != NULL && STRCMP(p_enc, rawp) == 0)
-	    {
-		n = STRLEN(p_enc) + 1;
-		str = rawp + n;
-		str_size = (int)(metadata.rawlen - n);
-	    }
-	    else
-	    {
-		GlobalUnlock(rawh);
-		rawh = NULL;
-	    }
-	}
-    }
-    if (str == NULL)
-    {
-	// Try to get the clipboard in Unicode if it's not an empty string.
-	if (IsClipboardFormatAvailable(CF_UNICODETEXT) && metadata.ucslen != 0)
-	{
-	    HGLOBAL hMemW;
-
-	    if ((hMemW = GetClipboardData(CF_UNICODETEXT)) != NULL)
-	    {
-		WCHAR *hMemWstr = (WCHAR *)GlobalLock(hMemW);
-
-		// Use the length of our metadata if possible, but limit it to
-		// the GlobalSize() for safety.
-		maxlen = (int)(GlobalSize(hMemW) / sizeof(WCHAR));
-		if (metadata.ucslen >= 0)
-		{
-		    if (metadata.ucslen > maxlen)
-			str_size = maxlen;
-		    else
-			str_size = metadata.ucslen;
-		}
-		else
-		{
-		    for (str_size = 0; str_size < maxlen; ++str_size)
-			if (hMemWstr[str_size] == NUL)
-			    break;
-		}
-		to_free = str = utf16_to_enc((short_u *)hMemWstr, &str_size);
-		GlobalUnlock(hMemW);
-	    }
-	}
-	// Get the clipboard in the Active codepage.
-	else if (IsClipboardFormatAvailable(CF_TEXT))
-	{
-	    if ((hMem = GetClipboardData(CF_TEXT)) != NULL)
-	    {
-		str = (char_u *)GlobalLock(hMem);
-
-		// The length is either what our metadata says or the strlen().
-		// But limit it to the GlobalSize() for safety.
-		maxlen = (int)GlobalSize(hMem);
-		if (metadata.txtlen >= 0)
-		{
-		    if (metadata.txtlen > maxlen)
-			str_size = maxlen;
-		    else
-			str_size = metadata.txtlen;
-		}
-		else
-		{
-		    for (str_size = 0; str_size < maxlen; ++str_size)
-			if (str[str_size] == NUL)
-			    break;
-		}
-
-		// The text is in the active codepage.  Convert to
-		// 'encoding', going through UTF-16.
-		acp_to_enc(str, str_size, &to_free, &maxlen);
-		if (to_free != NULL)
-		{
-		    str_size = maxlen;
-		    str = to_free;
-		}
-	    }
-	}
-    }
-
-    if (str != NULL && metadata.txtlen != 0)
-    {
-	char_u *temp_clipboard;
-
-	// If the type is not known detect it.
-	if (metadata.type == -1)
-	    metadata.type = MAUTO;
-
-	// Translate <CR><NL> into <NL>.
-	temp_clipboard = crnl_to_nl(str, &str_size);
-	if (temp_clipboard != NULL)
-	{
-	    clip_yank_selection(metadata.type, temp_clipboard, str_size, cbd);
-	    vim_free(temp_clipboard);
-	}
-    }
-
-    // unlock the global object
-    if (hMem != NULL)
-	GlobalUnlock(hMem);
-    if (rawh != NULL)
-	GlobalUnlock(rawh);
-    CloseClipboard();
-    vim_free(to_free);
+    size_t len = 0;
+    char_u *text = rs_clipboard_get(&len);
+    if (text == NULL)
+        return;
+    clip_yank_selection(MCHAR, text, (long)len, cbd);
+    rs_clipboard_free(text, len);
 }
+
 
 /*
  * Send the current selection to the clipboard.
@@ -453,149 +312,16 @@ clip_mch_request_selection(Clipboard_T *cbd)
     void
 clip_mch_set_selection(Clipboard_T *cbd)
 {
-    char_u		*str = NULL;
-    VimClipType_t	metadata;
-    long_u		txtlen;
-    HGLOBAL		hMemRaw = NULL;
-    HGLOBAL		hMem = NULL;
-    HGLOBAL		hMemVim = NULL;
-    HGLOBAL		hMemW = NULL;
-
-    // If the '*' register isn't already filled in, fill it in now
+    char_u *str = NULL;
+    long_u len;
     cbd->owned = TRUE;
     clip_get_selection(cbd);
     cbd->owned = FALSE;
-
-    // Get the text to be put on the clipboard, with CR-LF.
-    metadata.type = clip_convert_selection(&str, &txtlen, cbd);
-    if (metadata.type < 0)
-	return;
-    metadata.txtlen = (int)txtlen;
-    metadata.ucslen = 0;
-    metadata.rawlen = 0;
-
-    // Always set the raw bytes: 'encoding', NUL and the text.  This is used
-    // when copy/paste from/to Vim with the same 'encoding', so that illegal
-    // bytes can also be copied and no conversion is needed.
-    {
-	LPSTR lpszMemRaw;
-
-	metadata.rawlen = (int)(txtlen + STRLEN(p_enc) + 1);
-	hMemRaw = (LPSTR)GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE,
-							 metadata.rawlen + 1);
-	lpszMemRaw = (LPSTR)GlobalLock(hMemRaw);
-	if (lpszMemRaw != NULL)
-	{
-	    STRCPY(lpszMemRaw, p_enc);
-	    memcpy(lpszMemRaw + STRLEN(p_enc) + 1, str, txtlen + 1);
-	    GlobalUnlock(hMemRaw);
-	}
-	else
-	    metadata.rawlen = 0;
-    }
-
-    {
-	WCHAR		*out;
-	int		len = metadata.txtlen;
-
-	// Convert the text to UTF-16. This is put on the clipboard as
-	// CF_UNICODETEXT.
-	out = (WCHAR *)enc_to_utf16(str, &len);
-	if (out != NULL)
-	{
-	    WCHAR *lpszMemW;
-
-	    // Convert the text for CF_TEXT to Active codepage. Otherwise it's
-	    // p_enc, which has no relation to the Active codepage.
-	    metadata.txtlen = WideCharToMultiByte(GetACP(), 0, out, len,
-							       NULL, 0, 0, 0);
-	    vim_free(str);
-	    str = alloc(metadata.txtlen == 0 ? 1 : metadata.txtlen);
-	    if (str == NULL)
-	    {
-		vim_free(out);
-		return;		// out of memory
-	    }
-	    WideCharToMultiByte(GetACP(), 0, out, len,
-					   (LPSTR)str, metadata.txtlen, 0, 0);
-
-	    // Allocate memory for the UTF-16 text, add one NUL word to
-	    // terminate the string.
-	    hMemW = (LPSTR)GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE,
-						   (len + 1) * sizeof(WCHAR));
-	    lpszMemW = (WCHAR *)GlobalLock(hMemW);
-	    if (lpszMemW != NULL)
-	    {
-		memcpy(lpszMemW, out, len * sizeof(WCHAR));
-		lpszMemW[len] = NUL;
-		GlobalUnlock(hMemW);
-	    }
-	    vim_free(out);
-	    metadata.ucslen = len;
-	}
-    }
-
-    // Allocate memory for the text, add one NUL byte to terminate the string.
-    hMem = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, metadata.txtlen + 1);
-    {
-	LPSTR lpszMem = (LPSTR)GlobalLock(hMem);
-
-	if (lpszMem)
-	{
-	    mch_memmove((char_u *)lpszMem, str, metadata.txtlen);
-	    GlobalUnlock(hMem);
-	}
-    }
-
-    // Set up metadata:
-    {
-	VimClipType_t *lpszMemVim = NULL;
-
-	hMemVim = GlobalAlloc(GMEM_MOVEABLE|GMEM_DDESHARE,
-						       sizeof(VimClipType_t));
-	lpszMemVim = (VimClipType_t *)GlobalLock(hMemVim);
-	memcpy(lpszMemVim, &metadata, sizeof(metadata));
-	GlobalUnlock(hMemVim);
-    }
-
-    /*
-     * Open the clipboard, clear it and put our text on it.
-     * Always set our Vim format.  Put Unicode and plain text on it.
-     *
-     * Don't pass GetActiveWindow() as an argument to OpenClipboard()
-     * because then we can't paste back into the same window for some
-     * reason - webb.
-     */
-    if (vim_open_clipboard())
-    {
-	if (EmptyClipboard())
-	{
-	    SetClipboardData(cbd->format, hMemVim);
-	    hMemVim = 0;
-	    if (hMemW != NULL)
-	    {
-		if (SetClipboardData(CF_UNICODETEXT, hMemW) != NULL)
-		    hMemW = NULL;
-	    }
-	    // Always use CF_TEXT.  On Win98 Notepad won't obtain the
-	    // CF_UNICODETEXT text, only CF_TEXT.
-	    SetClipboardData(CF_TEXT, hMem);
-	    hMem = 0;
-	}
-	CloseClipboard();
-    }
-
+    if (clip_convert_selection(&str, &len, cbd) >= 0)
+        rs_clipboard_set(str, len);
     vim_free(str);
-    // Free any allocations we didn't give to the clipboard:
-    if (hMemRaw)
-	GlobalFree(hMemRaw);
-    if (hMem)
-	GlobalFree(hMem);
-    if (hMemW)
-	GlobalFree(hMemW);
-    if (hMemVim)
-	GlobalFree(hMemVim);
 }
+
 
 #endif // FEAT_CLIPBOARD
 

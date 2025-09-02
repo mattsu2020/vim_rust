@@ -1,0 +1,17 @@
+[package]
+name = "rust_clipboard"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+copypasta = { version = "0.10", optional = true }
+
+[features]
+default = []
+windows = ["copypasta"]
+x11 = ["copypasta"]
+wayland = ["copypasta"]
+
+[lib]
+name = "rust_clipboard"
+crate-type = ["staticlib", "rlib"]
