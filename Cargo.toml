@@ -36,6 +36,15 @@ ole = ["rust_ole"]
 [target.'cfg(target_os = "windows")'.dependencies]
 rust_os_mswin = { path = "rust_os_mswin" }
 
+[target.'cfg(target_os = "amiga")'.dependencies]
+rust_os_amiga = { path = "rust_os_amiga" }
+
+[target.'cfg(target_os = "vms")'.dependencies]
+rust_os_vms = { path = "rust_os_vms" }
+
+[target.'cfg(target_os = "qnx")'.dependencies]
+rust_os_qnx = { path = "rust_os_qnx" }
+
 [lib]
 name = "vim_channel"
 path = "src/channel.rs"
