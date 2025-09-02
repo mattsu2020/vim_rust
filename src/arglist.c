@@ -18,16 +18,19 @@
 #define AL_DEL	3
 
 // This flag is set whenever the argument list is being changed and calling a
-// function that might trigger an autocommand.
-static int arglist_locked = FALSE;
+// function that might trigger an autocommand.  The implementation lives in
+// Rust to provide exclusive control.
+extern int rs_arglist_locked(void);
+extern void rs_arglist_lock(void);
+extern void rs_arglist_unlock(void);
 
     static int
 check_arglist_locked(void)
 {
-    if (arglist_locked)
+    if (rs_arglist_locked())
     {
-	emsg(_(e_cannot_change_arglist_recursively));
-	return FAIL;
+        emsg(_(e_cannot_change_arglist_recursively));
+        return FAIL;
     }
     return OK;
 }
@@ -163,12 +166,12 @@ alist_set(
 
 	    // May set buffer name of a buffer previously used for the
 	    // argument list, so that it's re-used by alist_add.
-	    if (fnum_list != NULL && i < fnum_len)
-	    {
-		arglist_locked = TRUE;
-		buf_set_name(fnum_list[i], files[i]);
-		arglist_locked = FALSE;
-	    }
+            if (fnum_list != NULL && i < fnum_len)
+            {
+                rs_arglist_lock();
+                buf_set_name(fnum_list[i], files[i]);
+                rs_arglist_unlock();
+            }
 
 	    alist_add(al, files[i], use_curbuf ? 2 : 1);
 	    ui_breakcheck();
@@ -196,8 +199,8 @@ alist_add(
     if (fname == NULL)		// don't add NULL file names
 	return;
     if (check_arglist_locked() == FAIL)
-	return;
-    arglist_locked = TRUE;
+        return;
+    rs_arglist_lock();
     curwin->w_locked = TRUE;
 
 #ifdef BACKSLASH_IN_FILENAME
@@ -209,7 +212,7 @@ alist_add(
 	    buflist_add(fname, BLN_LISTED | (set_fnum == 2 ? BLN_CURBUF : 0));
     ++al->al_ga.ga_len;
 
-    arglist_locked = FALSE;
+    rs_arglist_unlock();
     curwin->w_locked = FALSE;
 }
 
@@ -368,8 +371,8 @@ alist_add_list(
 	if (after < ARGCOUNT)
 	    mch_memmove(&(ARGLIST[after + count]), &(ARGLIST[after]),
 				       (ARGCOUNT - after) * sizeof(aentry_T));
-	arglist_locked = TRUE;
-	curwin->w_locked = TRUE;
+        rs_arglist_lock();
+        curwin->w_locked = TRUE;
 	for (i = 0; i < count; ++i)
 	{
 	    int flags = BLN_LISTED | (will_edit ? BLN_CURBUF : 0);
@@ -377,8 +380,8 @@ alist_add_list(
 	    ARGLIST[after + i].ae_fname = files[i];
 	    ARGLIST[after + i].ae_fnum = buflist_add(files[i], flags);
 	}
-	arglist_locked = FALSE;
-	curwin->w_locked = FALSE;
+        rs_arglist_unlock();
+        curwin->w_locked = FALSE;
 	ALIST(curwin)->al_ga.ga_len += count;
 	if (old_argcount > 0 && curwin->w_arg_idx >= after)
 	    curwin->w_arg_idx += count;
@@ -1219,7 +1222,7 @@ do_arg_all(
     arg_all_state_T	aall;
     win_T		*last_curwin;
     tabpage_T		*last_curtab;
-    int			prev_arglist_locked = arglist_locked;
+    int                 prev_arglist_locked = rs_arglist_locked();
 
     if (cmdwin_type != 0)
     {
@@ -1250,7 +1253,7 @@ do_arg_all(
     // watch out for its size being changed.
     aall.alist = curwin->w_alist;
     ++aall.alist->al_refcount;
-    arglist_locked = TRUE;
+    rs_arglist_lock();
 
 #ifdef FEAT_GUI
     need_mouse_correct = TRUE;
@@ -1288,7 +1291,10 @@ do_arg_all(
 
     // Remove the "lock" on the argument list.
     alist_unlink(aall.alist);
-    arglist_locked = prev_arglist_locked;
+    if (prev_arglist_locked)
+        rs_arglist_lock();
+    else
+        rs_arglist_unlock();
 
     --autocmd_no_enter;
 
