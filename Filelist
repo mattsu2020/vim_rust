@@ -74,7 +74,6 @@ SRC_ALL =	\
 		src/ex_eval.c \
 		src/ex_getln.c \
 		src/feature.h \
-		src/fileio.c \
 		src/filepath.c \
 		src/findfile.c \
 		src/float.c \
