@@ -270,17 +270,12 @@ can_abandon(buf_T *buf, int forceit)
 
 /*
  * Add a buffer number to "bufnrs", unless it's already there.
- */
-    static void
+*/
+extern void rust_add_bufnum(int *bufnrs, int *bufnump, int nr);
+static void
 add_bufnum(int *bufnrs, int *bufnump, int nr)
 {
-    int i;
-
-    for (i = 0; i < *bufnump; ++i)
-	if (bufnrs[i] == nr)
-	    return;
-    bufnrs[*bufnump] = nr;
-    *bufnump = *bufnump + 1;
+    rust_add_bufnum(bufnrs, bufnump, nr);
 }
 
 /*
