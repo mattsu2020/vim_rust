@@ -455,7 +455,9 @@ int mch_rename(const char *src, const char *dest);
 #  else
 #   define mch_getenv(x) (char_u *)getenv((char *)(x))
 #  endif
-#  define mch_setenv(name, val, x) setenv(name, val, x)
+#  include "os_unix_rs.h"
+#  define mch_setenv(name, val, x) rs_setenv(name, val, x)
+#  define mch_unsetenv(name) rs_unsetenv(name)
 # endif
 #endif
 
