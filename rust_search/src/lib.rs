@@ -1,4 +1,4 @@
-use libc::{c_int, c_long, c_void, size_t, c_uchar};
+use libc::{c_int, c_long, size_t, c_uchar};
 use regex::Regex;
 use std::ffi::{CStr, CString};
 
@@ -14,8 +14,11 @@ pub struct win_T { _private: [u8; 0] }
 pub struct buf_T { _private: [u8; 0] }
 #[repr(C)]
 pub struct searchit_arg_T { _private: [u8; 0] }
+#[repr(C)]
+pub struct oparg_T { _private: [u8; 0] }
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct pos_T {
     pub lnum: c_long,
     pub col: c_int,
@@ -149,6 +152,34 @@ pub extern "C" fn rust_find_pattern_in_path(
             }
         }
     }
+}
+
+#[no_mangle]
+pub extern "C" fn rust_do_search(
+    win: *mut win_T,
+    buf: *mut buf_T,
+    cursor: *mut pos_T,
+    _oap: *mut oparg_T,
+    dirc: c_int,
+    _search_delim: c_int,
+    pat: *mut c_uchar,
+    patlen: size_t,
+    count: c_long,
+    options: c_int,
+    sia: *mut searchit_arg_T,
+) -> c_int {
+    if cursor.is_null() || pat.is_null() {
+        return 0;
+    }
+    let mut pos = unsafe { *cursor };
+    let mut end = pos_T { lnum: 0, col: 0, coladd: 0 };
+    let dir = if dirc == b'?' as c_int { -1 } else { 1 };
+    let res = rust_searchit(win, buf, &mut pos, &mut end, dir,
+                            pat, patlen, count, options, 0, sia);
+    if res > 0 {
+        unsafe { *cursor = pos; }
+    }
+    res
 }
 
 #[cfg(test)]

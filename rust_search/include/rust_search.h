@@ -4,6 +4,7 @@
 #include "vim.h"
 
 typedef struct searchit_arg_T searchit_arg_T;
+typedef struct oparg_T oparg_T;
 
 int rust_searchit(win_T *win, buf_T *buf, pos_T *pos, pos_T *end_pos,
                   int dir, char_u *pat, size_t patlen, long count,
@@ -13,5 +14,9 @@ void rust_find_pattern_in_path(char_u *ptr, int dir, int len, int whole,
                                int skip_comments, int type, long count,
                                int action, linenr_T start_lnum,
                                linenr_T end_lnum, int forceit, int silent);
+
+int rust_do_search(win_T *win, buf_T *buf, pos_T *cursor, oparg_T *oap,
+                   int dirc, int search_delim, char_u *pat, size_t patlen,
+                   long count, int options, searchit_arg_T *extra_arg);
 
 #endif // RUST_SEARCH_H
