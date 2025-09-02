@@ -8,6 +8,7 @@
  */
 
 #include "vim.h"
+#include "rust_charset.h"
 
 #if defined(HAVE_WCHAR_H)
 # include <wchar.h>	    // for towupper() and towlower()
@@ -15,7 +16,6 @@
 
 static int parse_isopt(char_u *var, buf_T *buf, int only_check);
 static int win_nolbr_chartabsize(chartabsize_T *cts, int *headp);
-static unsigned nr2hex(unsigned c);
 
 static int    chartab_initialized = FALSE;
 
@@ -634,19 +634,6 @@ transchar_hex(char_u *buf, int c)
     buf[++i] = nr2hex((unsigned)c);
     buf[++i] = '>';
     buf[++i] = NUL;
-}
-
-/*
- * Convert the lower 4 bits of byte "c" to its hex character.
- * Lower case letters are used to avoid the confusion of <F1> being 0xf1 or
- * function key 1.
- */
-    static unsigned
-nr2hex(unsigned c)
-{
-    if ((c & 0xf) <= 9)
-	return (c & 0xf) + '0';
-    return (c & 0xf) - 10 + 'a';
 }
 
 /*
@@ -2490,28 +2477,6 @@ vim_str2nr(
  * Only valid when the argument is '0' - '9', 'A' - 'F' or 'a' - 'f'.
  */
     int
-hex2nr(int c)
-{
-    if (c >= 'a' && c <= 'f')
-	return c - 'a' + 10;
-    if (c >= 'A' && c <= 'F')
-	return c - 'A' + 10;
-    return c - '0';
-}
-
-/*
- * Convert two hex characters to a byte.
- * Return -1 if one of the characters is not hex.
- */
-    int
-hexhex2nr(char_u *p)
-{
-    if (!vim_isxdigit(p[0]) || !vim_isxdigit(p[1]))
-	return -1;
-    return (hex2nr(p[0]) << 4) + hex2nr(p[1]);
-}
-
-/*
  * Return TRUE if "str" starts with a backslash that should be removed.
  * For MS-DOS, MSWIN and OS/2 this is only done when the character after the
  * backslash is not a normal file name character.
