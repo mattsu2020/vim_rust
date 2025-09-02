@@ -15,6 +15,13 @@ struct QfEntry {
 
 static LIST: Lazy<Mutex<Vec<QfEntry>>> = Lazy::new(|| Mutex::new(Vec::new()));
 
+/// Clear the current quickfix list, creating a new empty list.
+#[no_mangle]
+pub extern "C" fn rs_qf_new_list() {
+    let mut list = LIST.lock().unwrap();
+    list.clear();
+}
+
 #[no_mangle]
 pub extern "C" fn rs_qf_add_entry(
     _qfl: *mut c_void,
@@ -55,15 +62,75 @@ pub extern "C" fn rs_qf_list(_eap: *mut c_void) {
     }
 }
 
+/// Return the number of entries in the quickfix list.
+#[no_mangle]
+pub extern "C" fn rs_qf_len() -> c_int {
+    let list = LIST.lock().unwrap();
+    list.len() as c_int
+}
 #[cfg(test)]
 mod tests {
     use super::*;
+    use once_cell::sync::Lazy;
     use std::ffi::CString;
+    use std::sync::Mutex;
+
+    static TEST_MUTEX: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 
     #[test]
     fn add_and_list() {
+        let _g = TEST_MUTEX.lock().unwrap();
+        rs_qf_new_list();
         let msg = CString::new("test").unwrap();
-        assert_eq!(rs_qf_add_entry(std::ptr::null_mut(), std::ptr::null(), std::ptr::null(), std::ptr::null(), 0, msg.as_ptr(), 1, 0, 0, 0, 0, std::ptr::null(), 0, 0, std::ptr::null_mut(), 1), 1);
+        assert_eq!(
+            rs_qf_add_entry(
+                std::ptr::null_mut(),
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+                0,
+                msg.as_ptr(),
+                1,
+                0,
+                0,
+                0,
+                0,
+                std::ptr::null(),
+                0,
+                0,
+                std::ptr::null_mut(),
+                1,
+            ),
+            1
+        );
         rs_qf_list(std::ptr::null_mut());
+    }
+
+    #[test]
+    fn new_list_clears_entries() {
+        let _g = TEST_MUTEX.lock().unwrap();
+        rs_qf_new_list();
+        let msg = CString::new("entry").unwrap();
+        rs_qf_add_entry(
+            std::ptr::null_mut(),
+            std::ptr::null(),
+            std::ptr::null(),
+            std::ptr::null(),
+            0,
+            msg.as_ptr(),
+            1,
+            0,
+            0,
+            0,
+            0,
+            std::ptr::null(),
+            0,
+            0,
+            std::ptr::null_mut(),
+            1,
+        );
+        assert_eq!(rs_qf_len(), 1);
+        rs_qf_new_list();
+        assert_eq!(rs_qf_len(), 0);
     }
 }
