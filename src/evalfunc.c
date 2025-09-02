@@ -15,6 +15,7 @@
 #include "vim.h"
 
 #if defined(FEAT_EVAL) || defined(PROTO)
+#include "../rust_evalfunc/include/rust_evalfunc.h"
 
 #ifdef VMS
 # include <float.h>
@@ -84,7 +85,6 @@ static void f_gettext(typval_T *argvars, typval_T *rettv);
 static void f_haslocaldir(typval_T *argvars, typval_T *rettv);
 static void f_hlID(typval_T *argvars, typval_T *rettv);
 static void f_hlexists(typval_T *argvars, typval_T *rettv);
-static void f_hostname(typval_T *argvars, typval_T *rettv);
 static void f_id(typval_T *argvars, typval_T *rettv);
 static void f_index(typval_T *argvars, typval_T *rettv);
 static void f_indexof(typval_T *argvars, typval_T *rettv);
@@ -2421,7 +2421,7 @@ static const funcentry_T global_functions[] =
     {"hlset",		1, 1, FEARG_1,	    arg1_list_any,
 			ret_number_bool,    f_hlset},
     {"hostname",	0, 0, 0,	    NULL,
-			ret_string,	    f_hostname},
+			ret_string,         f_hostname_rs},
     {"iconv",		3, 3, FEARG_1,	    arg3_string,
 			ret_string,	    f_iconv},
     {"id",		1, 1, FEARG_1,	    NULL,
@@ -8041,18 +8041,6 @@ f_hlexists(typval_T *argvars, typval_T *rettv)
     rettv->vval.v_number = highlight_exists(tv_get_string(&argvars[0]));
 }
 
-/*
- * "hostname()" function
- */
-    static void
-f_hostname(typval_T *argvars UNUSED, typval_T *rettv)
-{
-    char_u hostname[256];
-
-    mch_get_host_name(hostname, 256);
-    rettv->v_type = VAR_STRING;
-    rettv->vval.v_string = vim_strsave(hostname);
-}
 
 /*
  * "id()" function
