@@ -1464,10 +1464,10 @@ $(RUST_EVALFUNC_LIB):
 	cd $(RUST_EVALFUNC_DIR) && cargo build --release
 
 $(RUST_ARABIC_LIB):
-       cd $(RUST_ARABIC_DIR) && cargo build --release
+	cd $(RUST_ARABIC_DIR) && cargo build --release
 
 $(RUST_BEVAL_LIB):
-       cd $(RUST_BEVAL_DIR) && cargo build --release
+	cd $(RUST_BEVAL_DIR) && cargo build --release
 DEST_LANG = $(DESTDIR)$(LANGSUBLOC)
 DEST_COMP = $(DESTDIR)$(COMPSUBLOC)
 DEST_KMAP = $(DESTDIR)$(KMAPSUBLOC)
@@ -3232,7 +3232,7 @@ objects/ex_cmds.o: # ex_cmds.c replaced by rust_excmd crate
 # $(CCC) -o $@ ex_cmds.c
 
 objects/ex_eval.o: ex_eval.c
-       $(CCC) -o $@ ex_eval.c
+	$(CCC) -o $@ ex_eval.c
 
 objects/ex_getln.o: ex_getln.c
 	$(CCC) -o $@ ex_getln.c
@@ -3331,9 +3331,9 @@ objects/if_perl.o: auto/if_perl.c
 	$(CCC_NF) $(PERL_CFLAGS) $(ALL_CFLAGS) $(PERL_CFLAGS_EXTRA) -o $@ auto/if_perl.c
 
 objects/if_perlsfio.o: if_perlsfio.c
-        $(CCC_NF) $(PERL_CFLAGS) $(ALL_CFLAGS) $(PERL_CFLAGS_EXTRA) -o $@ if_perlsfio.c
+	$(CCC_NF) $(PERL_CFLAGS) $(ALL_CFLAGS) $(PERL_CFLAGS_EXTRA) -o $@ if_perlsfio.c
 objects/if_ruby.o: if_ruby.c
-        $(CCC_NF) $(RUBY_CFLAGS) $(ALL_CFLAGS) $(RUBY_CFLAGS_EXTRA) -o $@ if_ruby.c
+	$(CCC_NF) $(RUBY_CFLAGS) $(ALL_CFLAGS) $(RUBY_CFLAGS_EXTRA) -o $@ if_ruby.c
 
 objects/if_tcl.o: if_tcl.c
 	$(CCC_NF) $(TCL_CFLAGS) $(ALL_CFLAGS) $(TCL_CFLAGS_EXTRA) -o $@ if_tcl.c
@@ -3351,7 +3351,7 @@ objects/json.o: json.c
 	$(CCC) -o $@ json.c
 
 objects/linematch.o: linematch.c
-$(CCC) -o $@ linematch.c
+	$(CCC) -o $@ linematch.c
 
 objects/list.o: list.c
 	$(CCC) -o $@ list.c
@@ -3378,19 +3378,19 @@ objects/memfile.o: memfile.c
 	$(CCC) -o $@ memfile.c
 
 objects/memfile.o: memfile.c
-$(CCC) -o $@ memfile.c
+	$(CCC) -o $@ memfile.c
 
 objects/memline.o: memline.c
-$(CCC) -o $@ memline.c
+	$(CCC) -o $@ memline.c
 
 objects/menu.o: menu.c
-$(CCC) -o $@ menu.c
+	$(CCC) -o $@ menu.c
 
 objects/message.o: message.c
-$(CCC) -o $@ message.c
+	$(CCC) -o $@ message.c
 
 objects/misc1.o: misc1.c
-$(CCC) -o $@ misc1.c
+	$(CCC) -o $@ misc1.c
 
 objects/misc2.o: misc2.c
 	$(CCC) -o $@ misc2.c
@@ -3483,10 +3483,10 @@ objects/sound.o: sound.c
 	$(CCC) -o $@ sound.c
 
 objects/spell.o: spell.c
-       $(CCC) -o $@ spell.c
+	$(CCC) -o $@ spell.c
 
 objects/strings.o: strings.c
-       $(CCC) -o $@ strings.c
+	$(CCC) -o $@ strings.c
 
 objects/syntax.o: syntax.c
 	$(CCC) -o $@ syntax.c
@@ -3717,7 +3717,6 @@ objects/autocmd.o: autocmd.c vim.h protodef.h auto/config.h feature.h os_unix.h 
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
- globals.h errors.h
 objects/blob.o: blob.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
@@ -3734,10 +3733,6 @@ objects/buffer.o: buffer.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h version.h
 objects/change.o: # change.c replaced by rust_change crate
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
 objects/charset.o: charset.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
@@ -3788,10 +3783,6 @@ objects/dict.o: dict.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/diff.o: diff.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
 objects/digraph.o: digraph.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
@@ -3838,10 +3829,6 @@ objects/evalwindow.o: evalwindow.c vim.h protodef.h auto/config.h feature.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h errors.h
 objects/ex_cmds.o: # ex_cmds.c replaced by rust_excmd crate
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h version.h
 objects/ex_eval.o: ex_eval.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
@@ -3942,9 +3929,6 @@ objects/json.o: json.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/linematch.o: linematch.c vim.h protodef.h auto/config.h feature.h \
- os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
- beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
 objects/list.o: list.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
@@ -4433,45 +4417,3 @@ objects/vterm_unicode.o: libvterm/src/unicode.c libvterm/src/vterm_internal.h \
 objects/vterm_vterm.o: libvterm/src/vterm.c libvterm/src/vterm_internal.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h \
  libvterm/src/utf8.h
- auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h \
- termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h \
- auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h \
- termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h \
- auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h \
- termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h \
- auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h \
- termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h \
- auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h \
- termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h \
- auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h \
- termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h \
