@@ -40,7 +40,7 @@
 #define	    NFA_ENGINE		2
 
 #ifdef USE_RUST_REGEX
-# include "../rust_regex/include/rust_regex.h"
+# include "../rust_regex_engine/include/rust_regex_engine.h"
 typedef RegProg regprog_T;
 #else
 typedef struct regengine regengine_T;

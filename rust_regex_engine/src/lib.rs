@@ -1,4 +1,5 @@
 use regex::Regex;
+use regex::RegexBuilder;
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int, c_long, c_void};
 
@@ -8,7 +9,7 @@ pub struct RegProg {
 }
 
 #[no_mangle]
-pub extern "C" fn vim_regcomp(pattern: *const c_char, _flags: c_int) -> *mut RegProg {
+pub extern "C" fn vim_regcomp(pattern: *const c_char, flags: c_int) -> *mut RegProg {
     if pattern.is_null() {
         return std::ptr::null_mut();
     }
@@ -17,7 +18,12 @@ pub extern "C" fn vim_regcomp(pattern: *const c_char, _flags: c_int) -> *mut Reg
         Ok(s) => s,
         Err(_) => return std::ptr::null_mut(),
     };
-    match Regex::new(pattern_str) {
+    let mut builder = RegexBuilder::new(pattern_str);
+    if (flags & 1) != 0 {
+        // simple compatibility flag for case-insensitive
+        builder.case_insensitive(true);
+    }
+    match builder.build() {
         Ok(re) => Box::into_raw(Box::new(RegProg { regex: re })),
         Err(_) => std::ptr::null_mut(),
     }
@@ -26,7 +32,9 @@ pub extern "C" fn vim_regcomp(pattern: *const c_char, _flags: c_int) -> *mut Reg
 #[no_mangle]
 pub extern "C" fn vim_regfree(prog: *mut RegProg) {
     if !prog.is_null() {
-        unsafe { drop(Box::from_raw(prog)); }
+        unsafe {
+            drop(Box::from_raw(prog));
+        }
     }
 }
 
@@ -105,20 +113,32 @@ pub extern "C" fn vim_regexec_nl(rmp: *mut RegMatch, line: *const c_char, col: c
 }
 
 #[no_mangle]
-pub extern "C" fn vim_regexec_multi(_rmp: *mut RegMMMatch, _win: *mut c_void,
-                                     _buf: *mut c_void, _lnum: c_long, _col: c_int,
-                                     _timed_out: *mut c_int) -> c_long {
+pub extern "C" fn vim_regexec_multi(
+    _rmp: *mut RegMMMatch,
+    _win: *mut c_void,
+    _buf: *mut c_void,
+    _lnum: c_long,
+    _col: c_int,
+    _timed_out: *mut c_int,
+) -> c_long {
     0
 }
 
 #[no_mangle]
-pub extern "C" fn vim_regsub(prog: *mut RegProg, text: *const c_char, sub: *const c_char) -> *mut c_char {
+pub extern "C" fn vim_regsub(
+    prog: *mut RegProg,
+    text: *const c_char,
+    sub: *const c_char,
+) -> *mut c_char {
     if prog.is_null() || text.is_null() || sub.is_null() {
         return std::ptr::null_mut();
     }
     let prog = unsafe { &*prog };
     let text_str = unsafe { CStr::from_ptr(text).to_string_lossy() };
     let sub_str = unsafe { CStr::from_ptr(sub).to_string_lossy() };
-    let result = prog.regex.replace_all(&text_str, sub_str.as_ref()).into_owned();
+    let result = prog
+        .regex
+        .replace_all(&text_str, sub_str.as_ref())
+        .into_owned();
     CString::new(result).unwrap().into_raw()
 }
