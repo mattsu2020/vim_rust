@@ -1,16 +1,22 @@
 use std::ffi::{CStr, CString};
-use std::io::Read;
 use std::os::raw::{c_char, c_int};
-use std::process::{Child, Command, Stdio};
 use std::ptr;
 use std::sync::{Arc, Mutex};
-use std::thread;
+
+use tokio::io::AsyncReadExt;
+use tokio::process::{Child, Command};
+use tokio::runtime::Runtime;
+use std::process::Stdio;
+use tokio::task::JoinHandle;
 
 /// Minimal job representation wrapping a spawned child process.
 pub struct Job {
     child: Child,
     stdout: Arc<Mutex<Vec<u8>>>,
     stderr: Arc<Mutex<Vec<u8>>>,
+    rt: Runtime,
+    stdout_task: Option<JoinHandle<()>>,
+    stderr_task: Option<JoinHandle<()>>,
 }
 
 /// Start a job using the command provided as a C string.  The command is
@@ -40,34 +46,48 @@ pub extern "C" fn job_start(cmd: *const c_char) -> *mut Job {
 
     let command = command.stdout(Stdio::piped()).stderr(Stdio::piped());
 
-    match command.spawn() {
+    let rt = match Runtime::new() {
+        Ok(rt) => rt,
+        Err(_) => return ptr::null_mut(),
+    };
+
+    let child_res = {
+        let _g = rt.enter();
+        command.spawn()
+    };
+
+    match child_res {
         Ok(mut child) => {
             let stdout_buf = Arc::new(Mutex::new(Vec::new()));
             let stderr_buf = Arc::new(Mutex::new(Vec::new()));
 
-            if let Some(mut stdout) = child.stdout.take() {
+            let stdout_task = if let Some(mut stdout) = child.stdout.take() {
                 let buf = Arc::clone(&stdout_buf);
-                thread::spawn(move || {
+                Some(rt.spawn(async move {
                     let mut data = Vec::new();
-                    let _ = stdout.read_to_end(&mut data);
+                    let _ = stdout.read_to_end(&mut data).await;
                     if let Ok(mut locked) = buf.lock() {
                         *locked = data;
                     }
-                });
-            }
+                }))
+            } else {
+                None
+            };
 
-            if let Some(mut stderr) = child.stderr.take() {
+            let stderr_task = if let Some(mut stderr) = child.stderr.take() {
                 let buf = Arc::clone(&stderr_buf);
-                thread::spawn(move || {
+                Some(rt.spawn(async move {
                     let mut data = Vec::new();
-                    let _ = stderr.read_to_end(&mut data);
+                    let _ = stderr.read_to_end(&mut data).await;
                     if let Ok(mut locked) = buf.lock() {
                         *locked = data;
                     }
-                });
-            }
+                }))
+            } else {
+                None
+            };
 
-            Box::into_raw(Box::new(Job { child, stdout: stdout_buf, stderr: stderr_buf }))
+            Box::into_raw(Box::new(Job { child, stdout: stdout_buf, stderr: stderr_buf, rt, stdout_task, stderr_task }))
         }
         Err(_) => ptr::null_mut(),
     }
@@ -80,7 +100,7 @@ pub extern "C" fn job_stop(job: *mut Job) -> c_int {
         return -1;
     }
     let job = unsafe { &mut *job };
-    match job.child.kill() {
+    match job.rt.block_on(job.child.kill()) {
         Ok(_) => 0,
         Err(_) => -1,
     }
@@ -109,6 +129,9 @@ pub extern "C" fn job_stdout(job: *mut Job) -> *mut c_char {
         return ptr::null_mut();
     }
     let job = unsafe { &mut *job };
+    if let Some(handle) = job.stdout_task.take() {
+        let _ = job.rt.block_on(handle);
+    }
     let data = job.stdout.lock().unwrap();
     match CString::new(data.clone()) {
         Ok(s) => s.into_raw(),
@@ -124,6 +147,9 @@ pub extern "C" fn job_stderr(job: *mut Job) -> *mut c_char {
         return ptr::null_mut();
     }
     let job = unsafe { &mut *job };
+    if let Some(handle) = job.stderr_task.take() {
+        let _ = job.rt.block_on(handle);
+    }
     let data = job.stderr.lock().unwrap();
     match CString::new(data.clone()) {
         Ok(s) => s.into_raw(),
