@@ -54,6 +54,10 @@ flavours of UNIX.  Porting to other systems should not be very difficult.
 Older versions of Vim run on MS-DOS, MS-Windows 95/98/Me/NT/2000/XP/Vista,
 Amiga DOS, Atari MiNT, BeOS, RISC OS and OS/2.  These are no longer maintained.
 
+Rust ports of Amiga, QNX and VMS specific functionality now live in the
+`rust_os_amiga`, `rust_os_qnx` and `rust_os_vms` crates.  These replace the
+historical C implementations found in `src/os_*.c`.
+
 For Vim9 script see [README_VIM9](README_VIM9.md).
 
 ## Distribution
