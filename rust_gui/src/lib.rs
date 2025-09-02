@@ -1,9 +1,11 @@
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", feature = "gtk"))]
+use rust_gui_gtk::GtkBackend as Backend;
+#[cfg(all(target_os = "linux", not(feature = "gtk")))]
 use rust_gui_x11::X11Backend as Backend;
 #[cfg(target_os = "macos")]
 use rust_gui_core::backend::macos::MacBackend as Backend;
 #[cfg(target_os = "windows")]
-use rust_gui_core::backend::w32::W32Backend as Backend;
+use rust_gui_w32::W32Backend as Backend;
 use rust_gui_core::GuiCore;
 use rust_gui_core::GuiEvent;
 

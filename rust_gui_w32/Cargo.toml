@@ -1,0 +1,8 @@
+[package]
+name = "rust_gui_w32"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rust_gui_core = { path = "../rust_gui_core" }
+

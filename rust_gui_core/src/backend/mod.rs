@@ -17,11 +17,5 @@ pub trait GuiBackend {
     fn poll_event(&mut self) -> Option<GuiEvent>;
 }
 
-#[cfg(target_os = "linux")]
-pub mod gtk;
-
-#[cfg(target_os = "windows")]
-pub mod w32;
-
 #[cfg(target_os = "macos")]
 pub mod macos;
