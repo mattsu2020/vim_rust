@@ -1,7 +1,14 @@
-use rust_excmd::{ex_ascii, ex_mark_changed};
+use rust_excmd::{
+    ex_ascii,
+    ex_mark_changed,
+    rs_cmd_add,
+    rs_cmd_execute,
+    rs_cmd_history_add,
+    rs_cmd_history_get,
+};
 use rust_change::Buffer;
 use std::ffi::CStr;
-use std::os::raw::c_int;
+use std::os::raw::{c_char, c_int};
 
 #[test]
 fn ascii_matches_legacy() {
@@ -16,4 +23,27 @@ fn mark_changed_sets_flag() {
     assert!(!b.changed);
     unsafe { ex_mark_changed(&mut b) };
     assert!(b.changed);
+}
+
+static mut CALLED: bool = false;
+
+unsafe extern "C" fn dummy() {
+    CALLED = true;
+}
+
+#[test]
+fn command_table_runs_function() {
+    unsafe { CALLED = false };
+    rs_cmd_add(b"test\0".as_ptr() as *const c_char, dummy);
+    let res = rs_cmd_execute(b"test\0".as_ptr() as *const c_char);
+    assert_eq!(res, 1);
+    assert!(unsafe { CALLED });
+}
+
+#[test]
+fn history_tracks_commands() {
+    rs_cmd_history_add(b"cmd1\0".as_ptr() as *const c_char);
+    let ptr = rs_cmd_history_get(0);
+    let cstr = unsafe { CStr::from_ptr(ptr) };
+    assert_eq!(cstr.to_str().unwrap(), "cmd1");
 }

@@ -15,6 +15,9 @@
 #include "rust_arabic.h"
 extern int rust_empty_pattern_magic(char_u *p, size_t len, int magic_val);
 
+// Functions implemented in Rust for command line history.
+extern void rs_cmd_history_add(const char *cmd);
+
 // Return value when handling keys in command-line mode.
 #define CMDLINE_NOT_CHANGED	1
 #define CMDLINE_CHANGED		2
@@ -5164,6 +5167,13 @@ f_wildtrigger(typval_T *argvars UNUSED, typval_T *rettv UNUSED)
 	key_string[3] = NUL;
 
 	// Insert it into the typeahead buffer
-	ins_typebuf(key_string, REMAP_NONE, 0, TRUE, FALSE);
+        ins_typebuf(key_string, REMAP_NONE, 0, TRUE, FALSE);
     }
+}
+
+// Add a command to the Rust-managed history list.
+    void
+rust_cmd_history_add_wrapper(const char *cmd)
+{
+    rs_cmd_history_add(cmd);
 }

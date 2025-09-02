@@ -15,6 +15,10 @@
 #include "vim.h"
 #include "ops_rs.h"
 
+// Rust implementations for command execution and key mapping.
+extern int rs_cmd_execute(const char *name);
+extern const char *rs_map_lookup(const char *lhs);
+
 int op_change(oparg_T *oap)
 {
     return rs_op_change(oap);
@@ -4631,4 +4635,15 @@ pbyte(pos_T lp, int c)
     if (lp.col >= len)
 	lp.col = (len > 1 ? len - 2 : 0);
     *(p + lp.col) = c;
+}
+
+// Expose Rust implementations to C callers.
+int rust_cmd_execute_wrapper(const char *name)
+{
+    return rs_cmd_execute(name);
+}
+
+const char *rust_map_lookup_wrapper(const char *lhs)
+{
+    return rs_map_lookup(lhs);
 }
