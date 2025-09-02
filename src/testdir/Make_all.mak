@@ -49,10 +49,11 @@ TEST_VIM9 = \
 	test_vim9_fails \
 	test_vim9_func \
 	test_vim9_generics \
-	test_vim9_import \
-	test_vim9_python3 \
-	test_vim9_script \
-	test_vim9_typealias
+        test_vim9_import \
+        test_vim9_python3 \
+        test_vim9_rust \
+        test_vim9_script \
+        test_vim9_typealias
 
 TEST_VIM9_RES = \
 	test_vim9_assign.res \
@@ -65,10 +66,11 @@ TEST_VIM9_RES = \
 	test_vim9_fails.res \
 	test_vim9_func.res \
 	test_vim9_generics.res \
-	test_vim9_import.res \
-	test_vim9_python3.res \
-	test_vim9_script.res \
-	test_vim9_typealias.res
+        test_vim9_import.res \
+        test_vim9_python3.res \
+        test_vim9_rust.res \
+        test_vim9_script.res \
+        test_vim9_typealias.res
 
 # Benchmark scripts.
 SCRIPTS_BENCH = test_bench_regexp.res
