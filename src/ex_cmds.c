@@ -29,6 +29,9 @@ static int not_writing(void);
 static int check_readonly(int *forceit, buf_T *buf);
 static void delbuf_msg(char_u *name);
 
+// Functions implemented in Rust for command handling.
+extern int rs_cmd_execute(const char *name);
+
 /*
  * ":ascii" and "ga".
  */
@@ -5970,3 +5973,10 @@ ex_sign(exarg_T *eap UNUSED)
     rs_sign_draw();
 }
 #endif
+
+// Wrapper around the Rust command executor.
+    int
+rust_ex_execute(const char *name)
+{
+    return rs_cmd_execute(name);
+}

@@ -13,6 +13,10 @@
 
 #include "vim.h"
 
+// Functions implemented in Rust for command history.
+extern void rs_cmd_history_add(const char *cmd);
+extern const char *rs_cmd_history_get(int idx);
+
 static histentry_T *(history[HIST_COUNT]) = {NULL, NULL, NULL, NULL, NULL};
 static int	hisidx[HIST_COUNT] = {-1, -1, -1, -1, -1};  // lastused entry
 static int	hisnum[HIST_COUNT] = {0, 0, 0, 0, 0};
@@ -807,6 +811,19 @@ ex_history(exarg_T *eap)
 		}
 		if (i == idx)
 		    break;
-	    }
+            }
     }
+}
+
+// Wrappers calling into Rust implementations for history operations.
+    void
+rust_cmd_history_add_wrapper(const char *cmd)
+{
+    rs_cmd_history_add(cmd);
+}
+
+    const char *
+rust_cmd_history_get_wrapper(int idx)
+{
+    return rs_cmd_history_get(idx);
 }

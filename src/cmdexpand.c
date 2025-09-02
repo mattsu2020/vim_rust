@@ -13,6 +13,9 @@
 
 #include "vim.h"
 
+// Functions implemented in Rust for key mappings.
+extern const char *rs_map_lookup(const char *lhs);
+
 static int	cmd_showtail;	// Only show path tail in lists ?
 static int	may_expand_pattern = FALSE;
 static pos_T	pre_incsearch_pos; // Cursor position when incsearch started
@@ -5051,4 +5054,11 @@ expand_pattern_in_buf(
 cleanup:
     ga_clear_strings(&ga);
     return FAIL;
+}
+
+// Wrapper around Rust key mapping lookup used for expansion.
+    const char *
+rust_map_lookup_wrapper(const char *lhs)
+{
+    return rs_map_lookup(lhs);
 }

@@ -13,6 +13,10 @@
 
 #include "vim.h"
 
+// Functions implemented in Rust for managing mappings.
+extern void rs_map_add(const char *lhs, const char *rhs);
+extern const char *rs_map_lookup(const char *lhs);
+
 /*
  * List used for abbreviations.
  */
@@ -3249,4 +3253,17 @@ ex_mapclear(exarg_T *eap)
 ex_abclear(exarg_T *eap)
 {
     map_clear(eap->cmd, eap->arg, TRUE, TRUE);
+}
+
+// Wrappers that forward to the Rust mapping logic.
+    void
+rust_map_add_wrapper(const char *lhs, const char *rhs)
+{
+    rs_map_add(lhs, rhs);
+}
+
+    const char *
+rust_map_lookup_wrapper(const char *lhs)
+{
+    return rs_map_lookup(lhs);
 }

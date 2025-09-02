@@ -1,7 +1,10 @@
-use std::ffi::CString;
+use std::collections::HashMap;
+use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int, c_void};
 use std::ptr;
+use std::sync::Mutex;
 
+use once_cell::sync::Lazy;
 use rust_change::{changed as mark_changed, Buffer};
 
 pub type CharU = u8;
@@ -23,6 +26,45 @@ extern "C" {
 
 // used for get_pressedreturn()/set_pressedreturn()
 static mut EX_PRESSEDRETURN: c_int = 0;
+
+type CmdFunc = unsafe extern "C" fn();
+
+static COMMANDS: Lazy<Mutex<HashMap<String, CmdFunc>>> =
+    Lazy::new(|| Mutex::new(HashMap::new()));
+static HISTORY: Lazy<Mutex<Vec<String>>> = Lazy::new(|| Mutex::new(Vec::new()));
+
+#[no_mangle]
+pub extern "C" fn rs_cmd_add(name: *const c_char, func: CmdFunc) {
+    let name = unsafe { CStr::from_ptr(name) }.to_string_lossy().into_owned();
+    COMMANDS.lock().unwrap().insert(name, func);
+}
+
+#[no_mangle]
+pub extern "C" fn rs_cmd_execute(name: *const c_char) -> c_int {
+    let name = unsafe { CStr::from_ptr(name) }.to_str().unwrap_or("");
+    if let Some(f) = COMMANDS.lock().unwrap().get(name) {
+        unsafe { f() };
+        1
+    } else {
+        0
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn rs_cmd_history_add(cmd: *const c_char) {
+    let cmd = unsafe { CStr::from_ptr(cmd) }.to_string_lossy().into_owned();
+    HISTORY.lock().unwrap().push(cmd);
+}
+
+#[no_mangle]
+pub extern "C" fn rs_cmd_history_get(idx: c_int) -> *const c_char {
+    let hist = HISTORY.lock().unwrap();
+    if let Some(cmd) = hist.get(idx as usize) {
+        CString::new(cmd.clone()).unwrap().into_raw()
+    } else {
+        std::ptr::null()
+    }
+}
 
 #[no_mangle]
 pub extern "C" fn do_cmdline(

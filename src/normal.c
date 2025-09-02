@@ -15,6 +15,10 @@
 #include "vim.h"
 #include "normal_rs.h"
 
+// Rust implementations for command execution and key mapping.
+extern int rs_cmd_execute(const char *name);
+extern const char *rs_map_lookup(const char *lhs);
+
 void normal_cmd(oparg_T *oap, int toplevel)
 {
     rs_normal_cmd(oap, toplevel);
@@ -7573,4 +7577,15 @@ nv_cursorhold(cmdarg_T *cap)
     apply_autocmds(EVENT_CURSORHOLD, NULL, NULL, FALSE, curbuf);
     did_cursorhold = TRUE;
     cap->retval |= CA_COMMAND_BUSY;	// don't call edit() now
+}
+
+// Expose Rust implementations to C callers.
+int rust_cmd_execute_wrapper(const char *name)
+{
+    return rs_cmd_execute(name);
+}
+
+const char *rust_map_lookup_wrapper(const char *lhs)
+{
+    return rs_map_lookup(lhs);
 }
