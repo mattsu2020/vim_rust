@@ -41,11 +41,13 @@
  */
 
 #include "vim.h"
+#include "screen_rs.h"
 
 /*
  * The attributes that are actually active for writing to the screen.
  */
 static int	screen_attr = 0;
+static ScreenBuffer *rs_screen_buf = NULL;
 
 static void screen_char_2(unsigned off, int row, int col);
 static int screenclear2(int doclear);
@@ -2024,11 +2026,23 @@ screen_char(unsigned off, int row, int col)
     }
     else
     {
-	out_flush_check();
-	out_char(ScreenLines[off]);
-	// double-byte character in single-width cell
-	if (enc_dbcs == DBCS_JPNU && ScreenLines[off] == 0x8e)
-	    out_char(ScreenLines2[off]);
+        out_flush_check();
+        out_char(ScreenLines[off]);
+        // double-byte character in single-width cell
+        if (enc_dbcs == DBCS_JPNU && ScreenLines[off] == 0x8e)
+            out_char(ScreenLines2[off]);
+    }
+    if (rs_screen_buf != NULL)
+    {
+        char_u save_buf[MB_MAXBYTES + 1];
+        if (enc_utf8 && ScreenLinesUC[off] != 0)
+            save_buf[utfc_char2bytes(off, save_buf)] = NUL;
+        else
+        {
+            save_buf[0] = ScreenLines[off];
+            save_buf[1] = NUL;
+        }
+        rs_screen_draw_text(rs_screen_buf, row, col, (char *)save_buf, (uint8_t)attr);
     }
 
     screen_cur_col++;
@@ -2705,6 +2719,9 @@ give_up:
 #endif
     screen_Rows = Rows;
     screen_Columns = Columns;
+    if (rs_screen_buf != NULL)
+        rs_screen_free(rs_screen_buf);
+    rs_screen_buf = rs_screen_new((int)Columns, (int)Rows);
 
     set_must_redraw(UPD_CLEAR);	// need to clear the screen later
     if (doclear)
@@ -2754,6 +2771,8 @@ give_up:
 free_screenlines(void)
 {
     int		i;
+    rs_screen_free(rs_screen_buf);
+    rs_screen_buf = NULL;
 
     VIM_CLEAR(ScreenLinesUC);
     for (i = 0; i < Screen_mco; ++i)
@@ -2872,12 +2891,8 @@ screenclear2(int doclear)
     static void
 lineclear(unsigned off, int width, int attr)
 {
-    (void)vim_memset(ScreenLines + off, ' ', (size_t)width * sizeof(schar_T));
-    if (enc_utf8)
-	(void)vim_memset(ScreenLinesUC + off, 0,
-					  (size_t)width * sizeof(u8char_T));
-    (void)vim_memset(ScreenAttrs + off, attr, (size_t)width * sizeof(sattr_T));
-    (void)vim_memset(ScreenCols + off, -1, (size_t)width * sizeof(colnr_T));
+    if (rs_screen_buf != NULL)
+        rs_screen_clear_line(rs_screen_buf, (int)(off / screen_Columns), (uint8_t)attr);
 }
 
 /*
