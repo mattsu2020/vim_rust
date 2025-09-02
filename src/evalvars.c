@@ -12,6 +12,7 @@
  */
 
 #include "vim.h"
+#include "../rust_evalvars/include/rust_evalvars.h"
 
 #if defined(FEAT_EVAL) || defined(PROTO)
 
@@ -2739,7 +2740,8 @@ set_vim_var_type(int idx, vartype_T type)
     void
 set_vim_var_nr(int idx, varnumber_T val)
 {
-    vimvars[idx].vv_nr = val;
+    // Delegate storage of v: variables to the Rust implementation.
+    rs_set_vim_var_nr(idx, (long long)val);
 }
 
     char *

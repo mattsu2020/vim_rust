@@ -1,0 +1,12 @@
+[package]
+name = "rust_evalvars"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+once_cell = "1"
+libc = "0.2"
+
+[lib]
+name = "rust_evalvars"
+crate-type = ["staticlib"]
