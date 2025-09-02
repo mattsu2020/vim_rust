@@ -65,8 +65,7 @@ if_ruby:
   - all:
     - changed-files:
       - any-glob-to-any-file:
-        - 'src/if_ruby.c'
-        - 'src/proto/if_ruby.pro'
+        - 'rust_ruby/**'
         - 'runtime/doc/if_ruby.txt'
 
 if_tcl:

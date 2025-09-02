@@ -8612,9 +8612,9 @@ printf "%s\n" "$rubyhdrdir" >&6; }
 	fi
 
 
-	RUBY_SRC="if_ruby.c"
-	RUBY_OBJ="objects/if_ruby.o"
-	RUBY_PRO="if_ruby.pro"
+	RUBY_SRC=""
+	RUBY_OBJ=""
+	RUBY_PRO=""
 	printf "%s\n" "#define FEAT_RUBY 1" >>confdefs.h
 
 	if test "$enable_rubyinterp" = "dynamic"; then

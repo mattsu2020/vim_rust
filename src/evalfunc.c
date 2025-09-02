@@ -151,6 +151,7 @@ static void f_repeat(typval_T *argvars, typval_T *rettv);
 static void f_rust_regex_match(typval_T *argvars, typval_T *rettv);
 #endif
 #ifdef FEAT_RUBY
+#include "../rust_ruby/include/rust_ruby.h"
 static void f_rubyeval(typval_T *argvars, typval_T *rettv);
 #endif
 static void f_screenattr(typval_T *argvars, typval_T *rettv);

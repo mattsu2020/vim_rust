@@ -1,0 +1,11 @@
+[package]
+name = "rust_ruby"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "rust_ruby"
+crate-type = ["staticlib"]
+
+[dependencies]
+magnus = { version = "0.5", features = ["embed"] }

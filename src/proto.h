@@ -257,10 +257,6 @@ void mbyte_im_set_active(int active_arg);
 #  include "if_tcl.pro"
 # endif
 
-# ifdef FEAT_RUBY
-#  include "if_ruby.pro"
-# endif
-
 // Ugly solution for "BalloonEval" not being defined while it's used in some
 // .pro files.
 # ifndef FEAT_BEVAL

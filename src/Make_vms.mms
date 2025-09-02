@@ -399,8 +399,8 @@ TCL_INC = ,dka0:[tcl80.generic]
 .IFDEF VIM_RUBY
 # RUBY related setup.
 RUBY_DEF = ,"FEAT_RUBY"
-RUBY_SRC = if_ruby.c
-RUBY_OBJ = [.$(DEST)]if_ruby.obj
+RUBY_SRC =
+RUBY_OBJ =
 RUBY_LIB = ,OS_VMS_RUBY.OPT/OPT
 RUBY_INC =
 .ENDIF
@@ -1514,9 +1514,7 @@ lua_env :
 [.$(DEST)]if_tcl.obj : if_tcl.c vim.h [.$(DEST)]config.h feature.h os_unix.h \
  ascii.h keymap.h termdefs.h macros.h structs.h regexp.h \
  gui.h beval.h [.proto]gui_beval.pro option.h ex_cmds.h proto.h \
- errors.h globals.h
-[.$(DEST)]if_ruby.obj : if_ruby.c vim.h [.$(DEST)]config.h feature.h os_unix.h \
- ascii.h keymap.h termdefs.h macros.h structs.h regexp.h \
+ errors.h globals.h ascii.h keymap.h termdefs.h macros.h structs.h regexp.h \
  gui.h beval.h [.proto]gui_beval.pro option.h ex_cmds.h proto.h \
  errors.h globals.h version.h
 [.$(DEST)]if_lua.obj : if_lua.c vim.h [.$(DEST)]config.h feature.h os_unix.h \
