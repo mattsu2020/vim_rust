@@ -20,6 +20,10 @@
 # include <float.h>
 #endif
 
+#ifdef USE_RUST_SPELL
+# include "spell_rs.h"
+#endif
+
 static void f_and(typval_T *argvars, typval_T *rettv);
 #ifdef FEAT_BEVAL
 static void f_balloon_gettext(typval_T *argvars, typval_T *rettv);
@@ -149,6 +153,11 @@ static void f_repeat(typval_T *argvars, typval_T *rettv);
 #ifdef FEAT_EVAL
 // Forward declaration for Rust regex integration builtin
 static void f_rust_regex_match(typval_T *argvars, typval_T *rettv);
+#ifdef USE_RUST_SPELL
+static void f_rust_spell_add(typval_T *argvars, typval_T *rettv);
+static void f_rust_spell_check(typval_T *argvars, typval_T *rettv);
+static void f_rust_spell_clear(typval_T *argvars, typval_T *rettv);
+#endif
 #endif
 #ifdef FEAT_RUBY
 static void f_rubyeval(typval_T *argvars, typval_T *rettv);
@@ -2570,6 +2579,14 @@ static const funcentry_T global_functions[] =
 			ret_list_any,	    f_matchstrpos},
     {"rust_regex_match", 2, 4, FEARG_1,      arg24_match_func,
                         ret_number_bool,    f_rust_regex_match},
+#ifdef USE_RUST_SPELL
+      {"rust_spell_add",  1, 1, FEARG_1,      arg1_string,
+                        ret_void,           f_rust_spell_add},
+      {"rust_spell_check",1, 1, FEARG_1,      arg1_string,
+                        ret_number_bool,    f_rust_spell_check},
+      {"rust_spell_clear",0, 0, 0,            NULL,
+                        ret_void,           f_rust_spell_clear},
+#endif
     {"max",		1, 1, FEARG_1,	    arg1_list_or_tuple_or_dict,
 			ret_max_min,	    f_max},
     {"menu_info",	1, 2, FEARG_1,	    arg2_string,
@@ -9580,6 +9597,32 @@ f_rust_regex_match(typval_T *argvars, typval_T *rettv)
     rettv->vval.v_number = 0;
 #endif
 }
+
+#ifdef USE_RUST_SPELL
+    static void
+f_rust_spell_add(typval_T *argvars, typval_T *rettv)
+{
+    char_u *word = tv_get_string(&argvars[0]);
+    rs_spell_add_word((const char *)word);
+    rettv->v_type = VAR_VOID;
+}
+
+    static void
+f_rust_spell_check(typval_T *argvars, typval_T *rettv)
+{
+    char_u *word = tv_get_string(&argvars[0]);
+    rettv->v_type = VAR_NUMBER;
+    rettv->vval.v_number = rs_spell_check((const char *)word);
+}
+
+    static void
+f_rust_spell_clear(typval_T *argvars, typval_T *rettv)
+{
+    (void)argvars;
+    rs_spell_clear();
+    rettv->v_type = VAR_VOID;
+}
+#endif
 
     static void
 max_min(typval_T *argvars, typval_T *rettv, int domax)
