@@ -1,8 +1,9 @@
-use super::{GuiBackend, GuiEvent};
+use rust_gui_core::backend::{GuiBackend, GuiEvent};
 use std::collections::VecDeque;
 
 /// Backend implementation for GTK environments on Unix.
-/// Drawing operations are recorded and events are stored in a queue.
+/// This sample backend records drawing operations and stores events
+/// in a queue so it can be easily tested without a full GTK stack.
 #[derive(Default)]
 pub struct GtkBackend {
     pub drawn: Vec<String>,
@@ -11,10 +12,7 @@ pub struct GtkBackend {
 
 impl GtkBackend {
     pub fn new() -> Self {
-        Self {
-            drawn: Vec::new(),
-            events: VecDeque::new(),
-        }
+        Self { drawn: Vec::new(), events: VecDeque::new() }
     }
 
     /// Queue an event for later processing; primarily used in tests.
@@ -30,5 +28,19 @@ impl GuiBackend for GtkBackend {
 
     fn poll_event(&mut self) -> Option<GuiEvent> {
         self.events.pop_front()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn queue_and_draw() {
+        let mut backend = GtkBackend::new();
+        backend.draw_text("hi");
+        backend.push_event(GuiEvent::Key('a'));
+        assert_eq!(backend.drawn, vec!["hi".to_string()]);
+        assert_eq!(backend.poll_event(), Some(GuiEvent::Key('a')));
     }
 }

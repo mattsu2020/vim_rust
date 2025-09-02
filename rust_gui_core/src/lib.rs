@@ -50,25 +50,46 @@ pub mod dialog {
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[cfg(target_os = "linux")]
-    use crate::backend::gtk::GtkBackend;
+
+    use std::collections::VecDeque;
+
+    #[derive(Default)]
+    struct TestBackend {
+        drawn: Vec<String>,
+        events: VecDeque<GuiEvent>,
+    }
+
+    impl TestBackend {
+        fn new() -> Self {
+            Self { drawn: Vec::new(), events: VecDeque::new() }
+        }
+        fn push_event(&mut self, ev: GuiEvent) {
+            self.events.push_back(ev);
+        }
+    }
+
+    impl GuiBackend for TestBackend {
+        fn draw_text(&mut self, text: &str) {
+            self.drawn.push(text.to_string());
+        }
+
+        fn poll_event(&mut self) -> Option<GuiEvent> {
+            self.events.pop_front()
+        }
+    }
 
     /// Verify that drawing forwards to the backend and that queued
     /// events are processed in order.
     #[test]
     fn draw_and_process_events() {
-        let mut backend = GtkBackend::new();
+        let mut backend = TestBackend::new();
         backend.push_event(GuiEvent::Key('x'));
         backend.push_event(GuiEvent::Click { x: 10, y: 20 });
         let mut core = GuiCore::new(backend);
         core.draw_text("hello");
         let mut seen = Vec::new();
         core.process_events(|e| seen.push(e));
-
-        #[cfg(target_os = "linux")]
-        {
-            assert_eq!(core.backend_mut().drawn, vec!["hello".to_string()]);
-        }
+        assert_eq!(core.backend_mut().drawn, vec!["hello".to_string()]);
         assert_eq!(
             seen,
             vec![GuiEvent::Key('x'), GuiEvent::Click { x: 10, y: 20 }]
