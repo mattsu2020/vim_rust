@@ -13,6 +13,7 @@
  */
 
 #include "vim.h"
+#include "rust_input.h"
 
 /*
  * These buffers are used for storing:
@@ -39,6 +40,7 @@
 static buffheader_T redobuff = {{NULL, 0, {NUL}}, NULL, 0, 0, FALSE};
 static buffheader_T old_redobuff = {{NULL, 0, {NUL}}, NULL, 0, 0, FALSE};
 static buffheader_T recordbuff = {{NULL, 0, {NUL}}, NULL, 0, 0, FALSE};
+static InputContext *rs_input_ctx = NULL;
 
 static int typeahead_char = 0;		// typeahead char that's not flushed
 
@@ -173,34 +175,26 @@ get_buffcont(
     char_u *
 get_recorded(void)
 {
-    char_u	*p;
-    size_t	len;
+    size_t len;
+    char_u *p;
 
-    p = get_buffcont(&recordbuff, TRUE, &len);
+    if (rs_input_ctx == NULL)
+        rs_input_ctx = rs_input_context_new();
+
+    len = rs_record_get(rs_input_ctx, NULL, 0);
+    if (len == 0)
+        return NULL;
+    p = alloc(len);
     if (p == NULL)
-	return NULL;
-
-    free_buff(&recordbuff);
-
-    /*
-     * Remove the characters that were added the last time, these must be the
-     * (possibly mapped) characters that stopped the recording.
-     */
-    if (len >= last_recorded_len)
+        return NULL;
+    if (rs_record_get(rs_input_ctx, (char *)p, len) == 0)
     {
-	len -= last_recorded_len;
-	p[len] = NUL;
+        vim_free(p);
+        return NULL;
     }
-
-    /*
-     * When stopping recording from Insert mode with CTRL-O q, also remove the
-     * CTRL-O.
-     */
-    if (len > 0 && restart_edit != 0 && p[len - 1] == Ctrl_O)
-	p[len - 1] = NUL;
-
-    return (p);
+    return p;
 }
+
 
 /*
  * Return the contents of the redo buffer as a single string.
@@ -209,9 +203,26 @@ get_recorded(void)
     string_T
 get_inserted(void)
 {
-    size_t len = 0;
-    char_u *str = get_buffcont(&redobuff, FALSE, &len);
-    string_T ret = { str, len };
+    string_T ret = {NULL, 0};
+    char_u *str;
+    size_t len;
+
+    if (rs_input_ctx == NULL)
+        rs_input_ctx = rs_input_context_new();
+
+    len = rs_redo_get_all(rs_input_ctx, NULL, 0);
+    if (len == 0)
+        return ret;
+    str = alloc(len);
+    if (str == NULL)
+        return ret;
+    if (rs_redo_get_all(rs_input_ctx, (char *)str, len) == 0)
+    {
+        vim_free(str);
+        return ret;
+    }
+    ret.string = str;
+    ret.length = len - 1;
     return ret;
 }
 
