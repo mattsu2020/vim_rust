@@ -10,4 +10,5 @@ pub enum Vim9Type {
 pub enum Vim9Instr {
     Const(i64),
     Add,
+    Echo,
 }

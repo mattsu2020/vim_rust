@@ -11,6 +11,11 @@ pub fn execute(prog: &Vim9Program) -> i64 {
                 let a = stack.pop().unwrap_or(0);
                 stack.push(a + b);
             }
+            Vim9Instr::Echo => {
+                if let Some(v) = stack.last() {
+                    println!("{}", v);
+                }
+            }
         }
     }
     stack.pop().unwrap_or(0)
