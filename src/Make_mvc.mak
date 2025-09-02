@@ -1558,10 +1558,6 @@ $(OUTDIR)/evalwindow.obj: $(OUTDIR) evalwindow.c $(INCL)
 
 $(OUTDIR)/ex_cmds.obj: $(OUTDIR) ex_cmds.c $(INCL) version.h
 
-$(OUTDIR)/ex_cmds2.obj: $(OUTDIR) ex_cmds2.c $(INCL) version.h
-
-$(OUTDIR)/ex_docmd.obj: $(OUTDIR) ex_docmd.c $(INCL) ex_cmdidxs.h
-
 $(OUTDIR)/ex_eval.obj: $(OUTDIR) ex_eval.c $(INCL)
 
 $(OUTDIR)/ex_getln.obj: $(OUTDIR) ex_getln.c $(INCL)

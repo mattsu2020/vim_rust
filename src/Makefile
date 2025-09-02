@@ -1536,11 +1536,9 @@ BASIC_SRC = \
 	evalfunc.c \
 	evalvars.c \
 	evalwindow.c \
-	ex_cmds.c \
-	ex_cmds2.c \
-	ex_docmd.c \
-	ex_eval.c \
-	ex_getln.c \
+        ex_cmds.c \
+        ex_eval.c \
+        ex_getln.c \
 	fileio.c \
 	filepath.c \
 	findfile.c \
@@ -1713,11 +1711,9 @@ OBJ_COMMON = \
 	objects/evalfunc.o \
 	objects/evalvars.o \
 	objects/evalwindow.o \
-	objects/ex_cmds.o \
-	objects/ex_cmds2.o \
-	objects/ex_docmd.o \
-	objects/ex_eval.o \
-	objects/ex_getln.o \
+        objects/ex_cmds.o \
+        objects/ex_eval.o \
+        objects/ex_getln.o \
 	objects/fileio.o \
 	objects/filepath.o \
 	objects/findfile.o \
@@ -3310,14 +3306,8 @@ objects/evalwindow.o: evalwindow.c
 objects/ex_cmds.o: ex_cmds.c
 	$(CCC) -o $@ ex_cmds.c
 
-objects/ex_cmds2.o: ex_cmds2.c
-	$(CCC) -o $@ ex_cmds2.c
-
-objects/ex_docmd.o: ex_docmd.c
-	$(CCC) -o $@ ex_docmd.c
-
 objects/ex_eval.o: ex_eval.c
-	$(CCC) -o $@ ex_eval.c
+       $(CCC) -o $@ ex_eval.c
 
 objects/ex_getln.o: ex_getln.c
 	$(CCC) -o $@ ex_getln.c
@@ -3954,16 +3944,6 @@ objects/ex_cmds.o: ex_cmds.c vim.h protodef.h auto/config.h feature.h os_unix.h 
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h version.h
-objects/ex_cmds2.o: ex_cmds2.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h version.h
-objects/ex_docmd.o: ex_docmd.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h ex_cmdidxs.h
 objects/ex_eval.o: ex_eval.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
