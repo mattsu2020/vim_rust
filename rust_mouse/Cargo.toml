@@ -1,0 +1,14 @@
+[package]
+name = "rust_mouse"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+libc = "0.2"
+
+[features]
+gui = []
+
+[lib]
+name = "rust_mouse"
+crate-type = ["staticlib", "rlib"]
