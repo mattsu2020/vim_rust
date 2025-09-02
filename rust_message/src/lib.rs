@@ -1,5 +1,6 @@
 use libc::{c_char, c_int, malloc, free};
 use std::ffi::CStr;
+use std::io::{self, Write};
 use std::ptr;
 
 #[repr(C)]
@@ -124,6 +125,18 @@ pub unsafe extern "C" fn rs_check_msg_hist() {
     while msg_hist_len > 0 && msg_hist_len > msg_hist_max {
         rs_delete_first_msg();
     }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn rs_render_msg(s: *const c_char, attr: c_int) {
+    if s.is_null() {
+        return;
+    }
+    let cstr = CStr::from_ptr(s);
+    let bytes = cstr.to_bytes();
+    let formatted = format_with_attr(bytes, attr);
+    let _ = io::stdout().write_all(&formatted[..formatted.len() - 1]);
+    let _ = io::stdout().flush();
 }
 
 #[cfg(test)]
