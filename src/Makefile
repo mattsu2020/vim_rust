@@ -1596,10 +1596,8 @@ BASIC_SRC = \
 	sha256.c \
 	sign.c \
 	sound.c \
-	spell.c \
-	spellfile.c \
-	spellsuggest.c \
-	strings.c \
+       spell.c \
+       strings.c \
 	syntax.c \
 	tabpanel.c \
 	tag.c \
@@ -3580,16 +3578,10 @@ objects/sound.o: sound.c
 	$(CCC) -o $@ sound.c
 
 objects/spell.o: spell.c
-	$(CCC) -o $@ spell.c
-
-objects/spellfile.o: spellfile.c
-	$(CCC) -o $@ spellfile.c
-
-objects/spellsuggest.o: spellsuggest.c
-	$(CCC) -o $@ spellsuggest.c
+       $(CCC) -o $@ spell.c
 
 objects/strings.o: strings.c
-	$(CCC) -o $@ strings.c
+       $(CCC) -o $@ strings.c
 
 objects/syntax.o: syntax.c
 	$(CCC) -o $@ syntax.c
@@ -4252,16 +4244,6 @@ objects/spell.o: spell.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/spellfile.o: spellfile.c vim.h protodef.h auto/config.h feature.h \
- os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
- beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h errors.h
-objects/spellsuggest.o: spellsuggest.c vim.h protodef.h auto/config.h feature.h \
- os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
- beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h errors.h
 objects/strings.o: strings.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \

@@ -149,10 +149,8 @@ SRC_ALL =	\
 		src/sha256.c \
                 src/sound.c \
 		src/spell.c \
-		src/spell.h \
-		src/spellfile.c \
-		src/spellsuggest.c \
-		src/strings.c \
+                src/spell.h \
+                src/strings.c \
 		src/structs.h \
 		src/syntax.c \
 		src/tabpanel.c \

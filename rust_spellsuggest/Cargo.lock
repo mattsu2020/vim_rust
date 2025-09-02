@@ -3,14 +3,6 @@
 version = 4
 
 [[package]]
-name = "rust_spell"
-version = "0.1.0"
-dependencies = [
- "rust_spellfile",
- "rust_spellsuggest",
-]
-
-[[package]]
 name = "rust_spellfile"
 version = "0.1.0"
 

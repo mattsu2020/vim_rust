@@ -8,7 +8,8 @@
  */
 
 /*
- * spell.h: common code for spell checking, used by spell.c and spellfile.c.
+ * spell.h: common code for spell checking, used by spell.c and the
+ * rust_spellfile crate.
  */
 
 // Use SPELL_PRINTTREE for debugging: dump the word tree after adding a word.

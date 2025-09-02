@@ -313,6 +313,21 @@ dependencies = [
 [[package]]
 name = "rust_spell"
 version = "0.1.0"
+dependencies = [
+ "rust_spellfile",
+ "rust_spellsuggest",
+]
+
+[[package]]
+name = "rust_spellfile"
+version = "0.1.0"
+
+[[package]]
+name = "rust_spellsuggest"
+version = "0.1.0"
+dependencies = [
+ "rust_spellfile",
+]
 
 [[package]]
 name = "rustc-demangle"

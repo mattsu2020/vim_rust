@@ -10,7 +10,7 @@
 /*
  * spell.c: code for spell checking
  *
- * See spellfile.c for the Vim spell file format.
+ * See the rust_spellfile crate for the Vim spell file format.
  *
  * The spell checking mechanism uses a tree (aka trie).  Each node in the tree
  * has a list of bytes that can appear (siblings).  For each byte there is a
