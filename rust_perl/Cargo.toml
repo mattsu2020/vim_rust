@@ -1,0 +1,11 @@
+[package]
+name = "rust_perl"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+perl-sys = "0.13"
+
+[lib]
+name = "rust_perl"
+crate-type = ["staticlib", "rlib"]

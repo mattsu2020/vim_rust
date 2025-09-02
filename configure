@@ -1,6 +1,26 @@
 #! /bin/sh
 
-# This is just a stub for the Unix configure script, to provide support for
-# doing "./configure" in the top Vim directory.
+# This is a stub for the Unix configure script. It also collects
+# optional language interface flags and exposes them to Cargo via the
+# VIM_CARGO_FEATURES environment variable.
 
-cd "${SRCDIR:-src}" && exec ./configure "$@"
+FEATURES=""
+CONFIG_ARGS=""
+
+for arg in "$@"; do
+  case "$arg" in
+    --enable-lua) FEATURES="$FEATURES lua" ;;
+    --enable-ruby) FEATURES="$FEATURES ruby" ;;
+    --enable-perl) FEATURES="$FEATURES perl" ;;
+    --enable-tcl) FEATURES="$FEATURES tcl" ;;
+    --enable-mzscheme) FEATURES="$FEATURES mzsch" ;;
+    --enable-xcmdsrv) FEATURES="$FEATURES xcmdsrv" ;;
+    --enable-ole) FEATURES="$FEATURES ole" ;;
+    *) CONFIG_ARGS="$CONFIG_ARGS \"$arg\"" ;;
+  esac
+done
+
+export VIM_CARGO_FEATURES="$FEATURES"
+
+# shellcheck disable=SC2086
+cd "${SRCDIR:-src}" && eval set -- $CONFIG_ARGS && exec ./configure "$@"

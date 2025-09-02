@@ -1,0 +1,11 @@
+[package]
+name = "rust_tcl"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tcl-sys = "0.5"
+
+[lib]
+name = "rust_tcl"
+crate-type = ["staticlib", "rlib"]
