@@ -89,6 +89,9 @@
 // Enable Rust implementations for syntax highlighting helpers.
 #define USE_RUST_SYNTAX
 
+// Enable the Rust implementation for NetBeans message handling.
+#define USE_RUST_NETBEANS
+
 /*
  * Each feature implies including the "smaller" ones.
  */

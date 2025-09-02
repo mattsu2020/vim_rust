@@ -63,6 +63,13 @@ static void nb_free(void);
 
 #define NETBEANS_OPEN (channel_can_write_to(nb_channel))
 static channel_T *nb_channel = NULL;
+#ifdef USE_RUST_NETBEANS
+extern void rs_netbeans_parse_messages(void);
+channel_T *netbeans_rs_get_channel(void)
+{
+    return nb_channel;
+}
+#endif
 
 static int r_cmdno;			// current command number for reply
 static int dosetvisible = FALSE;
@@ -373,6 +380,10 @@ handle_key_queue(void)
     void
 netbeans_parse_messages(void)
 {
+#ifdef USE_RUST_NETBEANS
+    rs_netbeans_parse_messages();
+    return;
+#endif
     readq_T	*node;
     char_u	*buffer;
     char_u	*p;
@@ -512,16 +523,23 @@ nb_parse_cmd(char_u *cmd)
     if (nb_do_cmd(bufno, (char_u *)verb, isfunc, r_cmdno, (char_u *)q) == FAIL)
     {
 #ifdef NBDEBUG
-	/*
-	 * This happens because the ExtEd can send a command or 2 after
+        /*
+         * This happens because the ExtEd can send a command or 2 after
 	 * doing a stopDocumentListen command. It doesn't harm anything
 	 * so I'm disabling it except for debugging.
 	 */
 	nbdebug(("nb_parse_cmd: Command error for \"%s\"\n", cmd));
-	emsg(e_bad_return_from_nb_do_cmd);
+        emsg(e_bad_return_from_nb_do_cmd);
 #endif
     }
 }
+
+#ifdef USE_RUST_NETBEANS
+void nb_parse_cmd_rs(char_u *cmd)
+{
+    nb_parse_cmd(cmd);
+}
+#endif
 
 struct nbbuf_struct
 {
