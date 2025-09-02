@@ -1,5 +1,8 @@
-use std::os::raw::{c_int, c_void};
+use std::ffi::CString;
+use std::os::raw::{c_char, c_int, c_void};
 use std::ptr;
+
+use rust_change::{changed as mark_changed, Buffer};
 
 pub type CharU = u8;
 pub type GetlineOpt = c_int;
@@ -202,6 +205,25 @@ pub extern "C" fn ex_pyxdo(_eap: *mut c_void) {}
 #[no_mangle]
 pub extern "C" fn ex_checktime(_eap: *mut c_void) {}
 
+// ----- additional ports -----
+
+/// Simplified implementation of Vim's `:ascii` command.
+/// Returns a newly allocated C string describing the character.
+#[no_mangle]
+pub extern "C" fn ex_ascii(ch: c_int) -> *mut c_char {
+    let c = ch as u8 as char;
+    let s = format!("<{}>  {},  Hex {:02X},  Octal {:03o}", c, ch, ch, ch);
+    CString::new(s).unwrap().into_raw()
+}
+
+/// Example helper that marks the buffer as changed using shared structures from
+/// the `rust_change` crate.  This demonstrates interoperability between the
+/// crates.
+#[no_mangle]
+pub extern "C" fn ex_mark_changed(buf: *mut Buffer) {
+    unsafe { mark_changed(buf) };
+}
+
 // ----- replacements for get_pressedreturn/set_pressedreturn -----
 
 #[no_mangle]
@@ -218,6 +240,7 @@ pub extern "C" fn set_pressedreturn(val: c_int) {
 mod tests {
     use super::*;
     use std::ptr;
+    use std::ffi::CStr;
 
     #[no_mangle]
     static mut trylevel: c_int = 0;
@@ -260,5 +283,20 @@ mod tests {
         unsafe { force_abort = 0; }
         rust_update_force_abort(1);
         unsafe { assert_eq!(force_abort, 1); }
+    }
+
+    #[test]
+    fn ascii_command_output() {
+        let ptr = ex_ascii('A' as c_int);
+        let cstr = unsafe { CStr::from_ptr(ptr) };
+        assert_eq!(cstr.to_str().unwrap(), "<A>  65,  Hex 41,  Octal 101");
+    }
+
+    #[test]
+    fn mark_changed_interop() {
+        let mut b = Buffer::new(true);
+        assert!(!b.changed);
+        unsafe { ex_mark_changed(&mut b) };
+        assert!(b.changed);
     }
 }
