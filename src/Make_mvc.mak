@@ -1162,7 +1162,6 @@ RUBY_INSTALL_NAME = x64-$(RUBY_MSVCRT_NAME)-ruby$(RUBY_API_VER)
 
 ! MESSAGE Ruby requested (version $(RUBY_VER)) - root dir is "$(RUBY)"
 CFLAGS = $(CFLAGS) -DFEAT_RUBY
-RUBY_OBJ = $(OUTDIR)\if_ruby.obj
 RUBY_INC = /I "$(RUBY)\include\ruby-$(RUBY_API_VER_LONG)" \
 	/I "$(RUBY)\include\ruby-$(RUBY_API_VER_LONG)\$(RUBY_PLATFORM)"
 RUBY_LIB = "$(RUBY)\lib\$(RUBY_INSTALL_NAME).lib"
@@ -1634,9 +1633,6 @@ $(OUTDIR)/if_python3.obj: $(OUTDIR) if_python3.c if_py_both.h $(INCL)
 	$(CC) $(CFLAGS_OUTDIR) $(PYTHON3_INC) if_python3.c
 
 $(OUTDIR)/if_ole.obj: $(OUTDIR) if_ole.cpp $(INCL) if_ole.h
-
-$(OUTDIR)/if_ruby.obj: $(OUTDIR) if_ruby.c $(INCL) version.h
-	$(CC) $(CFLAGS_OUTDIR) $(RUBY_INC) if_ruby.c
 
 $(OUTDIR)/if_tcl.obj: $(OUTDIR) if_tcl.c $(INCL)
 	$(CC) $(CFLAGS_OUTDIR) $(TCL_INC) if_tcl.c

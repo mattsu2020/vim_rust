@@ -919,7 +919,6 @@ ifdef PYTHON3
 OBJ += $(OUTDIR)/if_python3.o
 endif
 ifdef RUBY
-OBJ += $(OUTDIR)/if_ruby.o
 endif
 ifdef TCL
 OBJ += $(OUTDIR)/if_tcl.o
@@ -1350,11 +1349,6 @@ auto/if_perl.c:		if_perl.xs typemap
 
 $(OUTDIR)/if_perl.o:	auto/if_perl.c $(INCL)
 	$(CC) -c $(CFLAGS) auto/if_perl.c -o $@
-
-
-$(OUTDIR)/if_ruby.o:	if_ruby.c $(INCL) version.h
-ifeq (16, $(RUBY))
-	$(CC) $(CFLAGS) -U_WIN32 -c -o $@ if_ruby.c
 endif
 
 $(OUTDIR)/iscygpty.o:	iscygpty.c $(CUI_INCL)

@@ -2161,9 +2161,9 @@ if test "$enable_rubyinterp" = "yes" -o "$enable_rubyinterp" = "dynamic"; then
 	dnl Here the Ruby LDFLAGS used to be added to LDFLAGS, but that turns
 	dnl out to cause trouble and was removed.
 
-	RUBY_SRC="if_ruby.c"
-	RUBY_OBJ="objects/if_ruby.o"
-	RUBY_PRO="if_ruby.pro"
+	RUBY_SRC=""
+	RUBY_OBJ=""
+	RUBY_PRO=""
 	AC_DEFINE(FEAT_RUBY)
 	if test "$enable_rubyinterp" = "dynamic"; then
 	  libruby_soname=`$vi_cv_path_ruby -r rbconfig -e "puts $ruby_rbconfig::CONFIG[['LIBRUBY_ALIASES']].split[[0]]"`
