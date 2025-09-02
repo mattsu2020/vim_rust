@@ -8,3 +8,4 @@ name = "vim_job"
 crate-type = ["staticlib", "rlib"]
 
 [dependencies]
+tokio = { version = "1", features = ["process", "io-util", "rt-multi-thread", "macros", "time"] }
