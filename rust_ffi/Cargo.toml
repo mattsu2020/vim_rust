@@ -1,0 +1,8 @@
+[package]
+name = "rust_ffi"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "rust_ffi"
+crate-type = ["rlib", "staticlib"]

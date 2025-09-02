@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tcl-sys = "0.5"
+tcl-sys = "0.2"
+rust_ffi = { path = "../rust_ffi" }
 
 [lib]
 name = "rust_tcl"

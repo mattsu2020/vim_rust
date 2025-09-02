@@ -183,10 +183,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_ffi"
+version = "0.1.0"
+
+[[package]]
 name = "rust_python"
 version = "0.1.0"
 dependencies = [
  "pyo3",
+ "rust_ffi",
 ]
 
 [[package]]
