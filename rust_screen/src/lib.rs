@@ -47,6 +47,20 @@ impl ScreenBuffer {
         }
     }
 
+    /// Apply a highlight attribute to a range without modifying the text.
+    pub fn highlight_range(&mut self, row: usize, col: usize, len: usize, attr: u8) {
+        if row >= self.height {
+            return;
+        }
+        for i in 0..len {
+            if col + i >= self.width {
+                break;
+            }
+            let idx = row * self.width + col + i;
+            self.attrs[idx] = attr;
+        }
+    }
+
     pub fn line_as_string(&self, row: usize) -> String {
         if row >= self.height {
             return String::new();
@@ -125,6 +139,21 @@ pub extern "C" fn rs_screen_clear_line(buf: *mut ScreenBuffer, row: c_int, attr:
     screen.clear_line(row as usize, attr);
 }
 
+#[no_mangle]
+pub extern "C" fn rs_screen_highlight(
+    buf: *mut ScreenBuffer,
+    row: c_int,
+    col: c_int,
+    len: c_int,
+    attr: u8,
+) {
+    if buf.is_null() {
+        return;
+    }
+    let screen = unsafe { &mut *buf };
+    screen.highlight_range(row as usize, col as usize, len as usize, attr);
+}
+
 /// Callback used by [`rs_screen_flush`].
 pub type FlushCallback = extern "C" fn(row: c_int, text: *const c_char, attr: *const u8, len: c_int);
 
@@ -197,5 +226,19 @@ mod tests {
         let diff = sb.flush_diff();
         assert_eq!(diff.len(), 1);
         assert_eq!(diff[0].attrs[..2], [2, 2]);
+    }
+
+    #[test]
+    fn highlight_range_diff() {
+        let mut sb = ScreenBuffer::new(6, 1);
+        sb.draw_text(0, 0, "abcdef", 1);
+        sb.flush_diff(); // baseline
+        sb.highlight_range(0, 2, 3, 3);
+        let diff = sb.flush_diff();
+        assert_eq!(diff.len(), 1);
+        // characters remain the same
+        assert_eq!(diff[0].text, "abcdef");
+        // highlight attr applied to cde
+        assert_eq!(diff[0].attrs[2..5], [3, 3, 3]);
     }
 }
