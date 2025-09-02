@@ -1,0 +1,12 @@
+[package]
+name = "rust_popupmenu"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+libc = "0.2"
+rust_popupwin = { path = "../rust_popupwin" }
+
+[lib]
+name = "rust_popupmenu"
+crate-type = ["staticlib", "rlib"]
