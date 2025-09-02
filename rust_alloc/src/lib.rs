@@ -33,43 +33,43 @@ fn rust_free(ptr: *mut c_void) {
     allocations().lock().unwrap().remove(&(ptr as usize));
 }
 
-#[no_mangle]
-pub extern "C" fn alloc(size: usize) -> *mut c_void {
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn alloc(size: usize) -> *mut c_void {
     rust_alloc(size)
 }
 
-#[no_mangle]
-pub extern "C" fn alloc_id(size: usize, _id: c_int) -> *mut c_void {
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn alloc_id(size: usize, _id: c_int) -> *mut c_void {
     rust_alloc(size)
 }
 
-#[no_mangle]
-pub extern "C" fn alloc_clear(size: usize) -> *mut c_void {
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn alloc_clear(size: usize) -> *mut c_void {
     rust_alloc_clear(size)
 }
 
-#[no_mangle]
-pub extern "C" fn alloc_clear_id(size: usize, _id: c_int) -> *mut c_void {
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn alloc_clear_id(size: usize, _id: c_int) -> *mut c_void {
     rust_alloc_clear(size)
 }
 
-#[no_mangle]
-pub extern "C" fn lalloc(size: usize, _message: c_int) -> *mut c_void {
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lalloc(size: usize, _message: c_int) -> *mut c_void {
     rust_alloc(size)
 }
 
-#[no_mangle]
-pub extern "C" fn lalloc_clear(size: usize, _message: c_int) -> *mut c_void {
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lalloc_clear(size: usize, _message: c_int) -> *mut c_void {
     rust_alloc_clear(size)
 }
 
-#[no_mangle]
-pub extern "C" fn lalloc_id(size: usize, message: c_int, _id: c_int) -> *mut c_void {
-    lalloc(size, message)
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lalloc_id(size: usize, message: c_int, _id: c_int) -> *mut c_void {
+    unsafe { lalloc(size, message) }
 }
 
-#[no_mangle]
-pub extern "C" fn mem_realloc(ptr: *mut c_void, size: usize) -> *mut c_void {
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn mem_realloc(ptr: *mut c_void, size: usize) -> *mut c_void {
     if ptr.is_null() {
         return rust_alloc(size);
     }
@@ -87,7 +87,28 @@ pub extern "C" fn mem_realloc(ptr: *mut c_void, size: usize) -> *mut c_void {
     }
 }
 
-#[no_mangle]
-pub extern "C" fn vim_free(ptr: *mut c_void) {
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vim_free(ptr: *mut c_void) {
     rust_free(ptr);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn alloc_and_free() {
+        let p = unsafe { alloc(10) };
+        assert!(!p.is_null());
+        unsafe { vim_free(p) };
+    }
+
+    #[test]
+    fn realloc_grows() {
+        let p = unsafe { alloc(4) };
+        assert!(!p.is_null());
+        let p2 = unsafe { mem_realloc(p, 8) };
+        assert!(!p2.is_null());
+        unsafe { vim_free(p2) };
+    }
 }
