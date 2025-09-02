@@ -11,6 +11,7 @@
  * crypt.c: Generic encryption support.
  */
 #include "vim.h"
+#include "crypt_rs.h"
 
 #if defined(FEAT_CRYPT) || defined(PROTO)
 /*
@@ -88,9 +89,6 @@ static void crypt_sodium_report_hash_params(unsigned long long opslimit, unsigne
 #endif
 
 #ifdef FEAT_RUST_CRYPT
-// Blowfish and other crypt methods implemented in Rust; see
-// src/rust/crypto/core.
-extern cryptmethod_T *rust_crypt_methods(void);
 # define cryptmethods rust_crypt_methods()
 #else
 // index is method_nr of cryptstate_T, CRYPT_M_*
