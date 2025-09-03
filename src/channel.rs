@@ -1,6 +1,6 @@
 use std::io;
 use std::time::Duration;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::io::{AsyncReadExt, AsyncWriteExt, ReadBuf};
 use tokio::net::{TcpStream, ToSocketAddrs};
 use tokio::time::timeout;
 
@@ -25,7 +25,7 @@ impl Channel {
         Ok(Self {
             stream,
             timeout,
-            recv_buf: Vec::with_capacity(1024),
+            recv_buf: vec![0u8; 1024],
         })
     }
 
@@ -35,12 +35,11 @@ impl Channel {
     where
         F: FnMut(&[u8]),
     {
-        if self.recv_buf.len() < self.recv_buf.capacity() {
-            self.recv_buf.resize(self.recv_buf.capacity(), 0);
-        }
-        let n = timeout_io(self.timeout, self.stream.read(&mut self.recv_buf)).await?;
+        let mut buf = ReadBuf::new(&mut self.recv_buf);
+        timeout_io(self.timeout, self.stream.read_buf(&mut buf)).await?;
+        let n = buf.filled().len();
         if n > 0 {
-            cb(&self.recv_buf[..n]);
+            cb(buf.filled());
         }
         Ok(n)
     }
