@@ -67,13 +67,6 @@ static channel_T *nb_channel = NULL;
 static int r_cmdno;			// current command number for reply
 static int dosetvisible = FALSE;
 
-/*
- * Include the debugging code if wanted.
- */
-#ifdef NBDEBUG
-# include "nbdebug.c"
-#endif
-
 static int needupdate = 0;
 static int inAtomic = 0;
 

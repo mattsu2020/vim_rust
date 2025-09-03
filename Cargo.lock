@@ -1683,6 +1683,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_cmdexpand"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rust_cmdhist"
 version = "0.1.0"
 dependencies = [
@@ -2000,6 +2007,14 @@ name = "rust_mouse"
 version = "0.1.0"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "rust_netbeans"
+version = "0.1.0"
+dependencies = [
+ "once_cell",
+ "tokio",
 ]
 
 [[package]]

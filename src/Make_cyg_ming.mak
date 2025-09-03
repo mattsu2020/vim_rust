@@ -658,8 +658,8 @@ DEFINES += -DFEAT_NETBEANS_INTG
 
   ifeq ($(NBDEBUG), yes)
 DEFINES += -DNBDEBUG
-NBDEBUG_INCL = nbdebug.h
-NBDEBUG_SRC = nbdebug.c
+NBDEBUG_INCL =
+NBDEBUG_SRC =
   endif
  endif
 endif
