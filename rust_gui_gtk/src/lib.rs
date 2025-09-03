@@ -1,5 +1,6 @@
 use rust_gui_core::backend::{GuiBackend, GuiEvent};
 use std::collections::VecDeque;
+use rust_clipboard;
 
 /// Backend implementation for GTK environments on Unix.
 /// This sample backend records drawing operations and stores events
@@ -34,6 +35,16 @@ impl GuiBackend for GtkBackend {
     }
 }
 
+/// Set the system clipboard text through the GTK backend.
+pub fn clipboard_set(text: &str) -> Result<(), ()> {
+    rust_clipboard::set_string(text)
+}
+
+/// Retrieve text from the system clipboard using the GTK backend.
+pub fn clipboard_get() -> Option<String> {
+    rust_clipboard::get_string()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -45,5 +56,11 @@ mod tests {
         backend.push_event(GuiEvent::Key('a'));
         assert_eq!(backend.drawn, vec!["hi".to_string()]);
         assert_eq!(backend.poll_event(), Some(GuiEvent::Key('a')));
+    }
+
+    #[test]
+    fn clipboard_roundtrip() {
+        clipboard_set("gtk clipboard").unwrap();
+        assert_eq!(clipboard_get().as_deref(), Some("gtk clipboard"));
     }
 }
