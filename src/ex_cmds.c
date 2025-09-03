@@ -5961,18 +5961,7 @@ ex_oldfiles(exarg_T *eap UNUSED)
 }
 #endif
 
-#ifdef FEAT_SIGNS
-/*
- * Bridge to Rust sign implementation.  For now this merely delegates
- * to the rust_sign crate to add and draw a sign at the current line.
- */
-    void
-ex_sign(exarg_T *eap UNUSED)
-{
-    rs_sign_add(1, "rust", (long)curwin->w_cursor.lnum);
-    rs_sign_draw();
-}
-#endif
+// ex_sign() は sign.c で実装済み。重複を避けるため本ファイルでは未定義。
 
 // Wrapper around the Rust command executor.
     int

@@ -5172,7 +5172,7 @@ f_wildtrigger(typval_T *argvars UNUSED, typval_T *rettv UNUSED)
 }
 
 // Add a command to the Rust-managed history list.
-    void
+    static void
 rust_cmd_history_add_wrapper(const char *cmd)
 {
     rs_cmd_history_add(cmd);

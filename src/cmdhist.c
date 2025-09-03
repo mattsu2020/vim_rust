@@ -816,13 +816,13 @@ ex_history(exarg_T *eap)
 }
 
 // Wrappers calling into Rust implementations for history operations.
-    void
+    static void
 rust_cmd_history_add_wrapper(const char *cmd)
 {
     rs_cmd_history_add(cmd);
 }
 
-    const char *
+    static const char *
 rust_cmd_history_get_wrapper(int idx)
 {
     return rs_cmd_history_get(idx);

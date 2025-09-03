@@ -3262,7 +3262,7 @@ rust_map_add_wrapper(const char *lhs, const char *rhs)
     rs_map_add(lhs, rhs);
 }
 
-    const char *
+    static const char *
 rust_map_lookup_wrapper(const char *lhs)
 {
     return rs_map_lookup(lhs);

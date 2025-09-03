@@ -42,3 +42,4 @@ void f_undofile(typval_T *argvars, typval_T *rettv)
 void f_undotree(typval_T *argvars, typval_T *rettv)
 { (void)argvars; if (rettv) rettv->vval.v_number = 0; }
 void undo_cmdmod(cmdmod_T *cmod) { (void)cmod; }
+void u_clearallandblockfree(buf_T *buf) { (void)buf; }

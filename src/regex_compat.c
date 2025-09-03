@@ -103,15 +103,36 @@ int vim_regcomp_had_eol(void)
 void save_timeout_for_debugging(void) {}
 void restore_timeout_for_debugging(void) {}
 
-// Legacy API: expand substitutions into a destination buffer.
-// Minimal implementation: set empty string and return 0.
-int vim_regsub(regmatch_T *rmp, char_u *source, typval_T *expr,
-               char_u *dest, int destlen, int flags)
+// Stubs for regex APIs used elsewhere when using the Rust engine.
+void init_regexp_timeout(long msec) { (void)msec; }
+void disable_regexp_timeout(void) {}
+int re_multiline(regprog_T *prog)
 {
-    (void)rmp; (void)source; (void)expr; (void)flags;
-    if (dest != NULL && destlen > 0)
-        dest[0] = NUL;
-    return 0;
+    (void)prog; return 0;
+}
+
+reg_extmatch_T *ref_extmatch(reg_extmatch_T *em)
+{
+    if (em != NULL)
+        em->refcnt++;
+    return em;
+}
+
+char_u *regtilde(char_u *source, int magic)
+{
+    (void)magic; return source;
+}
+
+void free_resub_eval_result(void) {}
+
+char_u *reg_submatch(int no)
+{
+    (void)no; static char_u empty[] = ""; return empty;
+}
+
+list_T *reg_submatch_list(int no)
+{
+    (void)no; return NULL;
 }
 
 // Legacy multi-line variant. Minimal no-op.

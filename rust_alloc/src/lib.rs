@@ -33,64 +33,8 @@ fn rust_free_impl(ptr: *mut c_void) {
     allocations().lock().unwrap().remove(&(ptr as usize));
 }
 
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn alloc(size: usize) -> *mut c_void {
-    rust_alloc_impl(size)
-}
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn alloc_id(size: usize, _id: c_int) -> *mut c_void {
-    rust_alloc_impl(size)
-}
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn alloc_clear(size: usize) -> *mut c_void {
-    rust_alloc_clear_impl(size)
-}
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn alloc_clear_id(size: usize, _id: c_int) -> *mut c_void {
-    rust_alloc_clear_impl(size)
-}
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn lalloc(size: usize, _message: c_int) -> *mut c_void {
-    rust_alloc_impl(size)
-}
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn lalloc_clear(size: usize, _message: c_int) -> *mut c_void {
-    rust_alloc_clear_impl(size)
-}
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn lalloc_id(size: usize, message: c_int, _id: c_int) -> *mut c_void {
-    unsafe { lalloc(size, message) }
-}
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn mem_realloc(ptr: *mut c_void, size: usize) -> *mut c_void {
-    if ptr.is_null() {
-        return rust_alloc_impl(size);
-    }
-    let mut map = allocations().lock().unwrap();
-    if let Some(old) = map.remove(&(ptr as usize)) {
-        let copy_len = std::cmp::min(old.len(), size);
-        let mut new_buf = Vec::with_capacity(size);
-        new_buf.extend_from_slice(&old[..copy_len]);
-        new_buf.resize(size, 0);
-        let new_ptr = new_buf.as_mut_ptr();
-        map.insert(new_ptr as usize, new_buf);
-        new_ptr as *mut c_void
-    } else {
-        rust_alloc_impl(size)
-    }
-}
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vim_free(ptr: *mut c_void) {
-    rust_free_impl(ptr);
-}
+// Note: The C side provides alloc()/lalloc()/vim_free() implementations.
+// Export only rust_* symbols to avoid duplicate definitions at link time.
 
 // Export the symbol names expected by the C side
 #[unsafe(no_mangle)]
@@ -106,6 +50,30 @@ pub unsafe extern "C" fn rust_alloc_clear(size: usize) -> *mut c_void {
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn rust_free(ptr: *mut c_void) {
     rust_free_impl(ptr)
+}
+
+// Safe reallocation that preserves as much as possible of the old contents.
+// This function is aware of buffers originally allocated through rust_alloc
+// and uses the tracked size to avoid reading/writing out of bounds.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn rust_mem_realloc(ptr: *mut c_void, size: usize) -> *mut c_void {
+    if ptr.is_null() {
+        return rust_alloc_impl(size);
+    }
+    let mut map = allocations().lock().unwrap();
+    if let Some(old) = map.remove(&(ptr as usize)) {
+        let copy_len = core::cmp::min(old.len(), size);
+        let mut new_buf = Vec::with_capacity(size);
+        new_buf.extend_from_slice(&old[..copy_len]);
+        new_buf.resize(size, 0);
+        let new_ptr = new_buf.as_mut_ptr();
+        map.insert(new_ptr as usize, new_buf);
+        new_ptr as *mut c_void
+    } else {
+        // Pointer not tracked (likely not from rust_alloc). Allocate fresh.
+        // Content cannot be safely preserved.
+        rust_alloc_impl(size)
+    }
 }
 
 #[cfg(test)]

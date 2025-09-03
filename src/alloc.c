@@ -59,18 +59,11 @@ void *lalloc_id(size_t size, int message, alloc_id_T id UNUSED)
 }
 #endif
 
+extern void *rust_mem_realloc(void *ptr, size_t size);
+
 void *mem_realloc(void *ptr, size_t size)
 {
-    if (ptr == NULL)
-        return rust_alloc(size);
-    void *new_ptr = rust_alloc(size);
-    if (new_ptr != NULL)
-    {
-        // Best effort copy, actual size of old allocation is unknown.
-        memcpy(new_ptr, ptr, size);
-        rust_free(ptr);
-    }
-    return new_ptr;
+    return rust_mem_realloc(ptr, size);
 }
 
 void vim_mem_profile_dump(void) {}

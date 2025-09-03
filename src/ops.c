@@ -4638,12 +4638,12 @@ pbyte(pos_T lp, int c)
 }
 
 // Expose Rust implementations to C callers.
-int rust_cmd_execute_wrapper(const char *name)
+static int rust_cmd_execute_wrapper(const char *name)
 {
     return rs_cmd_execute(name);
 }
 
-const char *rust_map_lookup_wrapper(const char *lhs)
+static const char *rust_map_lookup_wrapper(const char *lhs)
 {
     return rs_map_lookup(lhs);
 }

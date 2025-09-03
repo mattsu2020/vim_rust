@@ -765,9 +765,8 @@ SANITIZER_LIBS = $(SANITIZER_CFLAGS)
 #CC = c89
 #CPPFLAGS = -D_ALL_SOURCE
 
+# Rust暗号コアを使用（C側のsha256実装はリンクしない）
 CPPFLAGS += -DFEAT_RUST_CRYPT
-
-# Build Rust crypto library
 RUST_CRYPT_LIB = $(shell cargo build --manifest-path rust/crypto/core/Cargo.toml --release >/dev/null && echo rust/crypto/core/target/release/libvim_crypto_core.a)
 EXTRA_LIBS += $(RUST_CRYPT_LIB)
 
@@ -1382,6 +1381,9 @@ RUST_MEM_DIR = rust/mem
 RUST_MEM_LIB = $(RUST_MEM_DIR)/target/release/libvim_mem.a
 RUST_REGEX_DIR = ../rust_regex_engine
 RUST_REGEX_LIB = $(RUST_REGEX_DIR)/target/release/librust_regex_engine.a
+# Additional Rust regex helpers used by evalfunc/search wrappers
+SRC_RUST_REGEX_DIR = rust_regex
+SRC_RUST_REGEX_LIB = $(SRC_RUST_REGEX_DIR)/target/release/libvim_rust_regex.a
 RUST_BUFFER_DIR = ../rust_buffer
 RUST_BUFFER_LIB = $(RUST_BUFFER_DIR)/target/release/librust_buffer.a
 RUST_CHANNEL_DIR = ../rust_channel
@@ -1392,6 +1394,9 @@ RUST_PYTHON_DIR = ../rust_python
 RUST_PYTHON_LIB = $(RUST_PYTHON_DIR)/target/release/librust_python.a
 RUST_EVALFUNC_DIR = ../rust_evalfunc
 RUST_EVALFUNC_LIB = $(RUST_EVALFUNC_DIR)/target/release/librust_evalfunc.a
+# Rust eval crate exposing eval_expr_rs used by C side
+RUST_EVAL_DIR = ../rust_eval
+RUST_EVAL_LIB = $(RUST_EVAL_DIR)/target/release/librust_eval.a
 RUST_ARABIC_DIR = ../rust_arabic
 RUST_ARABIC_LIB = $(RUST_ARABIC_DIR)/target/release/librust_arabic.a
 RUST_BEVAL_DIR = ../rust_beval
@@ -1447,14 +1452,16 @@ ALL_LIBS = \
            $(EXTRA_LIBS) \
            $(RUST_MEM_LIB) \
            $(RUST_REGEX_LIB) \
+           $(SRC_RUST_REGEX_LIB) \
            $(RUST_BUFFER_LIB) \
            $(RUST_CHANNEL_LIB) \
            $(RUST_GUI_LIB) \
            $(RUST_EVALFUNC_LIB) \
+           $(RUST_EVAL_LIB) \
+           $(RUST_EXCMD_LIB) \
            $(RUST_ARABIC_LIB) \
            $(RUST_BEVAL_LIB) \
            $(RUST_MBYTE_LIB) \
-           $(RUST_EXCMD_LIB) \
            $(RUST_AUTOCMD_LIB) \
            $(RUST_SEARCH_LIB) \
            $(RUST_USERFUNC_LIB) \
@@ -1529,6 +1536,9 @@ $(RUST_MEM_LIB):
 $(RUST_REGEX_LIB):
 	cd $(RUST_REGEX_DIR) && cargo build --release
 
+$(SRC_RUST_REGEX_LIB):
+	cd $(SRC_RUST_REGEX_DIR) && cargo build --release
+
 $(RUST_BUFFER_LIB):
 	cd $(RUST_BUFFER_DIR) && cargo build --release
 
@@ -1540,6 +1550,9 @@ $(RUST_GUI_LIB):
 
 $(RUST_EVALFUNC_LIB):
 	cd $(RUST_EVALFUNC_DIR) && cargo build --release
+
+$(RUST_EVAL_LIB):
+	cd $(RUST_EVAL_DIR) && cargo build --release
 
 $(RUST_ARABIC_LIB):
 	cd $(RUST_ARABIC_DIR) && cargo build --release
@@ -1611,6 +1624,10 @@ RUST_POPUPMENU_DIR = ../rust_popupmenu
 RUST_POPUPMENU_LIB = $(RUST_POPUPMENU_DIR)/target/release/librust_popupmenu.a
 RUST_POPUPWIN_DIR = ../rust_popupwin
 RUST_POPUPWIN_LIB = $(RUST_POPUPWIN_DIR)/target/release/librust_popupwin.a
+RUST_NORMAL_DIR = ../rust_normal
+RUST_NORMAL_LIB = $(RUST_NORMAL_DIR)/target/release/librust_normal.a
+RUST_OPS_DIR = ../rust_ops
+RUST_OPS_LIB = $(RUST_OPS_DIR)/target/release/librust_ops.a
 
 ALL_LIBS += \
            $(RUST_ARGLIST_LIB) \
@@ -1624,7 +1641,9 @@ ALL_LIBS += \
            $(RUST_PATH_LIB) \
            $(RUST_SESSION_LIB) \
            $(RUST_POPUPMENU_LIB) \
-           $(RUST_POPUPWIN_LIB)
+           $(RUST_POPUPWIN_LIB) \
+           $(RUST_NORMAL_LIB) \
+           $(RUST_OPS_LIB)
 
 $(RUST_ARGLIST_LIB):
 	cd $(RUST_ARGLIST_DIR) && cargo build --release
@@ -1650,6 +1669,10 @@ $(RUST_POPUPMENU_LIB):
 	cd $(RUST_POPUPMENU_DIR) && cargo build --release
 $(RUST_POPUPWIN_LIB):
 	cd $(RUST_POPUPWIN_DIR) && cargo build --release
+$(RUST_NORMAL_LIB):
+	cd $(RUST_NORMAL_DIR) && cargo build --release
+$(RUST_OPS_LIB):
+	cd $(RUST_OPS_DIR) && cargo build --release
 
 $(RUST_CHANGE_LIB):
 	cd $(RUST_CHANGE_DIR) && cargo build --release
@@ -1952,7 +1975,6 @@ OBJ_COMMON = \
 	objects/scriptfile.o \
 	objects/search.o \
 	objects/session.o \
-	objects/sha256.o \
 	objects/sign.o \
 	objects/sound.o \
 	objects/spell.o \
@@ -1961,10 +1983,12 @@ OBJ_COMMON = \
 	objects/tabpanel.o \
 	objects/tag.o \
 	objects/term.o \
-    \
 	objects/testing.o \
 	objects/regex_compat.o \
 	objects/mbyte_compat.o \
+	objects/memline_compat.o \
+	objects/hashtab_compat.o \
+	objects/help_compat_min.o \
 	objects/textformat.o \
 	objects/textobject.o \
 	objects/textprop.o \
@@ -2158,7 +2182,7 @@ all: $(VIMTARGET) $(TOOLS) languages $(GUI_BUNDLE)
 # This is a placeholder; a full integration would link the resulting static
 # library into the final executable.
 rust-channel:
-	cargo build --manifest-path=rust/channel/Cargo.toml --release
+	cargo build --manifest-path=../rust_channel/Cargo.toml --release
 
 rust-spell:
 	cargo build --manifest-path=../rust/spell/Cargo.toml --release
@@ -2263,7 +2287,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB)
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(SRC_RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_EVAL_LIB) $(RUST_EXCMD_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB) $(RUST_ALLOC_LIB)
 	@$(BUILD_DATE_MSG)
 	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) $(OBJ) $(ALL_LIBS)" \
@@ -3404,8 +3428,20 @@ objects/regex_compat.o: regex_compat.c
 objects/mbyte_compat.o: mbyte_compat.c
 	$(CCC) -o $@ mbyte_compat.c
 
+objects/memline_compat.o: memline_compat.c
+	$(CCC) -o $@ memline_compat.c
+
+objects/help_compat.o: help_compat.c
+	$(CCC) -o $@ help_compat.c
+
 objects/ex_docmd_compat.o: ex_docmd_compat.c
 	$(CCC) -o $@ ex_docmd_compat.c
+
+objects/hashtab_compat.o: hashtab_compat.c
+	$(CCC) -o $@ hashtab_compat.c
+
+objects/help_compat_min.o: help_compat_min.c
+	$(CCC) -o $@ help_compat_min.c
 
 objects/edit.o: edit.c
 	$(CCC) -o $@ edit.c

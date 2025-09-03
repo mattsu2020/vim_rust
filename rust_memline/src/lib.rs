@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::ffi::{CStr};
 use std::os::raw::c_char;
 
@@ -6,11 +6,14 @@ use std::os::raw::c_char;
 #[derive(Default)]
 pub struct MemBuffer {
     lines: BTreeMap<usize, String>,
+    // Workspace for exposing lines to C as modifiable C strings.
+    // Keyed by lnum. Stored with a trailing NUL.
+    workspace: HashMap<usize, Vec<u8>>,
 }
 
 impl MemBuffer {
     pub fn new() -> Self {
-        Self { lines: BTreeMap::new() }
+        Self { lines: BTreeMap::new(), workspace: HashMap::new() }
     }
 
     pub fn ml_append(&mut self, lnum: usize, line: &str) -> bool {
@@ -100,6 +103,51 @@ pub extern "C" fn rs_ml_replace(buf: *mut MemBuffer, lnum: usize, line: *const c
         Ok(s) => { buffer.ml_replace(lnum, s); true },
         Err(_) => false,
     }
+}
+
+/// Get a pointer to a NUL-terminated, writable line buffer for lnum.
+/// If `for_change` is true, the buffer may be modified by the caller.
+/// The returned pointer remains valid until the next call that invalidates
+/// the workspace for the same lnum (e.g. another rs_ml_get_line or replace).
+#[no_mangle]
+pub extern "C" fn rs_ml_get_line(
+    buf: *mut MemBuffer,
+    lnum: usize,
+    for_change: bool,
+    out_len: *mut usize,
+) -> *mut u8 {
+    if buf.is_null() {
+        return b"\0".as_ptr() as *mut u8;
+    }
+    let b = unsafe { &mut *buf };
+    let content = b.lines.get(&lnum).map(|s| s.as_str()).unwrap_or("");
+    let entry = b.workspace.entry(lnum).or_insert_with(|| {
+        let mut v = Vec::with_capacity(content.len() + 1);
+        v.extend_from_slice(content.as_bytes());
+        v.push(0);
+        v
+    });
+    if !for_change {
+        // Ensure workspace matches current content when not changing.
+        // If size differs, refresh.
+        let needed = content.as_bytes();
+        if entry.len() != needed.len() + 1 || &entry[..needed.len()] != needed {
+            entry.clear();
+            entry.extend_from_slice(needed);
+            entry.push(0);
+        }
+    } else {
+        // Ensure there is at least space for one character plus NUL so that
+        // callers writing the first byte do not drop the terminator.
+        if entry.len() < 2 {
+            entry.clear();
+            entry.extend_from_slice(&[0u8, 0u8]);
+        }
+    }
+    if !out_len.is_null() {
+        unsafe { *out_len = entry.len().saturating_sub(1) };
+    }
+    entry.as_mut_ptr()
 }
 
 /// Representation of the initial swap file block.

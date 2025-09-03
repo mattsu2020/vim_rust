@@ -5057,7 +5057,7 @@ cleanup:
 }
 
 // Wrapper around Rust key mapping lookup used for expansion.
-    const char *
+    static const char *
 rust_map_lookup_wrapper(const char *lhs)
 {
     return rs_map_lookup(lhs);
