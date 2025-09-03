@@ -13,6 +13,11 @@
 
 #include "vim.h"
 
+#ifdef FEAT_RUST_DICT
+extern dict_T *rust_dict_new(void);
+extern void rust_dict_free(dict_T *d);
+#endif
+
 #if defined(FEAT_EVAL) || defined(PROTO)
 
 // List head for garbage collection. Although there can be a reference loop
@@ -27,15 +32,18 @@ static dict_T		*first_dict = NULL;
     dict_T *
 dict_alloc(void)
 {
+#ifdef FEAT_RUST_DICT
+    return rust_dict_new();
+#else
     dict_T *d;
 
     d = ALLOC_CLEAR_ONE(dict_T);
     if (d == NULL)
-	return NULL;
+        return NULL;
 
     // Add the dict to the list of dicts for garbage collection.
     if (first_dict != NULL)
-	first_dict->dv_used_prev = d;
+        first_dict->dv_used_prev = d;
     d->dv_used_next = first_dict;
     d->dv_used_prev = NULL;
     first_dict = d;
@@ -46,6 +54,7 @@ dict_alloc(void)
     d->dv_refcount = 0;
     d->dv_copyID = 0;
     return d;
+#endif
 }
 
 /*
@@ -158,14 +167,18 @@ dict_free_dict(dict_T *d)
     vim_free(d);
 }
 
-    static void
+static void
 dict_free(dict_T *d)
 {
+#ifdef FEAT_RUST_DICT
+    rust_dict_free(d);
+#else
     if (!in_free_unref_items)
     {
-	dict_free_contents(d);
-	dict_free_dict(d);
+        dict_free_contents(d);
+        dict_free_dict(d);
     }
+#endif
 }
 
 /*
