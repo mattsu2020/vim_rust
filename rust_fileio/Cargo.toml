@@ -8,6 +8,7 @@ crate-type = ["staticlib"]
 
 [dependencies]
 rust_path = { path = "../rust_path" }
+fs-err = "2"
 
 [dev-dependencies]
 tempfile = "3"
