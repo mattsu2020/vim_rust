@@ -330,6 +330,31 @@ pub extern "C" fn crypt_zip_decode_inplace(
     crypt_zip_decode(state, buf as *const u8, len, buf, last);
 }
 
+#[no_mangle]
+pub extern "C" fn crypt_state_free(state: *mut cryptstate_T) {
+    if state.is_null() {
+        return;
+    }
+
+    unsafe {
+        if (*state).method_state.is_null() {
+            return;
+        }
+        match (*state).method_nr {
+            CRYPT_M_ZIP => {
+                drop(Box::<ZipState>::from_raw((*state).method_state.cast::<ZipState>()));
+            }
+            CRYPT_M_BF | CRYPT_M_BF2 => {
+                drop(Box::<BlowfishState>::from_raw(
+                    (*state).method_state.cast::<BlowfishState>(),
+                ));
+            }
+            _ => {}
+        }
+        (*state).method_state = std::ptr::null_mut();
+    }
+}
+
 #[repr(C)]
 pub struct cryptmethod_T {
     pub name: *const c_char,
