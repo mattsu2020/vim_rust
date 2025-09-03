@@ -52,15 +52,12 @@ static char	*get_end_emsg(cstack_T *cstack);
  * is an error exception.)  -  The macros can be defined as expressions checking
  * for a variable that is allowed to be changed during execution of a script.
  */
-#if 0
-// Expressions used for testing during the development phase.
-# define THROW_ON_ERROR		(!eval_to_number("$VIMNOERRTHROW"))
-# define THROW_ON_INTERRUPT	(!eval_to_number("$VIMNOINTTHROW"))
-# define THROW_TEST
-#else
-// Values used for the Vim release.
+// Values used for the Vim release.  For testing macros see test_throw.h.
+#ifndef THROW_ON_ERROR
 # define THROW_ON_ERROR		TRUE
 # define THROW_ON_ERROR_TRUE
+#endif
+#ifndef THROW_ON_INTERRUPT
 # define THROW_ON_INTERRUPT	TRUE
 # define THROW_ON_INTERRUPT_TRUE
 #endif
