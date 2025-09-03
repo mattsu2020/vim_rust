@@ -42,6 +42,17 @@ pub fn suggest(trie: &Trie, word: &str, max: usize) -> Vec<String> {
             q.push_back((node, prefix.clone(), idx + 1, edits + 1));
         }
 
+        if edits < 1 && idx + 1 < chars.len() {
+            if let Some(next_node) = node.children.get(&chars[idx + 1]) {
+                if let Some(after) = next_node.children.get(&chars[idx]) {
+                    let mut new_pref = prefix.clone();
+                    new_pref.push(chars[idx + 1]);
+                    new_pref.push(chars[idx]);
+                    q.push_back((after, new_pref, idx + 2, edits + 1));
+                }
+            }
+        }
+
         for (ch, child) in &node.children {
             let mut new_pref = prefix.clone();
             new_pref.push(*ch);

@@ -26,6 +26,17 @@ impl Trie {
         node.is_word = true;
     }
 
+    pub fn contains(&self, word: &str) -> bool {
+        let mut node = &self.root;
+        for ch in word.chars() {
+            match node.children.get(&ch) {
+                Some(n) => node = n,
+                None => return false,
+            }
+        }
+        node.is_word
+    }
+
     fn collect(node: &Node, prefix: &mut String, out: &mut Vec<String>) {
         if node.is_word {
             out.push(prefix.clone());

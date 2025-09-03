@@ -37,6 +37,21 @@ pub extern "C" fn rs_spell_load_dict(path: *const c_char) -> bool {
 }
 
 #[no_mangle]
+pub extern "C" fn rs_spell_check(word: *const c_char) -> bool {
+    if word.is_null() {
+        return false;
+    }
+    let cstr = unsafe { CStr::from_ptr(word) };
+    let Ok(w) = cstr.to_str() else {
+        return false;
+    };
+    match trie() {
+        Ok(trie_guard) => trie_guard.contains(w),
+        Err(_) => false,
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn rs_spell_suggest(
     word: *const c_char,
     max: usize,
