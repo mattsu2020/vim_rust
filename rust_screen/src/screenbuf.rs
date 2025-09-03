@@ -77,6 +77,30 @@ impl ScreenBuffer {
         });
     }
 
+    /// Format `text` to fit within `width` cells.
+    /// If `text` is shorter than `width` it is padded with spaces, and if it is
+    /// longer it will be truncated.
+    pub fn format_text(text: &str, width: usize) -> String {
+        let mut s: String = text.chars().take(width).collect();
+        if s.len() < width {
+            s.push_str(&" ".repeat(width - s.len()));
+        }
+        s
+    }
+
+    /// Draw `text` after formatting it to `width` cells.
+    pub fn draw_formatted_text(
+        &mut self,
+        row: usize,
+        col: usize,
+        text: &str,
+        width: usize,
+        attr: u8,
+    ) {
+        let formatted = Self::format_text(text, width);
+        self.draw_text(row, col, &formatted, attr);
+    }
+
     pub fn line_as_string(&self, row: usize) -> String {
         if row >= self.height {
             return String::new();
@@ -124,7 +148,9 @@ pub extern "C" fn rs_screen_new(width: c_int, height: c_int) -> *mut ScreenBuffe
 #[no_mangle]
 pub extern "C" fn rs_screen_free(buf: *mut ScreenBuffer) {
     if !buf.is_null() {
-        unsafe { drop(Box::from_raw(buf)); }
+        unsafe {
+            drop(Box::from_raw(buf));
+        }
     }
 }
 
@@ -143,6 +169,25 @@ pub extern "C" fn rs_screen_draw_text(
     let c_str = unsafe { CStr::from_ptr(text) };
     if let Ok(s) = c_str.to_str() {
         screen.draw_text(row as usize, col as usize, s, attr);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn rs_screen_draw_formatted(
+    buf: *mut ScreenBuffer,
+    row: c_int,
+    col: c_int,
+    text: *const c_char,
+    width: c_int,
+    attr: u8,
+) {
+    if buf.is_null() || text.is_null() {
+        return;
+    }
+    let screen = unsafe { &mut *buf };
+    let c_str = unsafe { CStr::from_ptr(text) };
+    if let Ok(s) = c_str.to_str() {
+        screen.draw_formatted_text(row as usize, col as usize, s, width as usize, attr);
     }
 }
 
@@ -180,7 +225,8 @@ pub extern "C" fn rs_screen_highlight(
 }
 
 /// Callback used by [`rs_screen_flush`].
-pub type FlushCallback = extern "C" fn(row: c_int, text: *const c_char, attr: *const u8, len: c_int);
+pub type FlushCallback =
+    extern "C" fn(row: c_int, text: *const c_char, attr: *const u8, len: c_int);
 
 #[no_mangle]
 pub extern "C" fn rs_screen_flush(buf: *mut ScreenBuffer, cb: Option<FlushCallback>) {
@@ -292,5 +338,13 @@ mod tests {
         sb.for_each_cell(0, 5, 1, |_, idx| idxs.push(idx));
         assert_eq!(idxs, vec![8, 9]);
     }
-}
 
+    #[test]
+    fn format_and_draw() {
+        let mut sb = ScreenBuffer::new(5, 1);
+        let formatted = ScreenBuffer::format_text("ab", 4);
+        assert_eq!(formatted, "ab  ");
+        sb.draw_formatted_text(0, 0, "hello", 3, 1);
+        assert_eq!(sb.line_as_string(0), "hel  ");
+    }
+}

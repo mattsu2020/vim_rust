@@ -2044,7 +2044,7 @@ screen_char(unsigned off, int row, int col)
             save_buf[0] = ScreenLines[off];
             save_buf[1] = NUL;
         }
-        rs_screen_draw_text(rs_screen_buf, row, col, (char *)save_buf, (uint8_t)attr);
+        rs_screen_draw_formatted(rs_screen_buf, row, col, (char *)save_buf, 1, (uint8_t)attr);
     }
 
     screen_cur_col++;
