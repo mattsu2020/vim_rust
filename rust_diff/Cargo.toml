@@ -7,5 +7,5 @@ edition = "2021"
 crate-type = ["staticlib"]
 
 [dependencies]
-diff = { path = "../rust/diff" }
+similar = "2"
 
