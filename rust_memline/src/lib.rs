@@ -1,6 +1,7 @@
-use std::collections::{BTreeMap, HashMap};
-use std::ffi::CStr;
+use std::collections::HashMap;
+use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
+use ropey::{Rope, RopeSlice};
 
 // Maximum length of a single line allowed in the memline buffer.  This keeps
 // the C side from accidentally passing an unbounded string and exhausting
@@ -10,7 +11,7 @@ const MAX_LINE_LEN: usize = 1 << 20; // 1MB per line
 /// Simple in-memory representation of lines in a buffer.
 #[derive(Default)]
 pub struct MemBuffer {
-    lines: BTreeMap<usize, String>,
+    lines: Rope,
     // Workspace for exposing lines to C as modifiable C strings.
     // Keyed by lnum. Stored with a trailing NUL.
     workspace: HashMap<usize, Vec<u8>>,
@@ -18,49 +19,52 @@ pub struct MemBuffer {
 
 impl MemBuffer {
     pub fn new() -> Self {
-        Self { lines: BTreeMap::new(), workspace: HashMap::new() }
+        Self { lines: Rope::new(), workspace: HashMap::new() }
+    }
+
+    fn line_count(&self) -> usize {
+        self.lines.len_lines().saturating_sub(1)
     }
 
     pub fn ml_append(&mut self, lnum: usize, line: &str) -> bool {
-        // Valid line numbers are in the range [0, line_count].  Appending past
-        // the end of the buffer is an error.
-        if lnum > self.lines.len() {
+        if lnum > self.line_count() {
             return false;
         }
-
-        let insert_at = lnum + 1;
-        let tail: BTreeMap<usize, String> = self.lines.split_off(&insert_at);
-        self.lines.insert(insert_at, line.to_string());
-        for (i, (_, l)) in tail.into_iter().enumerate() {
-            self.lines.insert(insert_at + 1 + i, l);
-        }
+        let char_idx = self.lines.line_to_char(lnum);
+        self.lines.insert(char_idx, &format!("{}\n", line));
         true
     }
 
     pub fn ml_delete(&mut self, lnum: usize) -> Option<String> {
-        if lnum == 0 || lnum > self.lines.len() {
+        if lnum == 0 || lnum > self.line_count() {
             return None;
         }
-
-        let removed = self.lines.remove(&lnum);
-        if removed.is_some() {
-            let keys: Vec<usize> =
-                self.lines.range(lnum + 1..).map(|(&k, _)| k).collect();
-            for k in keys {
-                if let Some(v) = self.lines.remove(&k) {
-                    self.lines.insert(k - 1, v);
-                }
-            }
-        }
-        removed
+        let start = self.lines.line_to_char(lnum - 1);
+        let end = self.lines.line_to_char(lnum);
+        let removed = self.lines.slice(start..end).to_string();
+        self.lines.remove(start..end);
+        Some(removed.trim_end_matches('\n').to_string())
     }
 
     pub fn ml_replace(&mut self, lnum: usize, line: &str) -> Option<String> {
-        if lnum == 0 || lnum > self.lines.len() {
+        if lnum == 0 || lnum > self.line_count() {
             return None;
         }
-        self.lines.insert(lnum, line.to_string())
+        let start = self.lines.line_to_char(lnum - 1);
+        let end = self.lines.line_to_char(lnum);
+        let old = self.lines.slice(start..end).to_string();
+        self.lines.remove(start..end);
+        self.lines.insert(start, &format!("{}\n", line));
+        Some(old.trim_end_matches('\n').to_string())
     }
+}
+
+fn rope_slice_to_cstring(slice: RopeSlice) -> CString {
+    let mut s = slice.to_string();
+    if s.ends_with('\n') {
+        s.pop();
+    }
+    CString::new(s).unwrap()
 }
 
 #[no_mangle]
@@ -128,35 +132,24 @@ pub extern "C" fn rs_ml_get_line(
         return b"\0".as_ptr() as *mut u8;
     }
     let b = unsafe { &mut *buf };
-    if lnum == 0 || lnum > b.lines.len() {
+    if lnum == 0 || lnum > b.line_count() {
         if !out_len.is_null() {
             unsafe { *out_len = 0 };
         }
         return b"\0".as_ptr() as *mut u8;
     }
-    let content = b.lines.get(&lnum).map(|s| s.as_str()).unwrap_or("");
-    let entry = b.workspace.entry(lnum).or_insert_with(|| {
-        let mut v = Vec::with_capacity(content.len() + 1);
-        v.extend_from_slice(content.as_bytes());
-        v.push(0);
-        v
-    });
+    let slice = b.lines.line(lnum - 1);
+    let needed = rope_slice_to_cstring(slice).into_bytes_with_nul();
+    let entry = b.workspace.entry(lnum).or_insert_with(|| needed.clone());
     if !for_change {
-        // Ensure workspace matches current content when not changing.
-        // If size differs, refresh.
-        let needed = content.as_bytes();
-        if entry.len() != needed.len() + 1 || &entry[..needed.len()] != needed {
-            entry.clear();
-            entry.extend_from_slice(needed);
-            entry.push(0);
+        if *entry != needed {
+            *entry = needed;
         }
-    } else {
+    } else if entry.len() < 2 {
         // Ensure there is at least space for one character plus NUL so that
         // callers writing the first byte do not drop the terminator.
-        if entry.len() < 2 {
-            entry.clear();
-            entry.extend_from_slice(&[0u8, 0u8]);
-        }
+        entry.clear();
+        entry.extend_from_slice(&[0u8, 0u8]);
     }
     if !out_len.is_null() {
         unsafe { *out_len = entry.len().saturating_sub(1) };
@@ -170,7 +163,7 @@ pub extern "C" fn rs_ml_line_count(buf: *const MemBuffer) -> usize {
         return 0;
     }
     let b = unsafe { &*buf };
-    b.lines.len()
+    b.line_count()
 }
 
 /// Representation of the initial swap file block.
@@ -208,6 +201,7 @@ pub fn map_file(path: &str, size: usize) -> Result<MmapMut> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::ffi::CStr;
 
     #[test]
     fn basic_editing() {
@@ -216,6 +210,12 @@ mod tests {
         assert!(buf.ml_append(1, "world"));
         assert_eq!(buf.ml_replace(2, "vim"), Some("world".into()));
         assert_eq!(buf.ml_delete(1), Some("hello".into()));
+        assert_eq!(rs_ml_line_count(&buf as *const _), 1);
+        let mut len = 0;
+        let ptr = rs_ml_get_line(&mut buf as *mut _, 1, false, &mut len as *mut usize);
+        let s = unsafe { CStr::from_ptr(ptr as *const c_char) }.to_str().unwrap();
+        assert_eq!(s, "vim");
+        assert_eq!(len, 3);
     }
 
     #[test]
