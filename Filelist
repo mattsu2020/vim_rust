@@ -119,7 +119,6 @@ SRC_ALL =	\
                 src/register.c \
 		src/scriptfile.c \
 		src/session.c \
-		src/sha256.c \
                 src/sound.c \
 		src/spell.c \
                 src/spell.h \

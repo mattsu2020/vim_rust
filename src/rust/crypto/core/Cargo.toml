@@ -12,7 +12,7 @@ blowfish = "0.8"
 pbkdf2 = "0.12"
 hmac = "0.12"
 sha2 = "0.10"
-ring = "0.17"
 libc = "0.2"
+rust_sha256 = { path = "../../../../rust_sha256" }
 
 [workspace]
