@@ -1,5 +1,6 @@
-pub use rust_vim9compile::{
-    compile, eval_bool_expr, eval_expr, execute, parse_line, Vim9Instr, Vim9Program, Vim9Type,
+pub use rust_vim9script::{
+    compile, eval_bool_expr, eval_expr, execute, parse_line, Instr as Vim9Instr,
+    Program as Vim9Program, ValueType as Vim9Type,
 };
 
 /// Execute a Vim9 script consisting of multiple lines.

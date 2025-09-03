@@ -2243,7 +2243,7 @@ dependencies = [
 name = "rust_vim9"
 version = "0.1.0"
 dependencies = [
- "rust_vim9compile",
+ "rust_vim9script",
 ]
 
 [[package]]
@@ -2256,6 +2256,10 @@ dependencies = [
 
 [[package]]
 name = "rust_vim9compile"
+version = "0.1.0"
+
+[[package]]
+name = "rust_vim9script"
 version = "0.1.0"
 
 [[package]]
