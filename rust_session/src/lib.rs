@@ -85,6 +85,20 @@ pub extern "C" fn rs_escape_session_filename(ptr: *const c_char) -> *mut c_char 
     }
 }
 
+/// Unescape a file name previously escaped with [`rs_escape_session_filename`].
+/// Returns a newly allocated C string owned by the caller.
+#[no_mangle]
+pub extern "C" fn rs_unescape_session_filename(ptr: *const c_char) -> *mut c_char {
+    if ptr.is_null() {
+        return std::ptr::null_mut();
+    }
+    let cstr = unsafe { CStr::from_ptr(ptr) };
+    match cstr.to_str() {
+        Ok(s) => CString::new(unescape_filename(s)).unwrap().into_raw(),
+        Err(_) => std::ptr::null_mut(),
+    }
+}
+
 /// Save a session file.
 #[no_mangle]
 pub extern "C" fn rs_save_session(
@@ -207,6 +221,18 @@ mod tests {
         let loaded = unsafe { CString::from_raw(loaded_ptr) };
         assert_eq!(loaded.to_str().unwrap(), "echo test");
         fs::remove_file("Xffi_session.vim").unwrap();
+    }
+
+    #[test]
+    fn ffi_escape_unescape() {
+        let name = CString::new("path with spaces").unwrap();
+        let escaped_ptr = rs_escape_session_filename(name.as_ptr());
+        let unesc_ptr = rs_unescape_session_filename(escaped_ptr);
+        let unesc = unsafe { CString::from_raw(unesc_ptr) };
+        assert_eq!(unesc.to_str().unwrap(), "path with spaces");
+        unsafe {
+            let _ = CString::from_raw(escaped_ptr);
+        } // free escaped_ptr
     }
 
     #[test]
