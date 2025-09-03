@@ -1063,7 +1063,9 @@ do_autocmd(exarg_T *eap, char_u *arg_in, int forceit)
 	{
 	    if (eap != NULL)
 		// Read a {} block if it follows.
-		cmd = may_get_cmd_block(eap, cmd, &tofree, &flags);
+		cmd = may_get_cmd_block(eap, cmd, &tofree);
+                if (tofree != NULL)
+                    flags |= UC_VIM9;
 
 	    cmd = expand_sfile(cmd);
 	    if (cmd == NULL)	    // some error

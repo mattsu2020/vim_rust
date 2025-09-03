@@ -1205,7 +1205,7 @@ fail:
  * Used for ":command" and ":autocmd".
  */
     char_u *
-may_get_cmd_block(exarg_T *eap, char_u *p, char_u **tofree, int *flags)
+may_get_cmd_block(exarg_T *eap, char_u *p, char_u **tofree)
 {
     char_u *retp = p;
 
@@ -1241,7 +1241,6 @@ may_get_cmd_block(exarg_T *eap, char_u *p, char_u **tofree, int *flags)
 	vim_free(line);
 	retp = *tofree = ga_concat_strings(&ga, "\n");
 	ga_clear_strings(&ga);
-	*flags |= UC_VIM9;
     }
     return retp;
 }
@@ -1322,7 +1321,9 @@ ex_command(exarg_T *eap)
     {
 	char_u *tofree = NULL;
 
-	p = may_get_cmd_block(eap, p, &tofree, &flags);
+	p = may_get_cmd_block(eap, p, &tofree);
+        if (tofree != NULL)
+            flags |= UC_VIM9;
 
 	uc_add_command(name, end - name, p, argt, def, flags, compl, compl_arg,
 						  addr_type_arg, eap->forceit);
