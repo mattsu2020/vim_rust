@@ -96,24 +96,57 @@ fn hexdump(
     uppercase: bool,
     group: usize,
 ) -> io::Result<()> {
-    let mut reader = open_input(infile)?;
-    let mut data = Vec::new();
-    reader.read_to_end(&mut data)?;
-    let data = if seek < data.len() {
-        &data[seek..]
-    } else {
-        &[][..]
-    };
-    let data = if let Some(len) = len_opt {
-        &data[..data.len().min(len)]
-    } else {
-        data
-    };
-
+    let mut reader = io::BufReader::new(open_input(infile)?);
     let mut writer = open_output(outfile)?;
 
-    if plain {
-        for chunk in data.chunks(cols) {
+    // Buffer reused for reading input. Its size matches the number of columns
+    // displayed, ensuring one line of output per read.
+    let mut buffer = vec![0u8; cols];
+
+    let mut remaining_seek = seek;
+    let mut total_read = 0usize;
+    let mut offset = base;
+
+    loop {
+        let read_len = if remaining_seek > 0 {
+            cols
+        } else {
+            match len_opt {
+                Some(len) => {
+                    if total_read >= len {
+                        break;
+                    }
+                    (len - total_read).min(cols)
+                }
+                None => cols,
+            }
+        };
+
+        let n = reader.read(&mut buffer[..read_len])?;
+        if n == 0 {
+            break;
+        }
+        let mut start = 0;
+        if remaining_seek > 0 {
+            if remaining_seek >= n {
+                remaining_seek -= n;
+                continue;
+            } else {
+                start = remaining_seek;
+                remaining_seek = 0;
+            }
+        }
+
+        let mut chunk = &buffer[start..n];
+        if let Some(len) = len_opt {
+            let remaining = len - total_read;
+            if chunk.len() > remaining {
+                chunk = &chunk[..remaining];
+            }
+        }
+        total_read += chunk.len();
+
+        if plain {
             for byte in chunk {
                 if uppercase {
                     write!(writer, "{:02X}", byte)?;
@@ -122,12 +155,9 @@ fn hexdump(
                 }
             }
             writeln!(writer)?;
+            continue;
         }
-        return Ok(());
-    }
 
-    for (i, chunk) in data.chunks(cols).enumerate() {
-        let offset = base + i * cols;
         write!(writer, "{:08x}: ", offset)?;
         for j in 0..cols {
             if j < chunk.len() {
@@ -153,6 +183,7 @@ fn hexdump(
             write!(writer, "{}", c)?;
         }
         writeln!(writer, "|")?;
+        offset += cols;
     }
     Ok(())
 }
@@ -188,4 +219,3 @@ fn reverse_hex(infile: &str, outfile: &str, plain: bool) -> io::Result<()> {
     }
     Ok(())
 }
-
