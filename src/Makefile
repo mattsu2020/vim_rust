@@ -1792,7 +1792,6 @@ BASIC_SRC = \
 	memfile.c \
 	memline.c \
 	menu.c \
-	message.c \
 	misc1.c \
 	misc2.c \
 	mouse.c \
@@ -3618,8 +3617,6 @@ objects/memline.o: memline.c
 objects/menu.o: menu.c
 	$(CCC) -o $@ menu.c
 
-objects/message.o: message.c
-	$(CCC) -o $@ message.c
 
 objects/misc1.o: misc1.c
 	$(CCC) -o $@ misc1.c
@@ -4242,11 +4239,6 @@ objects/memline.o: memline.c vim.h protodef.h auto/config.h feature.h os_unix.h 
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
 objects/menu.o: menu.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
-objects/message.o: message.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \

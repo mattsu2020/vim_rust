@@ -549,7 +549,6 @@ SRC = \
  memfile.c \
  memline.c \
  menu.c \
- message.c \
  misc1.c \
  misc2.c \
  mouse.c \
@@ -1211,10 +1210,6 @@ lua_env :
 [.$(DEST)]menu.obj : menu.c vim.h [.$(DEST)]config.h feature.h os_unix.h   \
  ascii.h keymap.h termdefs.h macros.h structs.h regexp.h gui.h beval.h \
  [.proto]gui_beval.pro option.h ex_cmds.h proto.h errors.h globals.h
-[.$(DEST)]message.obj : message.c vim.h [.$(DEST)]config.h feature.h os_unix.h \
- ascii.h keymap.h termdefs.h macros.h structs.h regexp.h \
- gui.h beval.h [.proto]gui_beval.pro option.h ex_cmds.h proto.h \
- errors.h globals.h
 [.$(DEST)]misc1.obj : misc1.c vim.h [.$(DEST)]config.h feature.h os_unix.h   \
  ascii.h keymap.h termdefs.h macros.h structs.h regexp.h gui.h beval.h \
  [.proto]gui_beval.pro option.h ex_cmds.h proto.h errors.h globals.h \

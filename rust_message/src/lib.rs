@@ -1,167 +1,142 @@
-use libc::{c_char, c_int, malloc, free};
-use std::ffi::CStr;
-use std::io::{self, Write};
+use libc::{c_char, c_int};
+use std::collections::VecDeque;
+use std::ffi::{CStr, CString};
 use std::ptr;
+use std::sync::{LazyLock, Mutex};
 
+/// Logging level used for queued messages.
 #[repr(C)]
-pub struct MsgHist {
-    pub next: *mut MsgHist,
-    pub msg: *mut c_char,
-    pub attr: c_int,
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum LogLevel {
+    Info = 0,
+    Warn = 1,
+    Error = 2,
 }
 
-#[cfg(not(test))]
-extern "C" {
-    static mut first_msg_hist: *mut MsgHist;
-    static mut last_msg_hist: *mut MsgHist;
-    static mut msg_hist_len: c_int;
-    static mut msg_hist_max: c_int;
+struct QueuedMsg {
+    text: CString,
+    level: LogLevel,
 }
 
-#[cfg(test)]
-#[no_mangle]
-pub static mut first_msg_hist: *mut MsgHist = ptr::null_mut();
-#[cfg(test)]
-#[no_mangle]
-pub static mut last_msg_hist: *mut MsgHist = ptr::null_mut();
-#[cfg(test)]
-#[no_mangle]
-pub static mut msg_hist_len: c_int = 0;
-#[cfg(test)]
-#[no_mangle]
-pub static mut msg_hist_max: c_int = 500;
+// Global queue storing pending messages.
+static MSG_QUEUE: LazyLock<Mutex<VecDeque<QueuedMsg>>> =
+    LazyLock::new(|| Mutex::new(VecDeque::new()));
 
-unsafe fn alloc_msg_hist() -> *mut MsgHist {
-    let size = std::mem::size_of::<MsgHist>();
-    let p = malloc(size) as *mut MsgHist;
-    if p.is_null() {
-        return ptr::null_mut();
-    }
-    (*p).next = ptr::null_mut();
-    (*p).msg = ptr::null_mut();
-    (*p).attr = 0;
-    p
-}
+// Last error message recorded, if any.
+static LAST_ERROR: LazyLock<Mutex<Option<CString>>> =
+    LazyLock::new(|| Mutex::new(None));
 
-fn format_with_attr(slice: &[u8], attr: c_int) -> Vec<u8> {
-    let mut out = Vec::new();
-    if attr > 0 {
-        out.extend_from_slice(format!("\x1b[{}m", attr).as_bytes());
-    }
-    out.extend_from_slice(slice);
-    if attr > 0 {
-        out.extend_from_slice(b"\x1b[0m");
-    }
-    out.push(0);
-    out
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn rs_add_msg_hist(s: *const c_char, len: c_int, attr: c_int) {
-    if s.is_null() {
-        return;
-    }
-    let mut l = len;
-    let bytes: &[u8];
-    if l < 0 {
-        let cstr = CStr::from_ptr(s);
-        bytes = cstr.to_bytes();
-        l = bytes.len() as c_int;
+// Very small translation table for demonstration purposes.
+fn translate(msg: &str) -> String {
+    let lang = std::env::var("LANG").unwrap_or_default();
+    if lang.starts_with("ja") {
+        match msg {
+            "Hello" => "こんにちは".to_string(),
+            "Error" => "エラー".to_string(),
+            _ => msg.to_string(),
+        }
     } else {
-        bytes = std::slice::from_raw_parts(s as *const u8, l as usize);
-    }
-    let mut start = 0usize;
-    let mut end = bytes.len();
-    while start < end && bytes[start] == b'\n' { start += 1; }
-    while end > start && bytes[end - 1] == b'\n' { end -= 1; }
-    if start >= end {
-        return;
-    }
-    let slice = &bytes[start..end];
-    let formatted = format_with_attr(slice, attr);
-    let msg_ptr = malloc(formatted.len()) as *mut c_char;
-    if msg_ptr.is_null() {
-        return;
-    }
-    ptr::copy_nonoverlapping(formatted.as_ptr() as *const c_char, msg_ptr, formatted.len());
-    let node = alloc_msg_hist();
-    if node.is_null() {
-        free(msg_ptr as *mut _);
-        return;
-    }
-    (*node).msg = msg_ptr;
-    (*node).attr = attr;
-    if !last_msg_hist.is_null() {
-        (*last_msg_hist).next = node;
-    }
-    last_msg_hist = node;
-    if first_msg_hist.is_null() {
-        first_msg_hist = node;
-    }
-    msg_hist_len += 1;
-    rs_check_msg_hist();
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn rs_delete_first_msg() -> c_int {
-    if msg_hist_len <= 0 || first_msg_hist.is_null() {
-        return 1; // FAIL
-    }
-    let p = first_msg_hist;
-    first_msg_hist = (*p).next;
-    if first_msg_hist.is_null() {
-        last_msg_hist = ptr::null_mut();
-    }
-    if !(*p).msg.is_null() {
-        free((*p).msg as *mut _);
-    }
-    free(p as *mut _);
-    msg_hist_len -= 1;
-    0 // OK
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn rs_check_msg_hist() {
-    while msg_hist_len > 0 && msg_hist_len > msg_hist_max {
-        rs_delete_first_msg();
+        msg.to_string()
     }
 }
 
+/// Enqueue a message with the given log level.
 #[no_mangle]
-pub unsafe extern "C" fn rs_render_msg(s: *const c_char, attr: c_int) {
+pub unsafe extern "C" fn rs_queue_message(msg: *const c_char, level: c_int) {
+    if msg.is_null() {
+        return;
+    }
+    let cstr = CStr::from_ptr(msg);
+    let text = translate(cstr.to_str().unwrap_or(""));
+    let cstring = match CString::new(text) {
+        Ok(cs) => cs,
+        Err(_) => return,
+        };
+    let lvl = match level {
+        1 => LogLevel::Warn,
+        2 => LogLevel::Error,
+        _ => LogLevel::Info,
+    };
+
+    if lvl == LogLevel::Error {
+        *LAST_ERROR.lock().unwrap() = Some(cstring.clone());
+    }
+    MSG_QUEUE
+        .lock()
+        .unwrap()
+        .push_back(QueuedMsg { text: cstring, level: lvl });
+}
+
+/// Pop the next queued message.  Returns a newly allocated C string that must be
+/// freed with `rs_free_cstring`.  When `level` is not NULL the log level is
+/// written there.  Returns NULL when the queue is empty.
+#[no_mangle]
+pub unsafe extern "C" fn rs_pop_message(level: *mut c_int) -> *mut c_char {
+    let mut queue = MSG_QUEUE.lock().unwrap();
+    if let Some(msg) = queue.pop_front() {
+        if !level.is_null() {
+            *level = msg.level as c_int;
+        }
+        return CString::into_raw(msg.text);
+    }
+    ptr::null_mut()
+}
+
+/// Return a pointer to the last error message or NULL when none was recorded.
+#[no_mangle]
+pub unsafe extern "C" fn rs_get_last_error() -> *const c_char {
+    let guard = LAST_ERROR.lock().unwrap();
+    match guard.as_ref() {
+        Some(cs) => cs.as_ptr(),
+        None => ptr::null(),
+    }
+}
+
+/// Clear all queued messages and the last error.
+#[no_mangle]
+pub unsafe extern "C" fn rs_clear_messages() {
+    MSG_QUEUE.lock().unwrap().clear();
+    LAST_ERROR.lock().unwrap().take();
+}
+
+/// Free a C string that originated from this module.
+#[no_mangle]
+pub unsafe extern "C" fn rs_free_cstring(s: *mut c_char) {
     if s.is_null() {
         return;
     }
-    let cstr = CStr::from_ptr(s);
-    let bytes = cstr.to_bytes();
-    let formatted = format_with_attr(bytes, attr);
-    let _ = io::stdout().write_all(&formatted[..formatted.len() - 1]);
-    let _ = io::stdout().flush();
+    let _ = CString::from_raw(s);
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::ffi::CStr;
 
     #[test]
-    fn multibyte_and_color() {
+    fn log_level_and_i18n() {
         unsafe {
-            // reset globals
-            first_msg_hist = ptr::null_mut();
-            last_msg_hist = ptr::null_mut();
-            msg_hist_len = 0;
-            msg_hist_max = 10;
+            rs_clear_messages();
+            std::env::set_var("LANG", "ja_JP.UTF-8");
+            let msg = CString::new("Hello").unwrap();
+            rs_queue_message(msg.as_ptr(), LogLevel::Info as c_int);
+            let mut lvl = -1;
+            let ptr = rs_pop_message(&mut lvl as *mut c_int);
+            let rust_str = CStr::from_ptr(ptr).to_str().unwrap().to_string();
+            rs_free_cstring(ptr);
+            assert_eq!(rust_str, "こんにちは");
+            assert_eq!(lvl, LogLevel::Info as c_int);
 
-            rs_add_msg_hist(b"\xC3\x84\xC3\x96\xC3\x9C\xC3\xA4\0".as_ptr() as *const c_char, -1, 0);
-            assert_eq!(msg_hist_len, 1);
-            let msg1 = CStr::from_ptr((*first_msg_hist).msg).to_str().unwrap();
-            assert_eq!(msg1, "ÄÖÜä");
-
-            rs_add_msg_hist(b"hello\0".as_ptr() as *const c_char, -1, 31);
-            assert_eq!(msg_hist_len, 2);
-            let msg2 = CStr::from_ptr((*last_msg_hist).msg).to_str().unwrap();
-            assert_eq!(msg2, "\u{1b}[31mhello\u{1b}[0m");
+            rs_clear_messages();
+            std::env::set_var("LANG", "C");
+            let err = CString::new("failure").unwrap();
+            rs_queue_message(err.as_ptr(), LogLevel::Error as c_int);
+            let mut lvl2 = -1;
+            let ptr2 = rs_pop_message(&mut lvl2 as *mut c_int);
+            let last_err = CStr::from_ptr(rs_get_last_error()).to_str().unwrap();
+            rs_free_cstring(ptr2);
+            assert_eq!(lvl2, LogLevel::Error as c_int);
+            assert_eq!(last_err, "failure");
         }
     }
 }
+
