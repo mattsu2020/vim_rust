@@ -1269,6 +1269,7 @@ dependencies = [
  "rust_gui_core",
  "rust_gui_w32",
  "rust_gui_x11",
+ "rust_screen",
 ]
 
 [[package]]
@@ -1659,6 +1660,7 @@ version = "0.1.0"
 name = "rust_spellsuggest"
 version = "0.1.0"
 dependencies = [
+ "criterion",
  "rust_spellfile",
 ]
 
