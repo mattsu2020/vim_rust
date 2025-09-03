@@ -36,37 +36,45 @@ impl ScreenBuffer {
         }
     }
 
-    pub fn clear_line(&mut self, row: usize, attr: u8) {
-        if row >= self.height {
+    /// Helper to iterate over a range of cells on a single row.
+    /// Performs bounds checks for `row` and `col` and limits iteration to the
+    /// current line.
+    fn for_each_cell<F>(&mut self, row: usize, col: usize, len: usize, mut f: F)
+    where
+        F: FnMut(&mut Self, usize),
+    {
+        if row >= self.height || col >= self.width {
             return;
         }
-        let start = row * self.width;
-        for i in 0..self.width {
-            self.lines[start + i] = ' ';
-            self.attrs[start + i] = attr;
+        let start = row * self.width + col;
+        let end = start + len.min(self.width - col);
+        for idx in start..end {
+            f(self, idx);
         }
+    }
+
+    pub fn clear_line(&mut self, row: usize, attr: u8) {
+        self.for_each_cell(row, 0, self.width, |sb, idx| {
+            sb.lines[idx] = ' ';
+            sb.attrs[idx] = attr;
+        });
     }
 
     /// Clear the entire screen buffer with the given attribute.
     pub fn clear(&mut self, attr: u8) {
-        for i in 0..self.lines.len() {
-            self.lines[i] = ' ';
-            self.attrs[i] = attr;
+        for row in 0..self.height {
+            self.for_each_cell(row, 0, self.width, |sb, idx| {
+                sb.lines[idx] = ' ';
+                sb.attrs[idx] = attr;
+            });
         }
     }
 
     /// Apply a highlight attribute to a range without modifying the text.
     pub fn highlight_range(&mut self, row: usize, col: usize, len: usize, attr: u8) {
-        if row >= self.height {
-            return;
-        }
-        for i in 0..len {
-            if col + i >= self.width {
-                break;
-            }
-            let idx = row * self.width + col + i;
-            self.attrs[idx] = attr;
-        }
+        self.for_each_cell(row, col, len, |sb, idx| {
+            sb.attrs[idx] = attr;
+        });
     }
 
     pub fn line_as_string(&self, row: usize) -> String {
@@ -267,5 +275,16 @@ mod tests {
         rs_screen_clear(&mut sb as *mut ScreenBuffer, 0);
         assert_eq!(sb.line_as_string(0), "   ");
         assert_eq!(sb.line_as_string(1), "   ");
+    }
+
+    #[test]
+    fn for_each_cell_bounds() {
+        let mut sb = ScreenBuffer::new(5, 2);
+        let mut idxs = Vec::new();
+        sb.for_each_cell(1, 3, 10, |_, idx| idxs.push(idx));
+        assert_eq!(idxs, vec![8, 9]);
+        sb.for_each_cell(2, 0, 1, |_, idx| idxs.push(idx));
+        sb.for_each_cell(0, 5, 1, |_, idx| idxs.push(idx));
+        assert_eq!(idxs, vec![8, 9]);
     }
 }
