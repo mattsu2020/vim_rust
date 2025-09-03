@@ -123,8 +123,6 @@ SRC_ALL =	\
 		src/option.h \
 		src/optiondefs.h \
 		src/optionstr.c \
-		src/popupmenu.c \
-		src/popupwin.c \
 		src/profiler.c \
 		src/quickfix.c \
 		src/regexp.c \
@@ -134,7 +132,6 @@ SRC_ALL =	\
 		src/register.c \
 		src/scriptfile.c \
 		src/screen.c \
-		src/search.c \
 		src/session.c \
 		src/sha256.c \
                 src/sound.c \
@@ -145,19 +142,15 @@ SRC_ALL =	\
 		src/syntax.c \
 		src/tabpanel.c \
 		src/tag.c \
-		src/term.c \
 		src/terminal.c \
 		src/termdefs.h \
 		src/termlib.c \
 		src/testing.c \
 		src/textformat.c \
-		src/textobject.c \
-		src/textprop.c \
 		src/time.c \
 		src/tuple.c \
 		src/typval.c \
 		src/ui.c \
-		src/undo.c \
 		src/usercmd.c \
 		src/userfunc.c \
 		src/version.c \
@@ -175,7 +168,6 @@ SRC_ALL =	\
                 src/vim9type.c \
                 src/viminfo.c \
                 src/winclip.c \
-                src/window.c \
                 src/testdir/*.in \
                 src/testdir/*.py \
 		src/testdir/Make_all.mak \
