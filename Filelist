@@ -50,7 +50,6 @@ SRC_ALL =	\
 		src/cmdexpand.c \
 		src/cmdhist.c \
 		src/crypt.c \
-		src/crypt_zip.c \
 		src/debugger.c \
 		src/dict.c \
 		src/diff.c \
@@ -517,8 +516,6 @@ SRC_DOS =	\
 		src/msvc2022.bat \
 		src/msys32.bat \
 		src/msys64.bat \
-		src/dosinst.c \
-		src/dosinst.h \
 		src/gui_dwrite.cpp \
 		src/gui_dwrite.h \
 		src/gui_w32.c \
@@ -538,7 +535,6 @@ SRC_DOS =	\
 		src/testdir/Make_mvc.mak \
 		src/testdir/Make_ming.mak \
 		src/testdir/util/dos.vim \
-		src/uninstall.c \
 		src/vim.rc \
 		src/vim.manifest \
 		src/vimrun.c \

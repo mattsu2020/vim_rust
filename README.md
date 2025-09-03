@@ -91,6 +91,9 @@ For historical C sources see the [`src`](./src/) directory and
 
 ## Installation
 
+A Rust-based installer replaces the former C utilities `dosinst` and `uninstall`.
+Use `cargo run -p rust_installer -- install` to install and `cargo run -p rust_installer -- uninstall` to remove a build.
+
 See one of these files for system-specific instructions.  Either in the
 [READMEdir directory](./READMEdir/) (in the repository) or
 the top directory (if you unpack an archive):

@@ -58,7 +58,6 @@ extern int _stricoll(char *a, char *b);
 
 # ifdef FEAT_CRYPT
 #  include "crypt.pro"
-#  include "crypt_zip.pro"
 # endif
 # include "alloc.pro"
 # include "arglist.pro"

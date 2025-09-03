@@ -1,0 +1,11 @@
+[package]
+name = "rust_installer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+
+[[bin]]
+name = "rust_installer"
+path = "src/main.rs"
