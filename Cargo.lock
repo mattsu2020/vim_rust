@@ -300,6 +300,32 @@ dependencies = [
 
 [[package]]
 name = "criterion"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e7c76e09c1aae2bc52b3d2f29e13c6572553b30c4aa1b8a49fd70de6412654cb"
+dependencies = [
+ "anes",
+ "atty",
+ "cast",
+ "ciborium",
+ "clap 3.2.25",
+ "criterion-plot",
+ "itertools 0.10.5",
+ "lazy_static",
+ "num-traits",
+ "oorandom",
+ "plotters",
+ "rayon",
+ "regex",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "tinytemplate",
+ "walkdir",
+]
+
+[[package]]
+name = "criterion"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2b12d017a929603d80db1831cd3a24082f8137ce19c69e6447f54f5fc8d692f"
@@ -1255,6 +1281,10 @@ name = "rust_charset"
 version = "0.1.0"
 
 [[package]]
+name = "rust_cmdexpand"
+version = "0.1.0"
+
+[[package]]
 name = "rust_cmdhist"
 version = "0.1.0"
 dependencies = [
@@ -1650,6 +1680,7 @@ dependencies = [
 name = "rust_regex_engine"
 version = "0.1.0"
 dependencies = [
+ "criterion 0.4.0",
  "regex",
 ]
 
@@ -1657,7 +1688,7 @@ dependencies = [
 name = "rust_regexp"
 version = "0.1.0"
 dependencies = [
- "criterion",
+ "criterion 0.5.1",
  "regex",
 ]
 
@@ -1707,11 +1738,12 @@ dependencies = [
 [[package]]
 name = "rust_spellfile"
 version = "0.1.0"
+
 [[package]]
 name = "rust_spellsuggest"
 version = "0.1.0"
 dependencies = [
- "criterion",
+ "criterion 0.5.1",
  "rust_spellfile",
 ]
 
@@ -1764,6 +1796,13 @@ version = "0.1.0"
 dependencies = [
  "libc",
  "once_cell",
+]
+
+[[package]]
+name = "rust_ui"
+version = "0.1.0"
+dependencies = [
+ "crossterm",
 ]
 
 [[package]]
@@ -2180,11 +2219,13 @@ name = "vim_channel"
 version = "0.1.0"
 dependencies = [
  "diff",
+ "regex",
  "rust_alloc",
  "rust_blob",
  "rust_blowfish",
  "rust_buffer",
  "rust_change",
+ "rust_cmdexpand",
  "rust_cmdhist",
  "rust_debugger",
  "rust_excmds",
@@ -2199,6 +2240,7 @@ dependencies = [
  "rust_python",
  "rust_sha256",
  "rust_spell",
+ "rust_ui",
  "rust_wayland",
  "serde",
  "serde_json",

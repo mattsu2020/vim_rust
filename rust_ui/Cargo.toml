@@ -1,0 +1,11 @@
+[package]
+name = "rust_ui"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "rust_ui"
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+crossterm = "0.27"

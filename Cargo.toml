@@ -35,6 +35,8 @@ rust_wayland = { path = "rust_wayland" }
 rust_change = { path = "rust_change" }
 rust_excmds = { path = "rust_excmds" }
 rust_cmdhist = { path = "rust_cmdhist" }
+rust_cmdexpand = { path = "rust_cmdexpand" }
+rust_ui = { path = "rust_ui" }
 rust_alloc = { path = "rust_alloc" }
 rust_message = { path = "rust_message" }
 rust_blob = { path = "rust_blob" }

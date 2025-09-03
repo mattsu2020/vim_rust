@@ -1785,7 +1785,7 @@ BASIC_SRC = \
 	cindent.c \
 	clientserver.c \
 	clipboard.c \
-	cmdexpand.c \
+#       cmdexpand.c replaced by rust_cmdexpand crate \
 	cmdhist.c \
 	crypt.c \
 	crypt_zip.c \
@@ -1869,7 +1869,7 @@ BASIC_SRC = \
 	time.c \
 	tuple.c \
 	typval.c \
-	ui.c \
+#       ui.c replaced by rust_ui crate \
 	undo.c \
 	usercmd.c \
 	userfunc.c \
@@ -3343,8 +3343,8 @@ objects/clientserver.o: clientserver.c
 objects/clipboard.o: clipboard.c
 	$(CCC) -o $@ clipboard.c
 
-objects/cmdexpand.o: cmdexpand.c
-	$(CCC) -o $@ cmdexpand.c
+#objects/cmdexpand.o: cmdexpand.c
+#$(CCC) -o $@ cmdexpand.c
 
 objects/cmdhist.o: cmdhist.c
 	$(CCC) -o $@ cmdhist.c
@@ -3681,8 +3681,8 @@ objects/tuple.o: tuple.c
 objects/typval.o: typval.c
 	$(CCC) -o $@ typval.c
 
-objects/ui.o: ui.c
-	$(CCC) -o $@ ui.c
+#objects/ui.o: ui.c
+#$(CCC) -o $@ ui.c
 
 objects/undo.o: undo.c
 	$(CCC) -o $@ undo.c
@@ -3891,11 +3891,11 @@ objects/clipboard.o: clipboard.c vim.h protodef.h auto/config.h feature.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h errors.h
-objects/cmdexpand.o: cmdexpand.c vim.h protodef.h auto/config.h feature.h \
- os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
- beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h errors.h
+#objects/cmdexpand.o: cmdexpand.c vim.h protodef.h auto/config.h feature.h \
+# os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
+# beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
+# libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
+# ex_cmds.h spell.h proto.h globals.h errors.h
 objects/cmdhist.o: cmdhist.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
@@ -4308,11 +4308,11 @@ objects/typval.o: typval.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/ui.o: ui.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
+#objects/ui.o: ui.c vim.h protodef.h auto/config.h feature.h os_unix.h \
+# auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
+# proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
+# libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
+# globals.h errors.h
 objects/undo.o: undo.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
