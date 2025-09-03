@@ -1,4 +1,4 @@
-/* ex_cmds.c */
+/* ex_cmds: stub prototypes for Rust implementation (rust_excmds) */
 void do_ascii(exarg_T *eap);
 void ex_align(exarg_T *eap);
 void ex_sort(exarg_T *eap);

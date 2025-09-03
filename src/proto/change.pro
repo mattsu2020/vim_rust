@@ -1,4 +1,4 @@
-/* change.c */
+/* change: stub prototypes for Rust implementation (rust_change) */
 void change_warning(int col);
 void changed(void);
 void changed_internal(void);
