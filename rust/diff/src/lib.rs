@@ -1,4 +1,5 @@
 use core::ffi::{c_char, c_int, c_long, c_void, c_uchar};
+use similar::{ChangeTag, TextDiff};
 
 #[repr(C)]
 pub struct mmfile_t {
@@ -66,53 +67,6 @@ extern "C" {
     fn vim_free(ptr: *mut c_void);
 }
 
-#[derive(Clone, Copy)]
-enum DiffOp<'a> {
-    Equal(&'a str),
-    Insert(&'a str),
-    Delete(&'a str),
-}
-
-fn myers_diff<'a>(a: &[&'a str], b: &[&'a str]) -> Vec<DiffOp<'a>> {
-    let n = a.len();
-    let m = b.len();
-    let mut dp = vec![vec![0usize; m + 1]; n + 1];
-    for i in (0..n).rev() {
-        for j in (0..m).rev() {
-            if a[i] == b[j] {
-                dp[i][j] = dp[i + 1][j + 1] + 1;
-            } else {
-                dp[i][j] = dp[i + 1][j].max(dp[i][j + 1]);
-            }
-        }
-    }
-    let mut i = 0;
-    let mut j = 0;
-    let mut ops = Vec::new();
-    while i < n && j < m {
-        if a[i] == b[j] {
-            ops.push(DiffOp::Equal(a[i]));
-            i += 1;
-            j += 1;
-        } else if dp[i + 1][j] >= dp[i][j + 1] {
-            ops.push(DiffOp::Delete(a[i]));
-            i += 1;
-        } else {
-            ops.push(DiffOp::Insert(b[j]));
-            j += 1;
-        }
-    }
-    while i < n {
-        ops.push(DiffOp::Delete(a[i]));
-        i += 1;
-    }
-    while j < m {
-        ops.push(DiffOp::Insert(b[j]));
-        j += 1;
-    }
-    ops
-}
-
 /// Perform a diff between two mmfiles and emit the result through callbacks.
 /// This mirrors a small subset of the libxdiff `xdl_diff` interface.
 ///
@@ -135,16 +89,21 @@ pub unsafe extern "C" fn xdl_diff(
         let b_str = std::str::from_utf8(b_slice).unwrap_or("");
         let a_lines: Vec<&str> = if a_str.is_empty() { Vec::new() } else { a_str.split_inclusive('\n').collect() };
         let b_lines: Vec<&str> = if b_str.is_empty() { Vec::new() } else { b_str.split_inclusive('\n').collect() };
-        let ops = myers_diff(&a_lines, &b_lines);
+        let diff = TextDiff::configure().diff_slices(&a_lines, &b_lines);
         if let Some(cb) = (*ecb).out_line {
-            for op in ops {
-                let mut line = String::new();
-                match op {
-                    DiffOp::Equal(l) => { line.push(' '); line.push_str(l); }
-                    DiffOp::Insert(l) => { line.push('+'); line.push_str(l); }
-                    DiffOp::Delete(l) => { line.push('-'); line.push_str(l); }
-                }
-                let mut buf = mmbuffer_t { ptr: line.as_mut_ptr() as *mut c_char, size: line.len() as c_long };
+            for change in diff.iter_all_changes() {
+                let val = change.value();
+                let mut line = Vec::with_capacity(val.len() + 1);
+                line.push(match change.tag() {
+                    ChangeTag::Equal => b' ',
+                    ChangeTag::Insert => b'+',
+                    ChangeTag::Delete => b'-',
+                });
+                line.extend_from_slice(val.as_bytes());
+                let mut buf = mmbuffer_t {
+                    ptr: line.as_mut_ptr() as *mut c_char,
+                    size: line.len() as c_long,
+                };
                 cb((*ecb).priv_, &mut buf, 1);
             }
         }
@@ -227,14 +186,5 @@ mod tests {
         assert_eq!(res, 0);
         assert!(output.contains("-b"));
         assert!(output.contains("+c"));
-    }
-
-    #[test]
-    fn myers_algorithm() {
-        let a = vec!["a\n", "b\n"];
-        let b = vec!["a\n", "c\n"];
-        let ops = myers_diff(&a, &b);
-        assert!(ops.iter().any(|op| matches!(op, DiffOp::Delete("b\n"))));
-        assert!(ops.iter().any(|op| matches!(op, DiffOp::Insert("c\n"))));
     }
 }
