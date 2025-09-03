@@ -2192,6 +2192,7 @@ dependencies = [
  "rust_alloc",
  "rust_blob",
  "rust_buffer",
+ "rust_bufwrite",
  "rust_change",
  "rust_cmdhist",
  "rust_debugger",

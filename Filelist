@@ -95,7 +95,6 @@ SRC_ALL =	\
 		src/locale.c \
 		src/logfile.c \
 		src/macros.h \
-		src/main.c \
 		src/map.c \
 		src/mark.c \
 		src/match.c \
