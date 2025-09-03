@@ -92,17 +92,26 @@ pub extern "C" fn rust_regex_match(
     let pattern = pattern.to_string();
     let text = text.to_string();
     let magic = magic != 0;
-    thread::spawn(move || {
+    let handle = thread::spawn(move || {
         let result = compile_pattern(&pattern, magic)
             .map(|re| re.is_match(&text))
             .unwrap_or(false);
         let _ = tx.send(result);
     });
     let timeout = Duration::from_millis(timeout_ms as u64);
-    match rx.recv_timeout(timeout) {
-        Ok(v) => if v { 1 } else { 0 },
+    let ret = match rx.recv_timeout(timeout) {
+        Ok(v) => {
+            if v {
+                1
+            } else {
+                0
+            }
+        }
+        Err(mpsc::RecvTimeoutError::Timeout) => -1,
         Err(_) => 0,
-    }
+    };
+    let _ = handle.join();
+    ret
 }
 
 #[cfg(test)]
@@ -110,21 +119,21 @@ mod tests {
     use super::rust_regex_match;
     use std::ffi::CString;
 
-    fn call(pattern: &str, text: &str, magic: bool, timeout: i64) -> bool {
+    fn call(pattern: &str, text: &str, magic: bool, timeout: i64) -> i32 {
         let pat = CString::new(pattern).unwrap();
         let txt = CString::new(text).unwrap();
-        rust_regex_match(pat.as_ptr(), txt.as_ptr(), magic as i32, timeout as i64) != 0
+        rust_regex_match(pat.as_ptr(), txt.as_ptr(), magic as i32, timeout as i64)
     }
 
     #[test]
     fn magic_characters() {
-        assert!(call("a.c", "abc", true, 1000));
-        assert!(!call("a.c", "abc", false, 1000));
+        assert_eq!(call("a.c", "abc", true, 1000), 1);
+        assert_eq!(call("a.c", "abc", false, 1000), 0);
     }
 
     #[test]
     fn timeout_expires() {
         // Zero timeout should cause the matcher to give up before finishing
-        assert!(!call("a", "a", true, 0));
+        assert_eq!(call("a", "a", true, 0), -1);
     }
 }
