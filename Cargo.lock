@@ -1487,6 +1487,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_clientserver"
+version = "0.1.0"
+dependencies = [
+ "tokio",
+]
+
+[[package]]
 name = "rust_cmdhist"
 version = "0.1.0"
 dependencies = [
@@ -1795,6 +1802,13 @@ name = "rust_os_amiga"
 version = "0.1.0"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "rust_os_api"
+version = "0.1.0"
+dependencies = [
+ "crossterm",
 ]
 
 [[package]]
