@@ -5,63 +5,7 @@ use std::iter::Peekable;
 use std::os::raw::c_char;
 use std::str::Chars;
 use std::sync::Mutex;
-
-#[repr(C)]
-#[derive(Clone, Copy)]
-pub enum Vartype {
-    VAR_UNKNOWN = 0,
-    VAR_ANY,
-    VAR_VOID,
-    VAR_BOOL,
-    VAR_SPECIAL,
-    VAR_NUMBER,
-    VAR_FLOAT,
-    VAR_STRING,
-}
-
-#[repr(C)]
-pub union ValUnion {
-    pub v_number: i64,
-    pub v_string: *mut c_char,
-}
-
-#[repr(C)]
-pub struct typval_T {
-    pub v_type: Vartype,
-    pub v_lock: c_char,
-    pub vval: ValUnion,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum Value {
-    Number(i64),
-    Str(String),
-}
-
-impl Value {
-    fn as_number(&self) -> Result<i64, ()> {
-        match self {
-            Value::Number(n) => Ok(*n),
-            Value::Str(s) => s.parse().map_err(|_| ()),
-        }
-    }
-
-    fn to_string(&self) -> String {
-        match self {
-            Value::Number(n) => n.to_string(),
-            Value::Str(s) => s.clone(),
-        }
-    }
-}
-
-impl std::fmt::Display for Value {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Value::Number(n) => write!(f, "{}", n),
-            Value::Str(s) => write!(f, "{}", s),
-        }
-    }
-}
+pub use rust_core::{typval_T, ValUnion, Vartype, Value, to_typval, from_typval, tv_free};
 
 #[derive(Debug, Clone)]
 enum Expr {
@@ -361,39 +305,6 @@ fn eval(expr: &Expr, ctx: &Evaluator) -> Result<Value, ()> {
     }
 }
 
-unsafe fn to_typval(val: Value, out: *mut typval_T) {
-    match val {
-        Value::Number(n) => {
-            (*out).v_type = Vartype::VAR_NUMBER;
-            (*out).v_lock = 0;
-            (*out).vval.v_number = n;
-        }
-        Value::Str(s) => {
-            (*out).v_type = Vartype::VAR_STRING;
-            (*out).v_lock = 0;
-            let cstr = CString::new(s).unwrap();
-            (*out).vval.v_string = cstr.into_raw();
-        }
-    }
-}
-
-unsafe fn from_typval(tv: *const typval_T) -> Option<Value> {
-    if tv.is_null() {
-        return None;
-    }
-    match (*tv).v_type {
-        Vartype::VAR_NUMBER => Some(Value::Number((*tv).vval.v_number)),
-        Vartype::VAR_STRING => {
-            if (*tv).vval.v_string.is_null() {
-                Some(Value::Str(String::new()))
-            } else {
-                let cstr = CStr::from_ptr((*tv).vval.v_string);
-                cstr.to_str().ok().map(|s| Value::Str(s.to_string()))
-            }
-        }
-        _ => None,
-    }
-}
 
 #[no_mangle]
 pub extern "C" fn eval_expr_rs(expr: *const c_char, out: *mut typval_T) -> bool {
@@ -563,9 +474,7 @@ mod tests {
         unsafe {
             to_typval(val.clone(), &mut tv);
             let back = from_typval(&tv as *const typval_T).unwrap();
-            if let Vartype::VAR_STRING = tv.v_type {
-                let _ = CString::from_raw(tv.vval.v_string);
-            }
+            tv_free(&mut tv);
             assert_eq!(back, val);
         }
     }

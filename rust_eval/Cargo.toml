@@ -9,4 +9,4 @@ crate-type = ["staticlib", "rlib"]
 
 [dependencies]
 once_cell = "1"
-
+rust_core = { path = "../rust_core" }
