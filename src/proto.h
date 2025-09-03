@@ -326,9 +326,6 @@ extern char_u *vimpty_getenv(const char_u *string);	// in misc2.c
 # ifdef FEAT_OLE
 #  include "if_ole.pro"
 # endif
-# if defined(FEAT_CLIENTSERVER) && defined(FEAT_X11)
-#  include "if_xcmdsrv.pro"
-# endif
 
 /*
  * The perl include files pollute the namespace, therefore proto.h must be

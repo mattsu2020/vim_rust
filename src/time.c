@@ -13,6 +13,8 @@
 
 #include "vim.h"
 
+// FFI: implemented in rust_time crate
+extern time_T rs_vim_time(void);
 /*
  * Cache of the current timezone name as retrieved from TZ, or an empty string
  * where unset, up to 64 octets long including trailing null byte.
@@ -59,17 +61,13 @@ vim_localtime(
 }
 
 /*
- * Return the current time in seconds.  Calls time(), unless test_settime()
- * was used.
+ * Return the current time in seconds.  Implementation provided by the
+ * Rust `rust_time` module.
  */
     time_T
 vim_time(void)
 {
-# ifdef FEAT_EVAL
-    return time_for_testing == 0 ? time(NULL) : time_for_testing;
-# else
-    return time(NULL);
-# endif
+    return rs_vim_time();
 }
 
 /*

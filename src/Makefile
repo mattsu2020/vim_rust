@@ -1397,6 +1397,8 @@ RUST_PYTHON_DIR = ../rust_python
 RUST_PYTHON_LIB = $(RUST_PYTHON_DIR)/target/release/librust_python.a
 RUST_EVALFUNC_DIR = ../rust_evalfunc
 RUST_EVALFUNC_LIB = $(RUST_EVALFUNC_DIR)/target/release/librust_evalfunc.a
+RUST_EVALFUNC_STUBS_DIR = ../rust_evalfunc_stubs
+RUST_EVALFUNC_STUBS_LIB = $(RUST_EVALFUNC_STUBS_DIR)/target/release/librust_evalfunc_stubs.a
 # Rust eval crate exposing eval_expr_rs used by C side
 RUST_EVAL_DIR = ../rust_eval
 RUST_EVAL_LIB = $(RUST_EVAL_DIR)/target/release/librust_eval.a
@@ -1440,6 +1442,8 @@ RUST_BLOB_DIR = ../rust_blob
 RUST_BLOB_LIB = $(RUST_BLOB_DIR)/target/release/librust_blob.a
 RUST_SHA256_DIR = ../rust_sha256
 RUST_SHA256_LIB = $(RUST_SHA256_DIR)/target/release/librust_sha256.a
+RUST_XCMDSRV_DIR = ../rust_xcmdsrv
+RUST_XCMDSRV_LIB = $(RUST_XCMDSRV_DIR)/target/release/librust_xcmdsrv.a
 
 # Additional Rust crates used by this configuration
 RUST_CHANGE_DIR = ../rust_change
@@ -1475,6 +1479,7 @@ ALL_LIBS = \
            $(RUST_CHANNEL_LIB) \
            $(RUST_GUI_LIB) \
            $(RUST_EVALFUNC_LIB) \
+           $(RUST_EVALFUNC_STUBS_LIB) \
            $(RUST_EVAL_LIB) \
            $(RUST_VIM9_LIB) \
            $(RUST_EXCMD_LIB) \
@@ -1496,6 +1501,7 @@ ALL_LIBS = \
            $(RUST_SIGN_LIB) \
            $(RUST_BLOB_LIB) \
            $(RUST_SHA256_LIB) \
+           $(RUST_XCMDSRV_LIB) \
            $(LUA_LIBS) \
            $(PERL_LIBS) \
            $(PYTHON_LIBS) \
@@ -1575,7 +1581,10 @@ $(RUST_GUI_LIB):
 	cd $(RUST_GUI_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_EVALFUNC_LIB):
-	cd $(RUST_EVALFUNC_DIR) && CARGO_TARGET_DIR=target cargo build --release
+       cd $(RUST_EVALFUNC_DIR) && CARGO_TARGET_DIR=target cargo build --release
+
+$(RUST_EVALFUNC_STUBS_LIB):
+       cd $(RUST_EVALFUNC_STUBS_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_EVAL_LIB):
 	cd $(RUST_EVAL_DIR) && CARGO_TARGET_DIR=target cargo build --release
@@ -1638,7 +1647,10 @@ $(RUST_BLOB_LIB):
 	cd $(RUST_BLOB_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_SHA256_LIB):
-	cd $(RUST_SHA256_DIR) && CARGO_TARGET_DIR=target cargo build --release
+       cd $(RUST_SHA256_DIR) && CARGO_TARGET_DIR=target cargo build --release
+
+$(RUST_XCMDSRV_LIB):
+       cd $(RUST_XCMDSRV_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 # Additional Rust libraries providing rs_* APIs used across the C codebase
 RUST_ARGLIST_DIR = ../rust_arglist
@@ -1810,7 +1822,6 @@ BASIC_SRC = \
         \
         highlight.c \
         if_cscope.c \
-        if_xcmdsrv.c \
         indent.c \
         insexpand.c \
         linematch.c \
@@ -1968,7 +1979,6 @@ OBJ_COMMON = \
 	objects/help.o \
 	objects/highlight.o \
 	objects/if_cscope.o \
-	objects/if_xcmdsrv.o \
 	objects/indent.o \
 	objects/insexpand.o \
 	objects/linematch.o \
@@ -2053,8 +2063,7 @@ OBJ_MAIN = \
 	objects/json.o \
 	objects/main.o \
 	objects/memfile.o \
-       objects/message.o \
-       objects/evalfunc_stubs.o
+       objects/message.o
 
 OBJ = $(OBJ_COMMON) $(OBJ_MAIN)
 
@@ -2114,7 +2123,6 @@ PRO_AUTO = \
 	if_lua.pro \
         if_mzsch.pro \
         if_ruby.pro \
-        if_xcmdsrv.pro \
 	indent.pro \
         insexpand.pro \
         job.pro \
@@ -2303,7 +2311,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(SRC_RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_BUFWRITE_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_EVAL_LIB) $(RUST_VIM9_LIB) $(RUST_EXCMD_LIB) $(RUST_CMDHIST_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB) $(RUST_TAG_LIB) $(RUST_ALLOC_LIB) $(RUST_BLOB_LIB) $(RUST_SHA256_LIB)
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(SRC_RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_BUFWRITE_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_EVALFUNC_STUBS_LIB) $(RUST_EVAL_LIB) $(RUST_VIM9_LIB) $(RUST_EXCMD_LIB) $(RUST_CMDHIST_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB) $(RUST_TAG_LIB) $(RUST_ALLOC_LIB) $(RUST_BLOB_LIB) $(RUST_SHA256_LIB)
 	@$(BUILD_DATE_MSG)
     @LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) objects/*.o $(ALL_LIBS)" \
@@ -3460,8 +3468,6 @@ objects/highlight.o: highlight.c
 objects/if_cscope.o: if_cscope.c
 	$(CCC) -o $@ if_cscope.c
 
-objects/if_xcmdsrv.o: if_xcmdsrv.c
-	$(CCC) -o $@ if_xcmdsrv.c
 
 objects/if_lua.o: if_lua.c
 	$(CCC_NF) $(LUA_CFLAGS) $(ALL_CFLAGS) $(LUA_CFLAGS_EXTRA) -o $@ if_lua.c
@@ -4027,11 +4033,6 @@ objects/if_cscope.o: if_cscope.c vim.h protodef.h auto/config.h feature.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h errors.h
-objects/if_xcmdsrv.o: if_xcmdsrv.c vim.h protodef.h auto/config.h feature.h \
- os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
- beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h errors.h version.h
 objects/indent.o: indent.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
@@ -4499,5 +4500,3 @@ objects/gui_gtk_gresources.o: auto/gui_gtk_gresources.c
 ## objects/vterm_*: C版libvtermを撤去したため依存を削除
 objects/message.o: message.c
 	$(CCC) -o $@ message.c
-objects/evalfunc_stubs.o: evalfunc_stubs.c
-	$(CCC) -o $@ evalfunc_stubs.c

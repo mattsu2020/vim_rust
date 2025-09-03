@@ -55,10 +55,6 @@
 #endif
 #include <string.h>
 #include <limits.h>
-// This include comes from git, so uncomment it
-#if 0
-#include "git-compat-util.h"
-#endif
 #include "xmacros.h"
 #include "xdiff.h"
 #include "xtypes.h"

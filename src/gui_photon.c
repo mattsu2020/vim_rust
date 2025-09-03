@@ -685,13 +685,7 @@ gui_ph_handle_mouse(PtWidget_t *widget, void *data, PtCallbackInfo_t *info)
 	button = MOUSE_RELEASE;
 
     if (info->event->type & Ph_EV_PTR_MOTION_BUTTON)
-	button = MOUSE_DRAG;
-
-#if 0
-    // Vim doesn't use button repeats
-    if (info->event->type & Ph_EV_BUT_REPEAT)
-	button = MOUSE_DRAG;
-#endif
+        button = MOUSE_DRAG;
 
     // Don't do anything if it is one of the phantom mouse release events
     if ((button != MOUSE_RELEASE) ||
@@ -739,18 +733,6 @@ gui_ph_handle_raw_draw(PtWidget_t *widget, PhTile_t *damage)
     PtSuperClassDraw(PtBasic, widget, damage);
     PgGetTranslation(&translation);
     PgClearTranslation();
-
-#if 0
-    /*
-     * This causes some weird problems, with drawing being done from
-     * within this raw drawing function (rather than just simple clearing
-     * and text drawing done by gui_redraw)
-     *
-     * The main problem is when PhBlit is used, and the cursor appearing
-     * in places where it shouldn't
-     */
-    out_flush();
-#endif
 
     PtWidgetOffset(widget, &offset);
     PhTranslatePoint(&offset, PtWidgetPos(gui.vimTextArea, NULL));
@@ -1802,26 +1784,6 @@ gui_mch_create_scrollbar(scrollbar_T *sb, int orient)
     PtSetArg(&args[ n++ ], Pt_ARG_FLAGS, Pt_DELAY_REALIZE,
 	    Pt_DELAY_REALIZE | Pt_GETS_FOCUS);
     PtSetArg(&args[ n++ ], Pt_ARG_SCROLLBAR_FLAGS, Pt_SCROLLBAR_SHOW_ARROWS, 0);
-#if 0
-    // Don't need this anchoring for the scrollbars
-    if (orient == SBAR_HORIZ)
-    {
-	anchor_flags = Pt_BOTTOM_ANCHORED_BOTTOM |
-	    Pt_LEFT_ANCHORED_LEFT | Pt_RIGHT_ANCHORED_RIGHT;
-    }
-    else
-    {
-	anchor_flags = Pt_BOTTOM_ANCHORED_BOTTOM | Pt_TOP_ANCHORED_TOP;
-	if (sb->wp != NULL)
-	{
-	    if (sb == &sb->wp->w_scrollbars[ SBAR_LEFT ])
-		anchor_flags |= Pt_LEFT_ANCHORED_LEFT;
-	    else
-		anchor_flags |= Pt_RIGHT_ANCHORED_RIGHT;
-	}
-    }
-    PtSetArg(&args[ n++ ], Pt_ARG_ANCHOR_FLAGS, anchor_flags, Pt_IS_ANCHORED);
-#endif
     PtSetArg(&args[ n++ ], Pt_ARG_ORIENTATION,
 	    (orient == SBAR_HORIZ) ? Pt_HORIZONTAL : Pt_VERTICAL, 0);
 #ifdef USE_PANEL_GROUP
@@ -1966,32 +1928,6 @@ gui_mch_get_rgb(guicolor_T pixel)
     void
 gui_mch_new_colors(void)
 {
-#if 0 // Don't bother changing the cursor colour
-    short color_diff;
-
-    /*
-     * If there isn't enough difference between the background colour and
-     * the mouse pointer colour then change the mouse pointer colour
-     */
-    color_diff = gui_get_lightness(gui_ph_mouse_color)
-					  - gui_get_lightness(gui.back_pixel);
-
-    if (abs(color_diff) < 64)
-    {
-	short r, g, b;
-	// not a great algorithm...
-	r = PgRedValue(gui_ph_mouse_color) ^ 255;
-	g = PgGreenValue(gui_ph_mouse_color) ^ 255;
-	b = PgBlueValue(gui_ph_mouse_color) ^ 255;
-
-#ifndef FEAT_MOUSESHAPE
-	gui_ph_mouse_color = PgRGB(r, g, b);
-	PtSetResource(gui.vimTextArea, Pt_ARG_CURSOR_COLOR,
-		gui_ph_mouse_color, 0);
-#endif
-    }
-#endif
-
     PtSetResource(gui.vimTextArea, Pt_ARG_FILL_COLOR, gui.back_pixel, 0);
 }
 
@@ -2199,20 +2135,12 @@ gui_mch_draw_string(int row, int col, char_u *s, int len, int flags)
 	// FIXME: try and only calculate these values once...
 	rect.ul.x = FILL_X(col) + 1;
 	rect.ul.y = FILL_Y(row);
-	rect.lr.x = FILL_X(col + len) - 1;
-	rect.lr.y = FILL_Y(row + 1) - 1;
-	// PgSetUserClip(NULL) causes the scrollbar to not redraw...
-#if 0
-	pos.x++;
-
-	PgSetUserClip(&rect);
-	PgDrawText(s, len, &pos, 0);
-	PgSetUserClip(NULL);
-#else
-	rect.lr.y -= (p_linespace + 1) / 2;
-	// XXX: DrawTextArea doesn't work with phditto
-	PgDrawTextArea(s, len, &rect, Pg_TEXT_BOTTOM);
-#endif
+        rect.lr.x = FILL_X(col + len) - 1;
+        rect.lr.y = FILL_Y(row + 1) - 1;
+        // PgSetUserClip(NULL) causes the scrollbar to not redraw...
+        rect.lr.y -= (p_linespace + 1) / 2;
+        // XXX: DrawTextArea doesn't work with phditto
+        PgDrawTextArea(s, len, &rect, Pg_TEXT_BOTTOM);
     }
 
     if (flags & DRAW_UNDERL)
