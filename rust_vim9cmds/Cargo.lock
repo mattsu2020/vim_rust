@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust_vim9"
+name = "rust_vim9cmds"
 version = "0.1.0"
 dependencies = [
  "rust_eval",

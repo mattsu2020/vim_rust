@@ -1782,7 +1782,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust_vim9"
+name = "rust_vim9cmds"
 version = "0.1.0"
 dependencies = [
  "rust_eval",
@@ -2690,3 +2690,6 @@ checksum = "e0b1513b141123073ce54d5bb1d33f801f17508fbd61e02060b1214e96d39c56"
 dependencies = [
  "nix 0.25.1",
 ]
+[[package]]
+name = "rust_vim9compile"
+version = "0.1.0"
