@@ -24,70 +24,20 @@
  */
 
 #include "version.h"
+#include "../rust_version/include/rust_version.h"
 
-char		*Version = VIM_VERSION_SHORT;
-static char	*mediumVersion = VIM_VERSION_MEDIUM;
-
-#if defined(HAVE_DATE_TIME) || defined(PROTO)
-# if (defined(VMS) && defined(VAXC)) || defined(PROTO)
-char	longVersion[sizeof(VIM_VERSION_LONG_DATE) + sizeof(__DATE__)
-						      + sizeof(__TIME__) + 3];
+char            *Version = NULL;
+static char     *mediumVersion = VIM_VERSION_MEDIUM;
+char            *longVersion = NULL;
 
     void
 init_longVersion(void)
 {
-    /*
-     * Construct the long version string.  Necessary because
-     * VAX C can't concatenate strings in the preprocessor.
-     */
-    strcpy(longVersion, VIM_VERSION_LONG_DATE);
-#ifdef BUILD_DATE
-    strcat(longVersion, BUILD_DATE);
-#else
-    strcat(longVersion, __DATE__);
-    strcat(longVersion, " ");
-    strcat(longVersion, __TIME__);
-#endif
-    strcat(longVersion, ")");
-}
-
-# else
-char	*longVersion = NULL;
-
-    void
-init_longVersion(void)
-{
-    if (longVersion != NULL)
-	return;
-
-#ifdef BUILD_DATE
-    char *date_time = BUILD_DATE;
-#else
-    char *date_time = __DATE__ " " __TIME__;
-#endif
-    char *msg = _("%s (%s, compiled %s)");
-    size_t len = strlen(msg)
-	+ strlen(VIM_VERSION_LONG_ONLY)
-	+ strlen(VIM_VERSION_DATE_ONLY)
-	+ strlen(date_time);
-
-    longVersion = alloc(len);
+    if (Version == NULL)
+        Version = (char *)rust_short_version();
     if (longVersion == NULL)
-	longVersion = VIM_VERSION_LONG;
-    else
-	vim_snprintf(longVersion, len, msg,
-		VIM_VERSION_LONG_ONLY, VIM_VERSION_DATE_ONLY, date_time);
+        longVersion = (char *)rust_long_version();
 }
-# endif
-#else
-char	*longVersion = VIM_VERSION_LONG;
-
-    void
-init_longVersion(void)
-{
-    // nothing to do
-}
-#endif
 
 static char *(features[]) =
 {
