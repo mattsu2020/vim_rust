@@ -1,11 +1,25 @@
 use std::ffi::{CStr, CString};
-use std::os::raw::{c_char, c_int, c_void};
 use std::io::{BufRead, BufReader};
+use std::os::raw::{c_char, c_int, c_void};
 
-use rust_window::{rs_win_new, rs_win_free};
+use rust_window::{rs_win_free, rs_win_new};
 
 #[no_mangle]
-pub extern "C" fn rs_find_help_tags(
+pub extern "C" fn ex_help(_eap: *mut c_void) {
+    // In the original Vim sources this would open the help window.  The
+    // minimal build only reports that help is unavailable.
+    let _ = _eap; // suppress unused argument warning
+    println!("help not available in this build");
+}
+
+#[no_mangle]
+pub extern "C" fn prepare_help_buffer() {}
+
+#[no_mangle]
+pub extern "C" fn fix_help_buffer() {}
+
+#[no_mangle]
+pub extern "C" fn find_help_tags(
     pat: *const c_char,
     num_matches: *mut c_int,
     matchesp: *mut *mut *mut c_char,
@@ -77,14 +91,14 @@ pub extern "C" fn rs_find_help_tags(
 }
 
 #[no_mangle]
-pub extern "C" fn rs_help_open_window(width: c_int, height: c_int) -> *mut c_void {
+pub extern "C" fn help_open_window(width: c_int, height: c_int) -> *mut c_void {
     let ptr = Box::into_raw(Box::new(0u8)) as *mut c_void;
     rs_win_new(ptr, width, height);
     ptr
 }
 
 #[no_mangle]
-pub extern "C" fn rs_help_close_window(ptr: *mut c_void) {
+pub extern "C" fn help_close_window(ptr: *mut c_void) {
     if ptr.is_null() {
         return;
     }
@@ -130,11 +144,11 @@ mod tests {
 
     #[test]
     fn open_and_close_window() {
-        let ptr = rs_help_open_window(80, 24);
+        let ptr = help_open_window(80, 24);
         let state = rs_win_save(ptr);
         assert_eq!(state.width, 80);
         assert_eq!(state.height, 24);
-        rs_help_close_window(ptr);
+        help_close_window(ptr);
     }
 }
 

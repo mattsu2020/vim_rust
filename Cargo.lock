@@ -2760,6 +2760,7 @@ dependencies = [
  "rust_evalfunc_stubs",
  "rust_excmds",
  "rust_fold",
+ "rust_help",
  "rust_job",
  "rust_message",
  "rust_os_amiga",
