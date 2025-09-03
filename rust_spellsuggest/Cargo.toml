@@ -5,3 +5,10 @@ edition = "2021"
 
 [dependencies]
 rust_spellfile = { path = "../rust_spellfile" }
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "compare"
+harness = false
