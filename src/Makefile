@@ -2461,15 +2461,7 @@ unittest unittests: $(RUN_UNITTESTS)
 run_rust_testsupport:
 	cargo test --manifest-path ../rust_testsupport/Cargo.toml
 
-# Run the libvterm tests.
-# This works only on GNU make, not on BSD make.
-# Libtool requires "gcc".
-test_libvterm:
-	@if $(MAKE) --version 2>/dev/null | grep -qs "GNU Make"; then \
-	  if test -x "/usr/bin/gcc"; then \
-	    cd libvterm; $(MAKE) -f Makefile test CC="$(CC)" CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)"; \
-	  fi \
-	fi
+## libvterm(C)のテストはRust端末へ置き換えのため削除
 
 # Run individual OLD style test.
 # These do not depend on the executable, compile it when needed.
@@ -3755,41 +3747,8 @@ objects/channel.o: channel.c
 objects/gui_gtk_x11.o: version.h
 
 
-# Build rules for libvterm.  Putting them here allows for adding compilation
-# options specific for Vim.  Since the .o files go into objects/ we do need to
-# prefix vterm_ to avoid name clashes.
-CCCTERM = $(CCC_NF) $(VTERM_CFLAGS) $(ALL_CFLAGS) -DINLINE="" \
-	  -DVSNPRINTF=vim_vsnprintf \
-	  -DSNPRINTF=vim_snprintf \
-	  -DIS_COMBINING_FUNCTION=utf_iscomposing_uint \
-	  -DWCWIDTH_FUNCTION=utf_uint2cells
-
-objects/vterm_encoding.o: libvterm/src/encoding.c $(TERM_DEPS)
-	$(CCCTERM) -o $@ libvterm/src/encoding.c
-
-objects/vterm_keyboard.o: libvterm/src/keyboard.c $(TERM_DEPS)
-	$(CCCTERM) -o $@ libvterm/src/keyboard.c
-
-objects/vterm_mouse.o: libvterm/src/mouse.c $(TERM_DEPS)
-	$(CCCTERM) -o $@ libvterm/src/mouse.c
-
-objects/vterm_parser.o: libvterm/src/parser.c $(TERM_DEPS)
-	$(CCCTERM) -o $@ libvterm/src/parser.c
-
-objects/vterm_pen.o: libvterm/src/pen.c $(TERM_DEPS)
-	$(CCCTERM) -o $@ libvterm/src/pen.c
-
-objects/vterm_screen.o: libvterm/src/screen.c $(TERM_DEPS)
-	$(CCCTERM) -o $@ libvterm/src/screen.c
-
-objects/vterm_state.o: libvterm/src/state.c $(TERM_DEPS)
-	$(CCCTERM) -o $@ libvterm/src/state.c
-
-objects/vterm_unicode.o: libvterm/src/unicode.c $(TERM_DEPS) libvterm/src/fullwidth.inc
-	$(CCCTERM) -o $@ libvterm/src/unicode.c
-
-objects/vterm_vterm.o: libvterm/src/vterm.c $(TERM_DEPS)
-	$(CCCTERM) -o $@ libvterm/src/vterm.c
+## C版libvtermはRust端末実装に置き換えたため、ビルドルールを無効化
+## （ヘッダ参照は残す）
 
 CCCDIFF = $(CCC_NF) $(ALL_CFLAGS)
 
@@ -4556,30 +4515,7 @@ objects/wayland.o: wayland.c vim.h protodef.h auto/config.h feature.h os_unix.h 
  auto/wayland/ext-data-control-v1.h auto/wayland/xdg-shell.h \
  auto/wayland/primary-selection-unstable-v1.h
 objects/gui_gtk_gresources.o: auto/gui_gtk_gresources.c
-objects/vterm_encoding.o: libvterm/src/encoding.c libvterm/src/vterm_internal.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h \
- libvterm/src/encoding/DECdrawing.inc libvterm/src/encoding/uk.inc
-objects/vterm_keyboard.o: libvterm/src/keyboard.c libvterm/src/vterm_internal.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h \
- libvterm/src/utf8.h
-objects/vterm_mouse.o: libvterm/src/mouse.c libvterm/src/vterm_internal.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h \
- libvterm/src/utf8.h
-objects/vterm_parser.o: libvterm/src/parser.c libvterm/src/vterm_internal.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h
-objects/vterm_pen.o: libvterm/src/pen.c libvterm/src/vterm_internal.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h
-objects/vterm_screen.o: libvterm/src/screen.c libvterm/src/vterm_internal.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h \
- libvterm/src/rect.h libvterm/src/utf8.h
-objects/vterm_state.o: libvterm/src/state.c libvterm/src/vterm_internal.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h
-objects/vterm_unicode.o: libvterm/src/unicode.c libvterm/src/vterm_internal.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h \
- libvterm/src/fullwidth.inc
-objects/vterm_vterm.o: libvterm/src/vterm.c libvterm/src/vterm_internal.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h \
- libvterm/src/utf8.h
+## objects/vterm_*: C版libvtermを撤去したため依存を削除
 objects/message.o: message.c
 	$(CCC) -o $@ message.c
 objects/evalfunc_stubs.o: evalfunc_stubs.c

@@ -361,23 +361,6 @@ SRC_ALL =	\
 		src/libvterm/find-wide-chars.pl \
 		src/libvterm/include/vterm.h \
 		src/libvterm/include/vterm_keycodes.h \
-		src/libvterm/src/encoding.c \
-		src/libvterm/src/encoding/DECdrawing.inc \
-		src/libvterm/src/encoding/DECdrawing.tbl \
-		src/libvterm/src/encoding/uk.inc \
-		src/libvterm/src/encoding/uk.tbl \
-		src/libvterm/src/fullwidth.inc \
-		src/libvterm/src/keyboard.c \
-		src/libvterm/src/mouse.c \
-		src/libvterm/src/parser.c \
-		src/libvterm/src/pen.c \
-		src/libvterm/src/rect.h \
-		src/libvterm/src/screen.c \
-		src/libvterm/src/state.c \
-		src/libvterm/src/unicode.c \
-		src/libvterm/src/utf8.h \
-		src/libvterm/src/vterm.c \
-		src/libvterm/src/vterm_internal.h \
 		src/libvterm/t/02parser.test \
 		src/libvterm/t/03encoding_utf8.test \
 		src/libvterm/t/10state_putglyph.test \
