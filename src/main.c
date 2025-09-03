@@ -10,6 +10,7 @@
 #define EXTERN
 #include "vim.h"
 #include "rust_option.h"
+#include "rust_bufwrite.h"
 
 #ifdef __CYGWIN__
 # include <cygwin/version.h>
@@ -107,6 +108,9 @@ main
      * NameBuff.  Thus emsg2() cannot be called!
      */
     mch_early_init();
+
+    // Example call into Rust implementation for buffer writing.
+    (void)bufwrite_dummy("startup.log");
 
 #ifdef MSWIN
     /*
