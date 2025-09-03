@@ -55,7 +55,6 @@ SRC_ALL =	\
 		src/linematch.c \
 		src/digraph.c \
 		src/drawline.c \
-		src/drawscreen.c \
 		src/edit.c \
 		src/errors.h \
 		src/eval.c \
@@ -124,7 +123,6 @@ SRC_ALL =	\
 		src/regexp.h \
 		src/register.c \
 		src/scriptfile.c \
-		src/screen.c \
 		src/session.c \
 		src/sha256.c \
                 src/sound.c \

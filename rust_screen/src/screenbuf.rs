@@ -256,6 +256,9 @@ unsafe impl Sync for ScreenBuffer {}
 #[cfg(test)]
 mod tests {
     use super::*;
+    use libc::{c_char, c_int};
+    use std::ffi::{CStr, CString};
+    use std::sync::Mutex;
     use std::time::Instant;
 
     #[test]
@@ -346,5 +349,26 @@ mod tests {
         assert_eq!(formatted, "ab  ");
         sb.draw_formatted_text(0, 0, "hello", 3, 1);
         assert_eq!(sb.line_as_string(0), "hel  ");
+    }
+
+    static CALLBACK_DATA: Mutex<Vec<(c_int, String)>> = Mutex::new(Vec::new());
+
+    extern "C" fn collect(row: c_int, text: *const c_char, _attr: *const u8, _len: c_int) {
+        let s = unsafe { CStr::from_ptr(text).to_string_lossy().into_owned() };
+        CALLBACK_DATA.lock().unwrap().push((row, s));
+    }
+
+    #[test]
+    fn flush_callback_terminal() {
+        CALLBACK_DATA.lock().unwrap().clear();
+        let sb = rs_screen_new(5, 1);
+        let txt = CString::new("hi").unwrap();
+        rs_screen_draw_text(sb, 0, 0, txt.as_ptr(), 1);
+        rs_screen_flush(sb, Some(collect));
+        rs_screen_free(sb);
+        let data = CALLBACK_DATA.lock().unwrap();
+        assert_eq!(data.len(), 1);
+        assert_eq!(data[0].0, 0);
+        assert_eq!(data[0].1, "hi   ");
     }
 }
