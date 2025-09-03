@@ -1699,22 +1699,6 @@ do_throw(cstack_T *cstack)
 	cstack->cs_flags[idx] &= ~CSF_ACTIVE;
 	cstack->cs_exception[idx] = current_exception;
     }
-#if 0
-    // TODO: Add optimization below.  Not yet done because of interface
-    // problems to eval.c and ex_cmds2.c. (Servatius)
-    else
-    {
-	/*
-	 * There are no catch clauses to check or finally clauses to execute.
-	 * End the current script or function.  The exception will be rethrown
-	 * in the caller.
-	 */
-	if (getline_equal(eap->getline, eap->cookie, get_func_line))
-	    current_funccal->returned = TRUE;
-	elseif (eap->get_func_line == getsourceline)
-	    ((struct source_cookie *)eap->cookie)->finished = TRUE;
-    }
-#endif
 
     did_throw = TRUE;
 }
