@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-nix = { version = "0.27", features = ["term"] }
+nix = { version = "0.27", features = ["term", "fs"] }
 tokio = { version = "1", features = ["rt", "net", "time", "macros", "io-util"] }
