@@ -152,20 +152,20 @@ eval_to_bool(
     int         skip,       // only parse, don't execute
     int         use_simple_function)
 {
-    typval_T    result;
-    int         res;
-
-    if (!eval_expr_rs((const char *)arg, &result))
+    bool err = false;
+    // currently ignore eap and use_simple_function parameters
+    if (skip)
     {
         if (error != NULL)
             *error = TRUE;
         return 0;
     }
+    bool res = eval_to_bool_rs((const char *)arg, &err);
     if (error != NULL)
-        *error = FALSE;
-    res = tv_get_bool(&result) != 0;
-    clear_tv(&result);
-    return res;
+        *error = err;
+    if (err)
+        return 0;
+    return res ? 1 : 0;
 }
 
 /*

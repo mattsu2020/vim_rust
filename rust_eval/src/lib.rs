@@ -393,6 +393,41 @@ pub extern "C" fn eval_expr_rs(expr: *const c_char, out: *mut typval_T) -> bool 
 }
 
 #[no_mangle]
+pub extern "C" fn eval_to_bool_rs(expr: *const c_char, error: *mut bool) -> bool {
+    if expr.is_null() {
+        if !error.is_null() {
+            unsafe { *error = true; }
+        }
+        return false;
+    }
+    let c_str = unsafe { CStr::from_ptr(expr) };
+    let expr_str = match c_str.to_str() {
+        Ok(s) => s,
+        Err(_) => {
+            if !error.is_null() {
+                unsafe { *error = true; }
+            }
+            return false;
+        }
+    };
+    let eval = GLOBAL_EVAL.lock().unwrap();
+    match eval.eval_expr(expr_str) {
+        Ok(val) => {
+            if !error.is_null() {
+                unsafe { *error = false; }
+            }
+            val.as_number() != 0
+        }
+        Err(_) => {
+            if !error.is_null() {
+                unsafe { *error = true; }
+            }
+            false
+        }
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn eval_variable_rs(name: *const c_char, out: *mut typval_T) -> bool {
     if name.is_null() || out.is_null() {
         return false;
