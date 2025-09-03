@@ -1683,6 +1683,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_cmdexpand"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rust_cmdhist"
 version = "0.1.0"
 dependencies = [
@@ -1691,6 +1698,10 @@ dependencies = [
 
 [[package]]
 name = "rust_core"
+version = "0.1.0"
+
+[[package]]
+name = "rust_crypt"
 version = "0.1.0"
 
 [[package]]
@@ -1728,6 +1739,10 @@ version = "0.1.0"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "rust_drawline"
+version = "0.1.0"
 
 [[package]]
 name = "rust_drawscreen"
@@ -1820,6 +1835,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_gc"
+version = "0.1.0"
+
+[[package]]
 name = "rust_getchar"
 version = "0.1.0"
 dependencies = [
@@ -1894,6 +1913,10 @@ dependencies = [
  "rust_gui_core",
  "x11rb 0.11.1",
 ]
+
+[[package]]
+name = "rust_hardcopy"
+version = "0.1.0"
 
 [[package]]
 name = "rust_hashtab"
@@ -2176,6 +2199,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_sound"
+version = "0.1.0"
+
+[[package]]
 name = "rust_spell"
 version = "0.1.0"
 
@@ -2189,6 +2216,13 @@ version = "0.1.0"
 dependencies = [
  "criterion 0.5.1",
  "rust_spellfile",
+]
+
+[[package]]
+name = "rust_strings"
+version = "0.1.0"
+dependencies = [
+ "libc",
 ]
 
 [[package]]
@@ -2272,6 +2306,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_version"
+version = "0.1.0"
+
+[[package]]
 name = "rust_vim9"
 version = "0.1.0"
 dependencies = [
@@ -2292,6 +2330,14 @@ version = "0.1.0"
 
 [[package]]
 name = "rust_vim9script"
+version = "0.1.0"
+
+[[package]]
+name = "rust_viminfo"
+version = "0.1.0"
+
+[[package]]
+name = "rust_vimrun"
 version = "0.1.0"
 
 [[package]]
