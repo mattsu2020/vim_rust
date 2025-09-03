@@ -1,0 +1,12 @@
+[package]
+name = "rust_hardcopy"
+version = "0.1.0"
+edition = "2021"
+
+[build-dependencies]
+bindgen = "0.68"
+cc = "1.0"
+
+[lib]
+name = "rust_hardcopy"
+crate-type = ["staticlib", "rlib"]

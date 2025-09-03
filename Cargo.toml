@@ -39,6 +39,7 @@ rust_blob = { path = "rust_blob" }
 rust_sha256 = { path = "rust_sha256" }
 rust_bufwrite = { path = "rust_bufwrite" }
 rust_evalfunc_stubs = { path = "rust_evalfunc_stubs" }
+rust_hardcopy = { path = "rust_hardcopy" }
 regex = "1"
 blowfish = "0.8"
 pbkdf2 = "0.12"
@@ -49,6 +50,7 @@ default = []
 
 [target.'cfg(windows)'.dependencies]
 rust_os_win32 = { path = "rust_os_win32" }
+rust_clipboard = { path = "rust_clipboard", features = ["windows"] }
 
 [target.'cfg(unix)'.dependencies]
 rust_os_unix = { path = "rust_os_unix" }
@@ -61,6 +63,10 @@ rust_os_qnx = { path = "rust_os_qnx" }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 rust_wayland = { path = "rust_wayland" }
+rust_clipboard = { path = "rust_clipboard", features = ["wayland"] }
+
+[target.'cfg(all(unix, not(target_os = "linux")))'.dependencies]
+rust_clipboard = { path = "rust_clipboard", features = ["x11"] }
 
 [lib]
 name = "vim_channel"

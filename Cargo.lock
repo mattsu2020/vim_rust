@@ -92,6 +92,29 @@ dependencies = [
 
 [[package]]
 name = "bindgen"
+version = "0.68.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "726e4313eb6ec35d2730258ad4e15b547ee75d6afaa1361a922e78e59b7d8078"
+dependencies = [
+ "bitflags 2.9.4",
+ "cexpr",
+ "clang-sys",
+ "lazy_static",
+ "lazycell",
+ "log",
+ "peeking_take_while",
+ "prettyplease",
+ "proc-macro2",
+ "quote",
+ "regex",
+ "rustc-hash",
+ "shlex",
+ "syn 2.0.106",
+ "which 4.4.2",
+]
+
+[[package]]
+name = "bindgen"
 version = "0.69.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "271383c67ccabffb7381723dea0672a673f292304fcb45c01cc648c7a8d58088"
@@ -1320,6 +1343,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "peeking_take_while"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "19b17cddbe7ec3f8bc800887bab5e717348c95ea2ca0b1bf0837fb964dc67099"
+
+[[package]]
 name = "pin-project-lite"
 version = "0.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1864,6 +1893,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_hardcopy"
+version = "0.1.0"
+dependencies = [
+ "bindgen 0.68.1",
+ "cc",
+]
+
+[[package]]
 name = "rust_hashtab"
 version = "0.1.0"
 dependencies = [
@@ -1982,7 +2019,7 @@ version = "0.1.0"
 name = "rust_option"
 version = "0.1.0"
 dependencies = [
- "bindgen",
+ "bindgen 0.69.5",
  "tempfile",
 ]
 
@@ -2755,11 +2792,13 @@ dependencies = [
  "rust_buffer",
  "rust_bufwrite",
  "rust_change",
+ "rust_clipboard",
  "rust_cmdhist",
  "rust_debugger",
  "rust_evalfunc_stubs",
  "rust_excmds",
  "rust_fold",
+ "rust_hardcopy",
  "rust_job",
  "rust_message",
  "rust_os_amiga",
