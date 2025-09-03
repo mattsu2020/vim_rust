@@ -14,12 +14,30 @@ impl MenuItem {
     fn new() -> Self {
         MenuItem { enabled: true, children: HashMap::new() }
     }
+
+    fn remove_path(&mut self, parts: &[&str]) -> bool {
+        if parts.len() == 1 {
+            self.children.remove(parts[0]).is_some()
+        } else if let Some(child) = self.children.get_mut(parts[0]) {
+            let removed = child.remove_path(&parts[1..]);
+            if removed && child.children.is_empty() {
+                self.children.remove(parts[0]);
+            }
+            removed
+        } else {
+            false
+        }
+    }
 }
 
 static MENUS: Lazy<Mutex<MenuItem>> = Lazy::new(|| Mutex::new(MenuItem::new()));
 
-fn cstr_to_str(s: *const c_char) -> Option<&'static str> {
-    if s.is_null() { None } else { unsafe { CStr::from_ptr(s) }.to_str().ok() }
+fn cstr_to_str<'a>(s: *const c_char) -> Option<&'a str> {
+    if s.is_null() {
+        None
+    } else {
+        unsafe { CStr::from_ptr(s) }.to_str().ok()
+    }
 }
 
 #[no_mangle]
@@ -39,22 +57,11 @@ pub extern "C" fn rs_menu_add(path: *const c_char) -> c_int {
 pub extern "C" fn rs_menu_remove(path: *const c_char) -> c_int {
     if let Some(p) = cstr_to_str(path) {
         let parts: Vec<&str> = p.split('.').collect();
-        if parts.is_empty() { return 0; }
-        fn rec(node: &mut MenuItem, parts: &[&str]) -> bool {
-            if parts.len() == 1 {
-                node.children.remove(parts[0]).is_some()
-            } else if let Some(child) = node.children.get_mut(parts[0]) {
-                let removed = rec(child, &parts[1..]);
-                if removed && child.children.is_empty() {
-                    node.children.remove(parts[0]);
-                }
-                removed
-            } else {
-                false
-            }
+        if parts.is_empty() {
+            return 0;
         }
         let mut root = MENUS.lock().unwrap();
-        return rec(&mut root, &parts) as c_int;
+        return root.remove_path(&parts) as c_int;
     }
     0
 }
