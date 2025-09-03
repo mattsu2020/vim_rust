@@ -394,23 +394,9 @@ mch_openpty(char **ttyn)
 		close(f);
 		continue;
 	    }
-#if defined(SUN_SYSTEM) && defined(TIOCGPGRP) && !defined(SUNOS3)
-	    // Hack to ensure that the slave side of the pty is
-	    // unused. May not work in anything other than SunOS4.1
-	    {
-		int pgrp;
-
-		// tcgetpgrp does not work (uses TIOCGETPGRP)!
-		if (ioctl(f, TIOCGPGRP, (char *)&pgrp) != -1 || errno != EIO)
-		{
-		    close(f);
-		    continue;
-		}
-	    }
-#endif
-	    initmaster(f);
-	    *ttyn = TtyName;
-	    return f;
+            initmaster(f);
+            *ttyn = TtyName;
+            return f;
 	}
     }
     return -1;
