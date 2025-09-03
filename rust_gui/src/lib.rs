@@ -5,9 +5,19 @@ use rust_gui_core::GuiCore;
 use rust_gui_core::GuiEvent;
 #[cfg(all(target_os = "linux", feature = "gtk"))]
 use rust_gui_gtk::GtkBackend as Backend;
+#[cfg(all(target_os = "linux", feature = "motif"))]
+use rust_gui_motif::MotifBackend as Backend;
 #[cfg(target_os = "windows")]
 use rust_gui_w32::W32Backend as Backend;
-#[cfg(all(target_os = "linux", not(feature = "gtk")))]
+#[cfg(target_os = "haiku")]
+use rust_gui_haiku::HaikuBackend as Backend;
+#[cfg(target_os = "qnx")]
+use rust_gui_photon::PhotonBackend as Backend;
+#[cfg(all(
+    target_os = "linux",
+    not(feature = "gtk"),
+    not(feature = "motif")
+))]
 use rust_gui_x11::X11Backend as Backend;
 
 /// Run the GUI.  This is exposed to the C code via `gui_rust.c`.

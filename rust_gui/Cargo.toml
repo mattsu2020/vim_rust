@@ -15,10 +15,20 @@ default = ["x11"]
 x11 = ["rust_gui_x11"]
 gtk = ["rust_gui_gtk"]
 w32 = ["rust_gui_w32"]
+motif = ["rust_gui_motif"]
+haiku = ["rust_gui_haiku"]
+photon = ["rust_gui_photon"]
 
 [target.'cfg(target_os = "linux")'.dependencies]
 rust_gui_x11 = { path = "../rust_gui_x11", optional = true }
 rust_gui_gtk = { path = "../rust_gui_gtk", optional = true }
+rust_gui_motif = { path = "../rust_gui_motif", optional = true }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 rust_gui_w32 = { path = "../rust_gui_w32", optional = true }
+
+[target.'cfg(target_os = "haiku")'.dependencies]
+rust_gui_haiku = { path = "../rust_gui_haiku", optional = true }
+
+[target.'cfg(target_os = "qnx")'.dependencies]
+rust_gui_photon = { path = "../rust_gui_photon", optional = true }
