@@ -135,7 +135,6 @@ SRC += \
 	memfile.c \
 	memline.c \
 	menu.c \
-	message.c \
 	misc1.c \
 	misc2.c \
 	mouse.c \

@@ -111,8 +111,6 @@ SRC_ALL =	\
                 src/rust/mem/Cargo.toml \
                 src/rust/mem/src/lib.rs \
                 src/menu.c \
-                src/message.c \
-		src/message_test.c \
 		src/misc1.c \
 		src/misc2.c \
 		src/mouse.c \

@@ -733,7 +733,6 @@ OBJ = \
 	$(OUTDIR)\memfile.obj \
 	$(OUTDIR)\memline.obj \
 	$(OUTDIR)\menu.obj \
-	$(OUTDIR)\message.obj \
 	$(OUTDIR)\misc1.obj \
 	$(OUTDIR)\misc2.obj \
 	$(OUTDIR)\mouse.obj \
@@ -1659,8 +1658,6 @@ $(OUTDIR)/memfile.obj: $(OUTDIR) memfile.c $(INCL)
 $(OUTDIR)/memline.obj: $(OUTDIR) memline.c $(INCL)
 
 $(OUTDIR)/menu.obj: $(OUTDIR) menu.c $(INCL)
-
-$(OUTDIR)/message.obj: $(OUTDIR) message.c $(INCL)
 
 $(OUTDIR)/misc1.obj: $(OUTDIR) misc1.c $(INCL) version.h
 

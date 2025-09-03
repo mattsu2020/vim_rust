@@ -64,7 +64,7 @@ mbyte.c		| multi-byte character handling
 memfile.c	| storing lines for buffers in a swapfile
 memline.c	| storing lines for buffers in memory
 menu.c		| menus
-message.c	| (error) messages
+rust_message	| (error) messages
 mouse.c		| handling the mouse
 ops.c		| handling operators ("d", "y", "p")
 option.c	| options

@@ -32,6 +32,7 @@ rust_wayland = { path = "rust_wayland" }
 rust_change = { path = "rust_change" }
 rust_excmd = { path = "rust_excmd" }
 rust_alloc = { path = "rust_alloc" }
+rust_message = { path = "rust_message" }
 
 [features]
 default = []
