@@ -3690,12 +3690,10 @@ f_balloon_split(typval_T *argvars, typval_T *rettv UNUSED)
 	pumitem_T	*array;
 	int		size = split_message(msg, &array);
 
-	// Skip the first and last item, they are always empty.
-	for (int i = 1; i < size - 1; ++i)
-	    list_append_string(rettv->vval.v_list, array[i].pum_text, -1);
-	while (size > 0)
-	    vim_free(array[--size].pum_text);
-	vim_free(array);
+        // Skip the first and last item, they are always empty.
+        for (int i = 1; i < size - 1; ++i)
+            list_append_string(rettv->vval.v_list, array[i].pum_text, -1);
+        free_pum_items(array, (size_t)size);
     }
 }
 # endif

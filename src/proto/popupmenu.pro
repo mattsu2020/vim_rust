@@ -12,6 +12,7 @@ void pum_may_redraw(void);
 int pum_get_height(void);
 void pum_set_event_info(dict_T *dict);
 int split_message(char_u *mesg, pumitem_T **array);
+void free_pum_items(pumitem_T *ptr, size_t count);
 void ui_remove_balloon(void);
 void ui_post_balloon(char_u *mesg, list_T *list);
 void ui_may_remove_balloon(void);
