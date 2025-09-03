@@ -76,7 +76,6 @@ SRC += \
 	arglist.c \
         autocmd.c \
         beval.c \
-        blowfish.c \
         buffer.c \
 	bufwrite.c \
 	change.c \

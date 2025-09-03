@@ -674,7 +674,6 @@ OBJ = \
         $(OUTDIR)\arglist.obj \
         $(OUTDIR)\autocmd.obj \
         $(OUTDIR)\beval.obj \
-        $(OUTDIR)\blowfish.obj \
         $(OUTDIR)\buffer.obj \
 	$(OUTDIR)\bufwrite.obj \
 	$(OUTDIR)\change.obj \
@@ -1491,9 +1490,6 @@ $(OUTDIR)/arglist.obj: $(OUTDIR) arglist.c $(INCL)
 $(OUTDIR)/autocmd.obj: $(OUTDIR) autocmd.c $(INCL)
 
 $(OUTDIR)/beval.obj: $(OUTDIR) beval.c $(INCL)
-
-$(OUTDIR)/blowfish.obj: $(OUTDIR) blowfish.c $(INCL)
-
 $(OUTDIR)/buffer.obj: $(OUTDIR) buffer.c $(INCL) version.h
 
 $(OUTDIR)/bufwrite.obj: $(OUTDIR) bufwrite.c $(INCL)
@@ -1883,9 +1879,8 @@ $(PATHDEF_SRC): Make_mvc.mak
 proto.h: \
 	proto/alloc.pro \
 	proto/arglist.pro \
-	proto/autocmd.pro \
-        proto/blowfish.pro \
-	proto/buffer.pro \
+        proto/autocmd.pro \
+        proto/buffer.pro \
 	proto/bufwrite.pro \
 	proto/change.pro \
 	proto/charset.pro \

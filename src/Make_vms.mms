@@ -203,7 +203,7 @@ OPTIMIZE= /optim
 
 # List of modules for which "Compaq C V6.4-005 on OpenVMS VAX V7.3"
 # hangs.  Add more as needed (plus-separated).
-VAX_NOOPTIM_LIST = blowfish+regexp+sha256
+VAX_NOOPTIM_LIST = regexp+sha256
 
 # Compiler command.
 # Default: CC /DECC.  On non-VAX, or VAX with only DEC C installed,
@@ -488,7 +488,6 @@ SRC = \
  arglist.c \
  autocmd.c \
  beval.c \
- blowfish.c \
  buffer.c \
  bufwrite.c \
  change.c \
@@ -617,7 +616,6 @@ OBJ = \
  [.$(DEST)]arglist.obj \
  [.$(DEST)]autocmd.obj \
  [.$(DEST)]beval.obj \
- [.$(DEST)]blowfish.obj \
  [.$(DEST)]buffer.obj \
  [.$(DEST)]bufwrite.obj \
  [.$(DEST)]change.obj \
@@ -995,7 +993,6 @@ lua_env :
  [.proto]gui_beval.pro option.h ex_cmds.h proto.h errors.h globals.h
 [.$(DEST)]arglist.obj : arglist.c vim.h [.$(DEST)]config.h feature.h os_unix.h
 [.$(DEST)]autocmd.obj : autocmd.c vim.h [.$(DEST)]config.h feature.h os_unix.h
-[.$(DEST)]blowfish.obj : blowfish.c vim.h [.$(DEST)]config.h feature.h os_unix.h
 [.$(DEST)]buffer.obj : buffer.c vim.h [.$(DEST)]config.h feature.h os_unix.h \
  ascii.h keymap.h termdefs.h macros.h structs.h regexp.h \
  gui.h beval.h [.proto]gui_beval.pro option.h ex_cmds.h proto.h \
