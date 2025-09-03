@@ -624,20 +624,6 @@ SRC_MAC =	\
 		src/proto/os_mac_conv.pro \
 		src/proto/os_macosx.pro \
 
-# Source files for VMS (in the extra archive).
-SRC_VMS =	\
-		src/INSTALLvms.txt \
-		src/Make_vms.mms \
-		src/gui_gtk_vms.h \
-		src/os_vms.c \
-		src/os_vms_conf.h \
-		src/os_vms_mms.c \
-		src/proto/os_vms.pro \
-		src/testdir/Make_vms.mms \
-		src/testdir/util/vms.vim \
-		src/xxd/Make_vms.mms \
-		vimtutor.com \
-
 # Source files for QNX (in the extra archive).
 SRC_QNX =	\
 		src/os_qnx.c \
@@ -655,10 +641,8 @@ SRC_EXTRA =	\
 		$(SRC_HAIKU) \
 		$(SRC_MAC) \
 		$(SRC_QNX) \
-		$(SRC_VMS) \
 		README_os390.txt \
 		src/link.390 \
-		src/os_vms_fix.com \
 		src/toolbar.phi \
 
 # Runtime files for all distributions.
@@ -936,10 +920,6 @@ BIN_OLE =	\
 BIN_W32S =	\
 		README_w32s.txt \
 
-# Files for VMS binary (also in extra archive).
-BIN_VMS =	\
-		README_vms.txt \
-
 # Files for OS/2 binary (also in extra archive).
 BIN_OS2 =	\
 		README_os2.txt \
@@ -950,7 +930,6 @@ BIN_EXTRA =	\
 		$(BIN_DOS) \
 		$(BIN_OLE) \
 		$(BIN_W32S) \
-		$(BIN_VMS) \
 		$(BIN_OS2) \
 
 # All files for extra archive.
