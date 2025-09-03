@@ -1683,6 +1683,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_cmdexpand"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rust_cmdhist"
 version = "0.1.0"
 dependencies = [
@@ -1811,6 +1818,14 @@ dependencies = [
  "rust_path",
  "tempfile",
 ]
+
+[[package]]
+name = "rust_filepath"
+version = "0.1.0"
+
+[[package]]
+name = "rust_findfile"
+version = "0.1.0"
 
 [[package]]
 name = "rust_fold"
@@ -1971,6 +1986,10 @@ dependencies = [
  "unicode-normalization",
  "unicode-segmentation",
 ]
+
+[[package]]
+name = "rust_memfile"
+version = "0.1.0"
 
 [[package]]
 name = "rust_memline"
@@ -2272,6 +2291,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_version"
+version = "0.1.0"
+
+[[package]]
 name = "rust_vim9"
 version = "0.1.0"
 dependencies = [
@@ -2292,6 +2315,10 @@ version = "0.1.0"
 
 [[package]]
 name = "rust_vim9script"
+version = "0.1.0"
+
+[[package]]
+name = "rust_viminfo"
 version = "0.1.0"
 
 [[package]]
