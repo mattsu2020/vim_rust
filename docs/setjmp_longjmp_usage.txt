@@ -1,5 +1,4 @@
 src/if_ruby.c:1071:	    vim_snprintf(buff, BUFSIZ, _(e_unknown_longjmp_status_nr), state);
-src/clipboard.c:2712:		    // longjmp somewhere else, in that case we will call
 src/gui.c:136:	// hit an X11 I/O error and do a longjmp(), leaving recursive
 src/os_unix.c:1155: * A simplistic version of setjmp() that only allows one level of using.
 src/os_unix.c:1171: * Note: Can't move SETJMP() here, because a function calling setjmp() must

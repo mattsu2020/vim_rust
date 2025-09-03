@@ -1480,8 +1480,6 @@ $(OUTDIR)/cindent.obj: $(OUTDIR) cindent.c $(INCL)
 
 $(OUTDIR)/clientserver.obj: $(OUTDIR) clientserver.c $(INCL)
 
-$(OUTDIR)/clipboard.obj: $(OUTDIR) clipboard.c $(INCL)
-
 $(OUTDIR)/cmdexpand.obj: $(OUTDIR) cmdexpand.c $(INCL)
 
 $(OUTDIR)/cmdhist.obj: $(OUTDIR) cmdhist.c $(INCL)
@@ -1847,8 +1845,7 @@ proto.h: \
 	proto/charset.pro \
 	proto/cindent.pro \
 	proto/clientserver.pro \
-	proto/clipboard.pro \
-	proto/cmdexpand.pro \
+        proto/cmdexpand.pro \
 	proto/cmdhist.pro \
 	proto/crypt.pro \
 	proto/debugger.pro \

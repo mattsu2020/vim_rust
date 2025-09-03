@@ -80,9 +80,8 @@ SRC += \
         bufwrite.c \
 	charset.c \
 	cindent.c \
-	clientserver.c \
-	clipboard.c \
-	cmdhist.c \
+        clientserver.c \
+        cmdhist.c \
         cmdexpand.c \
         crypt.c \
         debugger.c \
