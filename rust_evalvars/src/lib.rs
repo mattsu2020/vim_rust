@@ -10,11 +10,9 @@ enum Value {
     String(String),
 }
 
-static VIM_VARS: Lazy<Mutex<HashMap<i32, Value>>> =
-    Lazy::new(|| Mutex::new(HashMap::new()));
+static VIM_VARS: Lazy<Mutex<HashMap<i32, Value>>> = Lazy::new(|| Mutex::new(HashMap::new()));
 
-static WINDOWS: Lazy<Mutex<Vec<i32>>> =
-    Lazy::new(|| Mutex::new(Vec::new()));
+static WINDOWS: Lazy<Mutex<Vec<i32>>> = Lazy::new(|| Mutex::new(Vec::new()));
 
 #[no_mangle]
 pub extern "C" fn rs_set_vim_var_nr(idx: c_int, val: c_longlong) {
@@ -28,7 +26,9 @@ pub extern "C" fn rs_get_vim_var_nr(idx: c_int, out: *mut c_longlong) -> bool {
         return false;
     }
     if let Some(Value::Number(n)) = VIM_VARS.lock().unwrap().get(&idx) {
-        unsafe { *out = *n; }
+        unsafe {
+            *out = *n;
+        }
         true
     } else {
         false
@@ -45,11 +45,6 @@ pub extern "C" fn rs_set_vim_var_str(idx: c_int, val: *const c_char) {
         let mut vars = VIM_VARS.lock().unwrap();
         vars.insert(idx, Value::String(text.to_string()));
     }
-}
-
-#[no_mangle]
-pub extern "C" fn rs_eval_and(a: c_longlong, b: c_longlong) -> c_longlong {
-    a & b
 }
 
 #[no_mangle]
@@ -83,11 +78,6 @@ mod tests {
     }
 
     #[test]
-    fn and_operation() {
-        assert_eq!(rs_eval_and(6, 3), 2);
-    }
-
-    #[test]
     fn window_ids() {
         let id1 = rs_win_create();
         let id2 = rs_win_create();
@@ -96,4 +86,3 @@ mod tests {
         assert_eq!(rs_win_getid(3), 0);
     }
 }
-

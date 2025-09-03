@@ -46,6 +46,17 @@ pub extern "C" fn f_hostname_rs(_argvars: *mut typval_T, rettv: *mut typval_T) {
     }
 }
 
+#[no_mangle]
+pub extern "C" fn f_and_rs(argvars: *mut typval_T, rettv: *mut typval_T) {
+    unsafe {
+        let a = (*argvars).vval.v_number;
+        let b = (*argvars.add(1)).vval.v_number;
+        (*rettv).v_type = Vartype::VAR_NUMBER;
+        (*rettv).v_lock = 0;
+        (*rettv).vval.v_number = a & b;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -57,7 +68,9 @@ mod tests {
             let mut tv = typval_T {
                 v_type: Vartype::VAR_UNKNOWN,
                 v_lock: 0,
-                vval: ValUnion { v_string: std::ptr::null_mut() },
+                vval: ValUnion {
+                    v_string: std::ptr::null_mut(),
+                },
             };
             f_hostname_rs(std::ptr::null_mut(), &mut tv);
             assert_eq!(tv.v_type as i32, Vartype::VAR_STRING as i32);
@@ -65,6 +78,31 @@ mod tests {
             let s = CStr::from_ptr(tv.vval.v_string).to_str().unwrap();
             assert!(!s.is_empty());
             let _ = CString::from_raw(tv.vval.v_string);
+        }
+    }
+
+    #[test]
+    fn and_returns_bitwise_and() {
+        unsafe {
+            let mut args = [
+                typval_T {
+                    v_type: Vartype::VAR_NUMBER,
+                    v_lock: 0,
+                    vval: ValUnion { v_number: 6 },
+                },
+                typval_T {
+                    v_type: Vartype::VAR_NUMBER,
+                    v_lock: 0,
+                    vval: ValUnion { v_number: 3 },
+                },
+            ];
+            let mut ret = typval_T {
+                v_type: Vartype::VAR_UNKNOWN,
+                v_lock: 0,
+                vval: ValUnion { v_number: 0 },
+            };
+            f_and_rs(args.as_mut_ptr(), &mut ret);
+            assert_eq!(ret.vval.v_number, 2);
         }
     }
 }

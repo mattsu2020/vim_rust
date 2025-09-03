@@ -13,7 +13,6 @@
 #define USING_FLOAT_STUFF
 
 #include "vim.h"
-#include "../rust_evalvars/include/rust_evalvars.h"
 
 #if defined(FEAT_EVAL) || defined(PROTO)
 #include "../rust_evalfunc/include/rust_evalfunc.h"
@@ -21,8 +20,6 @@
 #ifdef VMS
 # include <float.h>
 #endif
-
-static void f_and(typval_T *argvars, typval_T *rettv);
 #ifdef FEAT_BEVAL
 static void f_balloon_gettext(typval_T *argvars, typval_T *rettv);
 static void f_balloon_show(typval_T *argvars, typval_T *rettv);
@@ -1948,7 +1945,7 @@ static const funcentry_T global_functions[] =
     {"add",		2, 2, FEARG_1,	    arg2_listblobmod_item,
 			ret_first_arg,	    f_add},
     {"and",		2, 2, FEARG_1,	    arg2_number,
-			ret_number,	    f_and},
+			ret_number,	    f_and_rs},
     {"append",		2, 2, FEARG_2,	    arg2_setline,
 			ret_number_bool,    f_append},
     {"appendbufline",	3, 3, FEARG_3,	    arg3_setbufline,
@@ -3602,22 +3599,6 @@ non_zero_arg(typval_T *argvars)
 	    || (argvars[0].v_type == VAR_STRING
 		&& argvars[0].vval.v_string != NULL
 		&& *argvars[0].vval.v_string != NUL));
-}
-
-/*
- * "and(expr, expr)" function
- */
-    static void
-f_and(typval_T *argvars, typval_T *rettv)
-{
-    if (in_vim9script()
-	    && (check_for_number_arg(argvars, 0) == FAIL
-		|| check_for_number_arg(argvars, 1) == FAIL))
-	return;
-
-    rettv->vval.v_number = rs_eval_and(
-            tv_get_number_chk(&argvars[0], NULL),
-            tv_get_number_chk(&argvars[1], NULL));
 }
 
 /*
