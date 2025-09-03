@@ -1999,27 +1999,21 @@ OBJ_COMMON = \
 	objects/strings.o \
 	objects/syntax.o \
 	objects/tabpanel.o \
-	objects/tag.o \
-	objects/term.o \
-	objects/regex_compat.o \
-	objects/mbyte_compat.o \
-	objects/memline_compat.o \
-	objects/hashtab_compat.o \
-	objects/help_compat_min.o \
-	objects/textformat.o \
-	objects/textobject.o \
-	objects/textprop.o \
-	objects/time.o \
-	objects/tuple.o \
-	objects/typval.o \
+        objects/tag.o \
+        objects/term.o \
+        objects/textformat.o \
+        objects/textobject.o \
+        objects/textprop.o \
+        objects/time.o \
+        objects/tuple.o \
+        objects/typval.o \
 	objects/ui.o \
-	objects/undo.o \
-	objects/undo_stubs.o \
-	objects/ex_docmd_compat.o \
-	objects/usercmd.o \
-	objects/userfunc.o \
-	objects/version.o \
-	objects/vim9class.o \
+        objects/undo.o \
+        objects/undo_stubs.o \
+        objects/usercmd.o \
+        objects/userfunc.o \
+        objects/version.o \
+        objects/vim9class.o \
 	objects/vim9cmds.o \
 	objects/vim9compile.o \
 	objects/vim9execute.o \
@@ -3435,29 +3429,8 @@ objects/drawline.o: drawline.c
 objects/drawscreen.o: drawscreen.c
 	$(CCC) -o $@ drawscreen.c
 
-objects/regex_compat.o: regex_compat.c
-	$(CCC) -o $@ regex_compat.c
-
-objects/mbyte_compat.o: mbyte_compat.c
-	$(CCC) -o $@ mbyte_compat.c
-
-objects/memline_compat.o: memline_compat.c
-	$(CCC) -o $@ memline_compat.c
-
-objects/help_compat.o: help_compat.c
-	$(CCC) -o $@ help_compat.c
-
-objects/ex_docmd_compat.o: ex_docmd_compat.c
-	$(CCC) -o $@ ex_docmd_compat.c
-
-objects/hashtab_compat.o: hashtab_compat.c
-	$(CCC) -o $@ hashtab_compat.c
-
-objects/help_compat_min.o: help_compat_min.c
-	$(CCC) -o $@ help_compat_min.c
-
 objects/edit.o: edit.c
-	$(CCC) -o $@ edit.c
+        $(CCC) -o $@ edit.c
 
 objects/eval.o: eval.c
 	$(CCC) -o $@ eval.c
