@@ -13,6 +13,11 @@
 
 #include "vim.h"
 
+#ifdef FEAT_RUST_LIST
+extern list_T *rust_list_new(void);
+extern void rust_list_free(list_T *l);
+#endif
+
 #if defined(FEAT_EVAL) || defined(PROTO)
 
 // List heads for garbage collection.
@@ -86,12 +91,16 @@ list_init(list_T *l)
     list_T *
 list_alloc(void)
 {
+#ifdef FEAT_RUST_LIST
+    return rust_list_new();
+#else
     list_T  *l;
 
     l = ALLOC_CLEAR_ONE(list_T);
     if (l != NULL)
-	list_init(l);
+        list_init(l);
     return l;
+#endif
 }
 
 /*
@@ -294,14 +303,18 @@ list_free_items(int copyID)
     }
 }
 
-    void
+void
 list_free(list_T *l)
 {
+#ifdef FEAT_RUST_LIST
+    rust_list_free(l);
+#else
     if (in_free_unref_items)
-	return;
+        return;
 
     list_free_contents(l);
     list_free_list(l);
+#endif
 }
 
 /*
