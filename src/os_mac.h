@@ -14,9 +14,7 @@
 // can access the internal structures.
 // (Until fully Carbon compliant)
 // TODO: Can we remove this? (Dany)
-#if 0
-# define OPAQUE_TOOLBOX_STRUCTS 0
-#endif
+#define OPAQUE_TOOLBOX_STRUCTS 0
 
 // Include MAC_OS_X_VERSION_* macros
 #ifdef HAVE_AVAILABILITYMACROS_H
