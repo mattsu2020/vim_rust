@@ -1,0 +1,11 @@
+[package]
+name = "rust_exeval"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "rust_exeval"
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+rust_excmds = { path = "../rust_excmds" }
