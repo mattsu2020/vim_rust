@@ -1,6 +1,6 @@
 use std::ffi::CString;
 
-use rust_vim9::{
+use rust_vim9cmds::{
     vim9_eval_bool, vim9_eval_int, vim9_exec_rs, vim9_declare_error_rs,
 };
 use rust_eval::{typval_T, ValUnion, Vartype};

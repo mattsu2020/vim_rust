@@ -1,5 +1,5 @@
-#ifndef RUST_VIM9_H
-#define RUST_VIM9_H
+#ifndef RUST_VIM9CMDS_H
+#define RUST_VIM9CMDS_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -20,4 +20,4 @@ void vim9_declare_error_rs(const char *name);
 }
 #endif
 
-#endif // RUST_VIM9_H
+#endif // RUST_VIM9CMDS_H
