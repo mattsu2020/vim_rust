@@ -39,8 +39,10 @@ rust_alloc = { path = "rust_alloc" }
 rust_message = { path = "rust_message" }
 rust_blob = { path = "rust_blob" }
 rust_sha256 = { path = "rust_sha256" }
-rust_blowfish = { path = "rust_blowfish" }
 regex = "1"
+blowfish = "0.8"
+pbkdf2 = "0.12"
+ring = "0.17"
 
 [features]
 default = []

@@ -9,6 +9,10 @@ crate-type = ["staticlib"]
 
 [dependencies]
 blowfish = "0.8"
+pbkdf2 = "0.12"
+hmac = "0.12"
+sha2 = "0.10"
+ring = "0.17"
 libc = "0.2"
 
 [workspace]

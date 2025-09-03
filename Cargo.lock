@@ -300,6 +300,32 @@ dependencies = [
 
 [[package]]
 name = "criterion"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e7c76e09c1aae2bc52b3d2f29e13c6572553b30c4aa1b8a49fd70de6412654cb"
+dependencies = [
+ "anes",
+ "atty",
+ "cast",
+ "ciborium",
+ "clap 3.2.25",
+ "criterion-plot",
+ "itertools 0.10.5",
+ "lazy_static",
+ "num-traits",
+ "oorandom",
+ "plotters",
+ "rayon",
+ "regex",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "tinytemplate",
+ "walkdir",
+]
+
+[[package]]
+name = "criterion"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2b12d017a929603d80db1831cd3a24082f8137ce19c69e6447f54f5fc8d692f"
@@ -570,12 +596,6 @@ name = "hermit-abi"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc0fef456e4baa96da950455cd02c081ca953b141298e41db3fc7e36b1da849c"
-
-[[package]]
-name = "hex"
-version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
 name = "hmac"
@@ -1211,18 +1231,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust_blowfish"
-version = "0.1.0"
-dependencies = [
- "blowfish",
- "hex",
- "hmac",
- "libc",
- "pbkdf2",
- "sha2",
-]
-
-[[package]]
 name = "rust_buffer"
 version = "0.1.0"
 dependencies = [
@@ -1259,24 +1267,6 @@ name = "rust_cmdhist"
 version = "0.1.0"
 dependencies = [
  "once_cell",
-]
-
-[[package]]
-name = "rust_crypt"
-version = "0.1.0"
-dependencies = [
- "blowfish",
- "libc",
- "ring",
-]
-
-[[package]]
-name = "rust_crypto"
-version = "0.1.0"
-dependencies = [
- "blowfish",
- "once_cell",
- "ring",
 ]
 
 [[package]]
@@ -1650,6 +1640,7 @@ dependencies = [
 name = "rust_regex_engine"
 version = "0.1.0"
 dependencies = [
+ "criterion 0.4.0",
  "regex",
 ]
 
@@ -1657,7 +1648,7 @@ dependencies = [
 name = "rust_regexp"
 version = "0.1.0"
 dependencies = [
- "criterion",
+ "criterion 0.5.1",
  "regex",
 ]
 
@@ -1707,11 +1698,12 @@ dependencies = [
 [[package]]
 name = "rust_spellfile"
 version = "0.1.0"
+
 [[package]]
 name = "rust_spellsuggest"
 version = "0.1.0"
 dependencies = [
- "criterion",
+ "criterion 0.5.1",
  "rust_spellfile",
 ]
 
@@ -2179,10 +2171,13 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 name = "vim_channel"
 version = "0.1.0"
 dependencies = [
+ "blowfish",
  "diff",
+ "pbkdf2",
+ "regex",
+ "ring",
  "rust_alloc",
  "rust_blob",
- "rust_blowfish",
  "rust_buffer",
  "rust_change",
  "rust_cmdhist",
