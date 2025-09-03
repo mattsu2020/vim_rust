@@ -782,8 +782,7 @@ OBJ = \
 	$(OUTDIR)/cmdexpand.o \
 	$(OUTDIR)/cmdhist.o \
 	$(OUTDIR)/crypt.o \
-	$(OUTDIR)/crypt_zip.o \
-	$(OUTDIR)/debugger.o \
+        $(OUTDIR)/debugger.o \
 	$(OUTDIR)/dict.o \
 	$(OUTDIR)/diff.o \
 	$(OUTDIR)/digraph.o \

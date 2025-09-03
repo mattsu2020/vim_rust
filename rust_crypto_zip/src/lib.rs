@@ -238,4 +238,38 @@ mod tests {
         assert_eq!(dlen, data.len());
         assert_eq!(&decomp[..dlen], data);
     }
+
+    #[test]
+    fn compatibility_vector() {
+        let key = b"foofoo";
+        let plaintext = b"1234567890\na\xe1bbccdde\xebff\n";
+        let ciphertext: [u8; 24] = [
+            6, 28, 108, 86, 39, 222, 125, 77, 103, 160, 234, 163, 86, 169, 231,
+            7, 69, 35, 51, 142, 50, 85, 233, 151,
+        ];
+
+        let mut enc_buf = vec![0u8; plaintext.len()];
+        let enc_len = rs_encrypt(
+            plaintext.as_ptr(),
+            plaintext.len(),
+            key.as_ptr(),
+            key.len(),
+            enc_buf.as_mut_ptr(),
+            enc_buf.len(),
+        );
+        assert_eq!(enc_len, ciphertext.len());
+        assert_eq!(&enc_buf[..enc_len], &ciphertext);
+
+        let mut dec_buf = vec![0u8; ciphertext.len()];
+        let dec_len = rs_decrypt(
+            ciphertext.as_ptr(),
+            ciphertext.len(),
+            key.as_ptr(),
+            key.len(),
+            dec_buf.as_mut_ptr(),
+            dec_buf.len(),
+        );
+        assert_eq!(dec_len, plaintext.len());
+        assert_eq!(&dec_buf[..dec_len], plaintext);
+    }
 }

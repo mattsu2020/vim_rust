@@ -83,9 +83,8 @@ SRC += \
 	clipboard.c \
 	cmdhist.c \
 	cmdexpand.c \
-	crypt.c \
-	crypt_zip.c \
-	debugger.c \
+        crypt.c \
+        debugger.c \
 	dict.c \
 	diff.c \
 	digraph.c \

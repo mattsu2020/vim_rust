@@ -684,7 +684,6 @@ OBJ = \
 	$(OUTDIR)\cmdexpand.obj \
 	$(OUTDIR)\cmdhist.obj \
 	$(OUTDIR)\crypt.obj \
-	$(OUTDIR)\crypt_zip.obj \
 	$(OUTDIR)\debugger.obj \
 	$(OUTDIR)\dict.obj \
 	$(OUTDIR)\diff.obj \
@@ -1491,8 +1490,6 @@ $(OUTDIR)/cmdhist.obj: $(OUTDIR) cmdhist.c $(INCL)
 
 $(OUTDIR)/crypt.obj: $(OUTDIR) crypt.c $(INCL)
 
-$(OUTDIR)/crypt_zip.obj: $(OUTDIR) crypt_zip.c $(INCL)
-
 $(OUTDIR)/debugger.obj: $(OUTDIR) debugger.c $(INCL)
 
 $(OUTDIR)/dict.obj: $(OUTDIR) dict.c $(INCL)
@@ -1864,7 +1861,6 @@ proto.h: \
 	proto/cmdexpand.pro \
 	proto/cmdhist.pro \
 	proto/crypt.pro \
-	proto/crypt_zip.pro \
 	proto/debugger.pro \
 	proto/dict.pro \
 	proto/diff.pro \
