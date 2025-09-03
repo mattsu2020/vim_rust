@@ -1,59 +1,28 @@
 use std::ffi::CStr;
-use std::io::{self, stdout, Write};
+use std::io::{stdout, Stdout, Write};
 use std::os::raw::{c_char, c_int};
 
 #[cfg(unix)]
 use libc::{ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ};
 
-/// Simple owned buffer used for terminal output.
-struct TermBuffer {
-    buf: Vec<u8>,
-    cap: usize,
-}
+use crossterm::style::Print;
+use crossterm::terminal::{Clear, ClearType};
+use crossterm::{cursor::MoveTo, QueueableCommand};
 
-impl TermBuffer {
-    fn new() -> Self {
-        // use a small default similar to Vim's OUT_SIZE
-        let cap = 1024;
-        Self {
-            buf: Vec::with_capacity(cap),
-            cap,
-        }
-    }
-}
-
-impl Write for TermBuffer {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        self.buf.extend_from_slice(buf);
-        if self.buf.len() >= self.cap {
-            self.flush()?;
-        }
-        Ok(buf.len())
-    }
-
-    fn flush(&mut self) -> io::Result<()> {
-        let mut out = stdout();
-        out.write_all(&self.buf)?;
-        out.flush()?;
-        self.buf.clear();
-        Ok(())
-    }
-}
-
-/// Terminal state object holding the output buffer.
+/// Terminal state object wrapping a `Stdout` handle.
 pub struct Terminal {
-    buffer: TermBuffer,
+    stdout: Stdout,
 }
 
 impl Terminal {
     fn new() -> Self {
-        Self {
-            buffer: TermBuffer::new(),
-        }
+        Self { stdout: stdout() }
     }
 
     fn move_cursor(&mut self, x: c_int, y: c_int) -> c_int {
-        if write!(self.buffer, "\x1B[{};{}H", y + 1, x + 1).is_ok() && self.buffer.flush().is_ok() {
+        if self.stdout.queue(MoveTo(x as u16, y as u16)).is_ok()
+            && self.stdout.flush().is_ok()
+        {
             0
         } else {
             -1
@@ -61,7 +30,7 @@ impl Terminal {
     }
 
     fn clear_screen(&mut self) -> c_int {
-        if self.buffer.write_all(b"\x1B[2J").is_ok() && self.buffer.flush().is_ok() {
+        if self.stdout.queue(Clear(ClearType::All)).is_ok() && self.stdout.flush().is_ok() {
             0
         } else {
             -1
@@ -69,11 +38,23 @@ impl Terminal {
     }
 
     fn print(&mut self, s: &str) -> c_int {
-        if self.buffer.write_all(s.as_bytes()).is_ok() && self.buffer.flush().is_ok() {
+        if self.stdout.queue(Print(s)).is_ok() && self.stdout.flush().is_ok() {
             0
         } else {
             -1
         }
+    }
+
+    fn out_char(&mut self, c: u8) -> c_int {
+        if self.stdout.queue(Print(c as char)).is_ok() {
+            0
+        } else {
+            -1
+        }
+    }
+
+    fn out_flush(&mut self) -> c_int {
+        self.stdout.flush().map(|_| 0).unwrap_or(-1)
     }
 }
 
@@ -105,13 +86,13 @@ pub unsafe extern "C" fn rust_term_free(term: *mut Terminal) {
 #[no_mangle]
 pub unsafe extern "C" fn rust_term_out_char(term: *mut Terminal, c: c_int) -> c_int {
     let term = ffi_term!(term);
-    term.buffer.write_all(&[c as u8]).map(|_| 0).unwrap_or(-1)
+    term.out_char(c as u8)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn rust_term_out_flush(term: *mut Terminal) -> c_int {
     let term = ffi_term!(term);
-    term.buffer.flush().map(|_| 0).unwrap_or(-1)
+    term.out_flush()
 }
 
 #[no_mangle]
@@ -200,3 +181,4 @@ mod tests {
         }
     }
 }
+
