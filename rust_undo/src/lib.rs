@@ -1,7 +1,6 @@
 use std::ffi::{CStr, CString};
-use std::os::raw::{c_char};
+use std::os::raw::c_char;
 use std::rc::Rc;
-use std::cell::RefCell;
 
 #[repr(C)]
 pub struct UEntry {
@@ -21,36 +20,58 @@ pub struct UHeader {
 #[derive(Clone)]
 struct Node {
     text: String,
+    seq: i64,
     prev: Option<Rc<Node>>,
 }
 
 impl Node {
-    fn new(text: String, prev: Option<Rc<Node>>) -> Rc<Node> {
-        Rc::new(Node { text, prev })
+    fn new(text: String, prev: Option<Rc<Node>>, seq: i64) -> Rc<Node> {
+        Rc::new(Node { text, seq, prev })
     }
 }
 
 pub struct UndoHistory {
     current: Option<Rc<Node>>,
+    next_seq: i64,
 }
 
 impl UndoHistory {
-    fn new() -> Self {
-        Self { current: None }
+    pub(crate) fn new() -> Self {
+        Self {
+            current: None,
+            next_seq: 1,
+        }
     }
 
-    fn push(&mut self, text: &str) {
+    pub(crate) fn push(&mut self, text: &str) {
         let prev = self.current.clone();
-        self.current = Some(Node::new(text.to_string(), prev));
+        let node = Node::new(text.to_string(), prev, self.next_seq);
+        self.current = Some(node);
+        self.next_seq += 1;
     }
 
-    fn pop(&mut self) -> Option<String> {
+    pub(crate) fn pop(&mut self) -> Option<String> {
         if let Some(node) = self.current.clone() {
             self.current = node.prev.clone();
+            self.next_seq = node.seq;
             Some(node.text.clone())
         } else {
             None
         }
+    }
+
+    #[cfg(test)]
+    pub(crate) fn verify_integrity(&self) -> bool {
+        let mut expected = self.next_seq - 1;
+        let mut cur = self.current.clone();
+        while let Some(node) = cur {
+            if node.seq != expected {
+                return false;
+            }
+            expected -= 1;
+            cur = node.prev.clone();
+        }
+        true
     }
 }
 
@@ -62,7 +83,9 @@ pub extern "C" fn rs_undo_history_new() -> *mut UndoHistory {
 #[no_mangle]
 pub extern "C" fn rs_undo_history_free(ptr: *mut UndoHistory) {
     if !ptr.is_null() {
-        unsafe { drop(Box::from_raw(ptr)); }
+        unsafe {
+            drop(Box::from_raw(ptr));
+        }
     }
 }
 
@@ -96,7 +119,9 @@ pub extern "C" fn rs_undo_pop(ptr: *mut UndoHistory, buf: *mut c_char, len: usiz
         if bytes.len() > len {
             return false;
         }
-        unsafe { std::ptr::copy_nonoverlapping(bytes.as_ptr(), buf as *mut u8, bytes.len()); }
+        unsafe {
+            std::ptr::copy_nonoverlapping(bytes.as_ptr(), buf as *mut u8, bytes.len());
+        }
         true
     } else {
         false
@@ -111,19 +136,53 @@ mod tests {
     #[test]
     fn push_and_pop_changes() {
         let hist = rs_undo_history_new();
+        unsafe {
+            assert!((*hist).verify_integrity());
+        }
         let c1 = CString::new("one").unwrap();
         let c2 = CString::new("two").unwrap();
         assert!(rs_undo_push(hist, c1.as_ptr()));
+        unsafe {
+            assert!((*hist).verify_integrity());
+        }
         assert!(rs_undo_push(hist, c2.as_ptr()));
+        unsafe {
+            assert!((*hist).verify_integrity());
+        }
         let mut buf = [0i8; 10];
         assert!(rs_undo_pop(hist, buf.as_mut_ptr(), buf.len()));
-        let s = unsafe { CStr::from_ptr(buf.as_ptr()) }.to_str().unwrap();
-        assert_eq!(s, "two");
+        unsafe {
+            assert!((*hist).verify_integrity());
+            let s = CStr::from_ptr(buf.as_ptr()).to_str().unwrap();
+            assert_eq!(s, "two");
+        }
         assert!(rs_undo_pop(hist, buf.as_mut_ptr(), buf.len()));
-        let s = unsafe { CStr::from_ptr(buf.as_ptr()) }.to_str().unwrap();
-        assert_eq!(s, "one");
+        unsafe {
+            assert!((*hist).verify_integrity());
+            let s = CStr::from_ptr(buf.as_ptr()).to_str().unwrap();
+            assert_eq!(s, "one");
+        }
         assert!(!rs_undo_pop(hist, buf.as_mut_ptr(), buf.len()));
+        unsafe {
+            assert!((*hist).verify_integrity());
+        }
         rs_undo_history_free(hist);
+    }
+
+    #[test]
+    fn history_integrity_check() {
+        let mut hist = UndoHistory::new();
+        assert!(hist.verify_integrity());
+        hist.push("alpha");
+        hist.push("beta");
+        assert!(hist.verify_integrity());
+        assert_eq!(hist.pop(), Some("beta".to_string()));
+        assert!(hist.verify_integrity());
+        hist.push("gamma");
+        assert!(hist.verify_integrity());
+        assert_eq!(hist.pop(), Some("gamma".to_string()));
+        assert_eq!(hist.pop(), Some("alpha".to_string()));
+        assert!(hist.verify_integrity());
     }
 
     #[test]
