@@ -16,6 +16,7 @@
 
 #if defined(FEAT_EVAL) || defined(PROTO)
 #include "../rust_evalfunc/include/rust_evalfunc.h"
+#include "evalfunc_stubs_rs.h"
 
 #ifdef VMS
 # include <float.h>

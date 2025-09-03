@@ -40,6 +40,7 @@ rust_message = { path = "rust_message" }
 rust_blob = { path = "rust_blob" }
 rust_sha256 = { path = "rust_sha256" }
 rust_bufwrite = { path = "rust_bufwrite" }
+rust_evalfunc_stubs = { path = "rust_evalfunc_stubs" }
 regex = "1"
 blowfish = "0.8"
 pbkdf2 = "0.12"
