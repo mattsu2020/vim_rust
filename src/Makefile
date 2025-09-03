@@ -2705,7 +2705,7 @@ installspell: $(DEST_VIM) $(DEST_RT) $(DEST_SPELL)
 
 installtools: $(DESTDIR)$(exec_prefix) $(DEST_BIN) \
                $(TOOLSSOURCE) $(DEST_VIM) $(DEST_RT) $(DEST_TOOLS)
-       $(INSTALL_DATA_R) $(TOOLSSOURCE)/* $(DEST_TOOLS)
+	$(INSTALL_DATA_R) $(TOOLSSOURCE)/* $(DEST_TOOLS)
 # When using CVS some CVS directories might have been copied.
 	cvs=`find $(DEST_TOOLS) \( -name CVS -o -name AAPDIR \) -print`; \
 	      if test -n "$$cvs"; then \
@@ -3324,7 +3324,7 @@ objects/autocmd.o: autocmd.c
 	$(CCC) -o $@ autocmd.c
 
 objects/buffer.o: buffer.c
-        $(CCC) -o $@ buffer.c
+	$(CCC) -o $@ buffer.c
 
 objects/bufwrite.o: bufwrite.c
 	$(CCC) -o $@ bufwrite.c
@@ -3375,7 +3375,7 @@ objects/drawscreen.o: drawscreen.c
 	$(CCC) -o $@ drawscreen.c
 
 objects/edit.o: edit.c
-        $(CCC) -o $@ edit.c
+	$(CCC) -o $@ edit.c
 
 objects/eval.o: eval.c
 	$(CCC) -o $@ eval.c
@@ -3511,7 +3511,7 @@ objects/job.o: job.c
 	$(CCC) -o $@ job.c
 
 objects/linematch.o: linematch.c
-$(CCC) -o $@ linematch.c
+	$(CCC) -o $@ linematch.c
 
 objects/list.o: list.c
 	$(CCC) -o $@ list.c
