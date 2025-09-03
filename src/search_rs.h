@@ -13,7 +13,10 @@ typedef struct {
     int last_maxcount;
 } searchstat_T;
 
-int rust_search_update_stat(const char *pat, const char *text, searchstat_T *stat);
+// Update search statistics using the Rust implementation.  The function does
+// not produce a return value; results are written directly into `stat`.
+void rust_search_update_stat(const char *pat, const char *text,
+                             searchstat_T *stat);
 
 #ifdef __cplusplus
 }
