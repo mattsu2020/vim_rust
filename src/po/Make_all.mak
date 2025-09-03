@@ -20,8 +20,7 @@ LANGUAGES = \
 		it \
 		ja \
 		ja.euc-jp \
-		ja.sjis \
-		ko \
+               ko \
 		ko.UTF-8 \
 		lv \
 		nb \
@@ -66,8 +65,7 @@ POFILES = \
 		it.po \
 		ja.po \
 		ja.euc-jp.po \
-		ja.sjis.po \
-		ko.po \
+               ko.po \
 		ko.UTF-8.po \
 		lv.po \
 		nb.po \
@@ -131,8 +129,7 @@ MOFILES = \
 MOCONVERTED = \
 		cs.cp1250.mo \
 		ja.euc-jp.mo \
-		ja.sjis.mo \
-		ko.mo \
+               ko.mo \
 		pl.UTF-8.mo \
 		pl.cp1250.mo \
 		ru.cp1251.mo \
@@ -161,8 +158,7 @@ CHECKFILES = \
 		it.ck \
 		ja.ck \
 		ja.euc-jp.ck \
-		ja.sjis.ck \
-		ko.UTF-8.ck \
+               ko.UTF-8.ck \
 		ko.ck \
 		lv.ck \
 		nb.ck \
