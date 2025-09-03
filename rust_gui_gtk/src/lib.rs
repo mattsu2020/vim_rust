@@ -2,6 +2,9 @@ use rust_gui_core::backend::{GuiBackend, GuiEvent};
 use std::collections::VecDeque;
 use rust_clipboard;
 
+#[cfg(feature = "gtk")]
+use gtk::prelude::*;
+
 /// Backend implementation for GTK environments on Unix.
 /// This sample backend records drawing operations and stores events
 /// in a queue so it can be easily tested without a full GTK stack.
@@ -45,6 +48,16 @@ pub fn clipboard_get() -> Option<String> {
     rust_clipboard::get_string()
 }
 
+#[cfg(feature = "gtk")]
+pub fn gtk_available() -> bool {
+    gtk::init().is_ok()
+}
+
+#[cfg(not(feature = "gtk"))]
+pub fn gtk_available() -> bool {
+    false
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -62,5 +75,10 @@ mod tests {
     fn clipboard_roundtrip() {
         clipboard_set("gtk clipboard").unwrap();
         assert_eq!(clipboard_get().as_deref(), Some("gtk clipboard"));
+    }
+
+    #[test]
+    fn feature_flag_off_by_default() {
+        assert!(!gtk_available());
     }
 }
