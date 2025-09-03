@@ -2194,8 +2194,8 @@ PRO_AUTO = \
 	$(ALL_GUI_PRO) \
 	$(TCL_PRO)
 
-PRO_MANUAL = os_amiga.pro os_win32.pro \
-	os_mswin.pro winclip.pro $(PERL_PRO)
+PRO_MANUAL = os_win32.pro \
+        os_mswin.pro winclip.pro $(PERL_PRO)
 
 # Default target is making the executable and tools
 all: $(VIMTARGET) languages $(GUI_BUNDLE)
@@ -2337,7 +2337,7 @@ update-po:
 # Generate function prototypes.  This is not needed to compile vim, but if
 # you want to use it, cproto is out there on the net somewhere -- Webb
 #
-# When generating os_amiga.pro and os_win32.pro there will be a
+# When generating os_win32.pro there will be a
 # few include files that can not be found, that's OK.
 
 proto: $(PRO_AUTO) $(PRO_MANUAL)
@@ -2362,13 +2362,9 @@ CPROTO = cproto $(PROTO_FLAGS) -DPROTO \
 	$(CPROTO) -DFEAT_GUI $< > proto/$@
 	echo "/* vim: set ft=c : */" >> proto/$@
 
-os_amiga.pro: os_amiga.c
-	$(CPROTO) -DAMIGA -UHAVE_CONFIG_H -DBPTR=char* $< > proto/$@
-	echo "/* vim: set ft=c : */" >> proto/$@
-
 os_win32.pro: os_win32.c
-	$(CPROTO) -DWIN32 -UHAVE_CONFIG_H $< > proto/$@
-	echo "/* vim: set ft=c : */" >> proto/$@
+        $(CPROTO) -DWIN32 -UHAVE_CONFIG_H $< > proto/$@
+        echo "/* vim: set ft=c : */" >> proto/$@
 
 os_mswin.pro: os_mswin.c
 	$(CPROTO) -DWIN32 -UHAVE_CONFIG_H $< > proto/$@

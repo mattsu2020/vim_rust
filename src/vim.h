@@ -301,10 +301,6 @@
 # include "auto/osdef.h"	// bring missing declarations in
 #endif
 
-#ifdef AMIGA
-# include "os_amiga.h"
-#endif
-
 #ifdef MSWIN
 # include "os_win32.h"
 #endif
@@ -313,9 +309,6 @@
 # include "os_mac.h"
 #endif
 
-#ifdef __QNX__
-# include "os_qnx.h"
-#endif
 
 #ifdef X_LOCALE
 # include <X11/Xlocale.h>
