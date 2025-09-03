@@ -14,21 +14,12 @@
 
 // Use SPELL_PRINTTREE for debugging: dump the word tree after adding a word.
 // Only use it for small word lists!
-#if 0
-# define SPELL_PRINTTREE
-#endif
 
 // Use SPELL_COMPRESS_ALWAYS for debugging: compress the word tree after
 // adding a word.  Only use it for small word lists!
-#if 0
-# define SPELL_COMPRESS_ALWAYS
-#endif
 
 // Use DEBUG_TRIEWALK to print the changes made in suggest_trie_walk() for a
 // specific word.
-#if 0
-# define DEBUG_TRIEWALK
-#endif
 
 #define MAXWLEN 254		// Assume max. word len is this many bytes.
 				// Some places assume a word length fits in a
