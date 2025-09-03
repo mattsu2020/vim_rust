@@ -22,7 +22,8 @@
  * Get the short path (8.3) for the filename in "fnamep".
  * Only works for a valid file name.
  * When the path gets longer "fnamep" is changed and the allocated buffer
- * is put in "bufp".
+ * is put in "bufp".  "bufp" may be NULL, in which case the caller must free
+ * the string pointed to by "fnamep" if it gets replaced.
  * *fnamelen is the length of "fnamep" and set to 0 for a nonexistent path.
  * Returns OK on success, FAIL on failure.
  */
@@ -63,24 +64,29 @@ get_short_pathname(char_u **fnamep, char_u **bufp, size_t *fnamelen)
     }
     if (l != 0)
     {
-	char_u *p = utf16_to_enc(newbuf, NULL);
+        char_u *p = utf16_to_enc(newbuf, NULL);
 
-	if (p != NULL)
-	{
-	    vim_free(*bufp);
-	    *fnamep = *bufp = p;
-	}
-	else
-	{
-	    vim_free(wfname);
-	    vim_free(newbuf);
-	    return FAIL;
-	}
+        if (p != NULL)
+        {
+            if (bufp != NULL)
+            {
+                vim_free(*bufp);
+                *fnamep = *bufp = p;
+            }
+            else
+                *fnamep = p;
+        }
+        else
+        {
+            vim_free(wfname);
+            vim_free(newbuf);
+            return FAIL;
+        }
     }
     vim_free(wfname);
     vim_free(newbuf);
 
-    *fnamelen = l == 0 ? l : STRLEN(*bufp);
+    *fnamelen = l == 0 ? l : STRLEN(bufp == NULL ? *fnamep : *bufp);
     return OK;
 }
 
@@ -106,7 +112,6 @@ shortpath_for_invalid_fname(
     size_t	*fnamelen)
 {
     char_u	*save_fname;
-    char_u	*pbuf_unused = NULL;
     char_u	*short_fname = NULL;
     char_u	*endp, *save_endp;
     char_u	ch;
@@ -148,7 +153,7 @@ shortpath_for_invalid_fname(
 	*endp = 0;
 	short_fname = save_fname;
 	len = STRLEN(short_fname) + 1;
-	if (get_short_pathname(&short_fname, &pbuf_unused, &len) == FAIL)
+	if (get_short_pathname(&short_fname, NULL, &len) == FAIL)
 	{
 	    retval = FAIL;
 	    goto theend;
@@ -203,7 +208,8 @@ shortpath_for_invalid_fname(
     }
 
 theend:
-    vim_free(pbuf_unused);
+    if (short_fname != save_fname)
+        vim_free(short_fname);
     vim_free(save_fname);
 
     return retval;
