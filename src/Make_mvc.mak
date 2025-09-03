@@ -1486,7 +1486,6 @@ test_vim9:
 .cpp{$(OUTDIR)}.obj::
 	$(CC) $(CFLAGS_OUTDIR) $<
 
-$(OUTDIR)/alloc.obj: $(OUTDIR) alloc.c $(INCL)
 
 $(OUTDIR)/arglist.obj: $(OUTDIR) arglist.c $(INCL)
 
