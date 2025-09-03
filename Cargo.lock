@@ -300,6 +300,32 @@ dependencies = [
 
 [[package]]
 name = "criterion"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e7c76e09c1aae2bc52b3d2f29e13c6572553b30c4aa1b8a49fd70de6412654cb"
+dependencies = [
+ "anes",
+ "atty",
+ "cast",
+ "ciborium",
+ "clap 3.2.25",
+ "criterion-plot",
+ "itertools 0.10.5",
+ "lazy_static",
+ "num-traits",
+ "oorandom",
+ "plotters",
+ "rayon",
+ "regex",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "tinytemplate",
+ "walkdir",
+]
+
+[[package]]
+name = "criterion"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2b12d017a929603d80db1831cd3a24082f8137ce19c69e6447f54f5fc8d692f"
@@ -1397,6 +1423,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_gui_gtk_f"
+version = "0.1.0"
+dependencies = [
+ "libloading",
+]
+
+[[package]]
 name = "rust_gui_gtk_x11"
 version = "0.1.0"
 dependencies = [
@@ -1415,6 +1448,7 @@ name = "rust_gui_w32"
 version = "0.1.0"
 dependencies = [
  "rust_gui_core",
+ "windows 0.48.0",
 ]
 
 [[package]]
@@ -1423,6 +1457,13 @@ version = "0.1.0"
 dependencies = [
  "rust_gui_core",
  "x11rb",
+]
+
+[[package]]
+name = "rust_gui_xim"
+version = "0.1.0"
+dependencies = [
+ "libloading",
 ]
 
 [[package]]
@@ -1588,7 +1629,7 @@ version = "0.1.0"
 name = "rust_os_win32"
 version = "0.1.0"
 dependencies = [
- "windows",
+ "windows 0.52.0",
 ]
 
 [[package]]
@@ -1650,6 +1691,7 @@ dependencies = [
 name = "rust_regex_engine"
 version = "0.1.0"
 dependencies = [
+ "criterion 0.4.0",
  "regex",
 ]
 
@@ -1657,7 +1699,7 @@ dependencies = [
 name = "rust_regexp"
 version = "0.1.0"
 dependencies = [
- "criterion",
+ "criterion 0.5.1",
  "regex",
 ]
 
@@ -1707,11 +1749,12 @@ dependencies = [
 [[package]]
 name = "rust_spellfile"
 version = "0.1.0"
+
 [[package]]
 name = "rust_spellsuggest"
 version = "0.1.0"
 dependencies = [
- "criterion",
+ "criterion 0.5.1",
  "rust_spellfile",
 ]
 
@@ -2180,6 +2223,7 @@ name = "vim_channel"
 version = "0.1.0"
 dependencies = [
  "diff",
+ "regex",
  "rust_alloc",
  "rust_blob",
  "rust_blowfish",
@@ -2409,6 +2453,15 @@ name = "winapi-x86_64-pc-windows-gnu"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
+
+[[package]]
+name = "windows"
+version = "0.48.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e686886bc078bc1b0b600cac0147aadb815089b6e4da64016cbd754b6342700f"
+dependencies = [
+ "windows-targets 0.48.5",
+]
 
 [[package]]
 name = "windows"

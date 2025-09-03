@@ -6,3 +6,6 @@ edition = "2021"
 [dependencies]
 rust_gui_core = { path = "../rust_gui_core" }
 
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.48", features = ["Win32_System_SystemInformation"] }
+
