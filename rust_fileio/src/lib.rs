@@ -2,6 +2,11 @@ use std::ffi::CStr;
 use std::fs;
 use std::os::raw::{c_char, c_int, c_void};
 
+// Maximum number of bytes we are willing to read or write in one go.  This
+// prevents passing a ridiculously large length from C and accidentally
+// allocating excessive memory or overflowing usize calculations.
+const MAX_IO_SIZE: usize = 10 * 1024 * 1024; // 10MB
+
 use rust_path::normalize_path;
 
 /// Read the file at `fname`.
@@ -28,6 +33,12 @@ pub extern "C" fn rs_readfile(
         Some(p) => p,
         None => return -1,
     };
+
+    match fs::metadata(&norm) {
+        Ok(meta) if meta.len() as usize <= MAX_IO_SIZE => (),
+        _ => return -1,
+    }
+
     match fs::read(&norm) {
         Ok(_) => 0,
         Err(_) => -1,
@@ -54,6 +65,9 @@ pub extern "C" fn rs_writefile(
         Some(p) => p,
         None => return -1,
     };
+    if len > MAX_IO_SIZE {
+        return -1;
+    }
     let slice = unsafe { std::slice::from_raw_parts(data as *const u8, len) };
     match fs::write(&norm, slice) {
         Ok(_) => 0,
@@ -118,5 +132,48 @@ mod tests {
         );
         let metadata = fs::metadata(file_path).unwrap();
         assert_eq!(metadata.len(), data.len() as u64);
+    }
+
+    #[test]
+    fn write_too_large() {
+        use std::ffi::CString;
+        let name = CString::new("./tmp_large.txt").unwrap();
+        // Intentionally pass a huge length with a tiny buffer. The function
+        // should reject this without attempting the write.
+        let data = [0u8; 1];
+        assert_eq!(
+            rs_writefile(
+                name.as_ptr(),
+                data.as_ptr() as *const c_char,
+                MAX_IO_SIZE + 1,
+                0
+            ),
+            -1
+        );
+    }
+
+    #[test]
+    fn read_too_large() {
+        use tempfile::tempdir;
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("huge.bin");
+        {
+            use std::io::Write;
+            let mut f = fs::File::create(&file_path).unwrap();
+            f.write_all(&vec![0u8; MAX_IO_SIZE + 1]).unwrap();
+        }
+        let cpath = CString::new(file_path.to_str().unwrap()).unwrap();
+        assert_eq!(
+            rs_readfile(
+                cpath.as_ptr(),
+                std::ptr::null(),
+                0,
+                0,
+                0,
+                std::ptr::null_mut(),
+                0
+            ),
+            -1
+        );
     }
 }
