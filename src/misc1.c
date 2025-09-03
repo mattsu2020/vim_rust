@@ -28,6 +28,9 @@
 // All user names (for ~user completion as done by shell).
 static garray_T	ga_users;
 
+// FFI: implemented in rust_strings crate
+extern char_u *skip_to_option_part(char_u *p);
+
 /*
  * get_leader_len() returns the length in bytes of the prefix of the given
  * string which introduces a comment.  If this string is not a comment then
@@ -594,19 +597,6 @@ pchar_cursor(int c)
 {
     *(ml_get_buf(curbuf, curwin->w_cursor.lnum, TRUE)
 						  + curwin->w_cursor.col) = c;
-}
-
-/*
- * Skip to next part of an option argument: Skip space and comma.
- */
-    char_u *
-skip_to_option_part(char_u *p)
-{
-    if (*p == ',')
-	++p;
-    while (*p == ' ')
-	++p;
-    return p;
 }
 
 /*
