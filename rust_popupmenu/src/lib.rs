@@ -125,6 +125,67 @@ pub struct PumItemOwned {
     pub pum_user_kind_hlattr: c_int,
 }
 
+/// Frees an array of [`PumItemOwned`] previously returned by [`split_message`].
+///
+/// This reclaims both the individual strings and the array itself.
+#[no_mangle]
+pub extern "C" fn free_pum_items(ptr: *mut PumItemOwned, count: usize) {
+    if ptr.is_null() || count == 0 {
+        return;
+    }
+    unsafe {
+        // Recreate the Vec so that Rust can properly deallocate the memory.
+        let items = Vec::from_raw_parts(ptr, count, count);
+        for item in items {
+            if !item.pum_text.is_null() {
+                let _ = CString::from_raw(item.pum_text);
+            }
+            if !item.pum_kind.is_null() {
+                let _ = CString::from_raw(item.pum_kind);
+            }
+            if !item.pum_extra.is_null() {
+                let _ = CString::from_raw(item.pum_extra);
+            }
+            if !item.pum_info.is_null() {
+                let _ = CString::from_raw(item.pum_info);
+            }
+        }
+        // `items` drops here and frees the allocation of the array itself.
+    }
+}
+
+/// A safe wrapper around a raw pointer to [`PumItemOwned`] values.
+/// When dropped it automatically releases all allocated strings and
+/// the array itself by calling [`free_pum_items`].
+pub struct OwnedPumItems {
+    ptr: *mut PumItemOwned,
+    count: usize,
+}
+
+impl OwnedPumItems {
+    /// # Safety
+    ///
+    /// `ptr` must be a pointer returned by [`split_message`] and `count`
+    /// must be the number of items returned.
+    pub unsafe fn from_raw(ptr: *mut PumItemOwned, count: usize) -> Self {
+        Self { ptr, count }
+    }
+
+    pub fn as_ptr(&self) -> *const PumItemOwned {
+        self.ptr
+    }
+
+    pub fn len(&self) -> usize {
+        self.count
+    }
+}
+
+impl Drop for OwnedPumItems {
+    fn drop(&mut self) {
+        free_pum_items(self.ptr, self.count)
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn split_message(mesg: *mut c_char, array: *mut *mut PumItemOwned) -> c_int {
     if mesg.is_null() || array.is_null() {
@@ -191,9 +252,15 @@ mod tests {
     #[test]
     fn split_message_creates_items() {
         let msg = CString::new("one\ntwo").unwrap();
+        let msg_ptr = msg.into_raw();
         let mut out: *mut PumItemOwned = std::ptr::null_mut();
-        let n = split_message(msg.into_raw(), &mut out);
+        let n = split_message(msg_ptr, &mut out);
         assert_eq!(n, 2);
-        // memory leak is acceptable for test
+        unsafe {
+            // Wrap in OwnedPumItems to ensure cleanup.
+            let _items = OwnedPumItems::from_raw(out, n as usize);
+            // Reclaim the message string allocated with into_raw().
+            let _ = CString::from_raw(msg_ptr);
+        }
     }
 }
