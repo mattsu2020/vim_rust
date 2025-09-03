@@ -1,0 +1,11 @@
+[package]
+name = "rust_getchar"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rust_input = { path = "../rust_input" }
+
+[lib]
+name = "rust_getchar"
+crate-type = ["staticlib", "rlib"]
