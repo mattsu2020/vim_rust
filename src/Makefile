@@ -1774,112 +1774,110 @@ BASIC_SRC = \
         arglist.c \
         autocmd.c \
         buffer.c \
-       # change.c replaced by rust_change crate \
         charset.c \
-	cindent.c \
-	clientserver.c \
-	clipboard.c \
-	cmdexpand.c \
-	cmdhist.c \
-	crypt.c \
-	crypt_zip.c \
-	debugger.c \
-	dict.c \
-	diff.c \
-	digraph.c \
-	drawline.c \
-	drawscreen.c \
-	edit.c \
-	eval.c \
-	evalbuffer.c \
-	evalfunc.c \
-	evalvars.c \
-	evalwindow.c \
-       # ex_cmds.c replaced by rust_excmds crate \
+        cindent.c \
+        clientserver.c \
+        clipboard.c \
+        cmdexpand.c \
+        cmdhist.c \
+        crypt.c \
+        crypt_zip.c \
+        debugger.c \
+        dict.c \
+        diff.c \
+        digraph.c \
+        drawline.c \
+        drawscreen.c \
+        edit.c \
+        eval.c \
+        evalbuffer.c \
+        evalfunc.c \
+        evalvars.c \
+        evalwindow.c \
         ex_eval.c \
         ex_getln.c \
-	fileio.c \
-	filepath.c \
-	findfile.c \
-	float.c \
-	fold.c \
-	fuzzy.c \
-	getchar.c \
-	gc.c \
-	gui_xim.c \
-	hardcopy.c \
-	hashtab.c \
-	\
-	highlight.c \
+        fileio.c \
+        filepath.c \
+        findfile.c \
+        float.c \
+        fold.c \
+        fuzzy.c \
+        getchar.c \
+        gc.c \
+        gui_xim.c \
+        hardcopy.c \
+        hashtab.c \
+        \
+        highlight.c \
         if_cscope.c \
         if_xcmdsrv.c \
         indent.c \
         insexpand.c \
         linematch.c \
-	list.c \
-	locale.c \
-	main.c \
-	map.c \
-	mark.c \
-	match.c \
-	mbyte.c \
-	memfile.c \
-	memline.c \
-	menu.c \
-	misc1.c \
-	misc2.c \
-	mouse.c \
-	move.c \
-	normal.c \
-	ops.c \
-	option.c \
-	optionstr.c \
-	os_unix.c \
-	auto/pathdef.c \
-	popupmenu.c \
-	popupwin.c \
-	profiler.c \
-	pty.c \
-	quickfix.c \
-	regexp.c \
-	register.c \
-	screen.c \
-	scriptfile.c \
-	search.c \
-	session.c \
-	sha256.c \
-	sign.c \
-	sound.c \
+        list.c \
+        locale.c \
+        main.c \
+        map.c \
+        mark.c \
+        match.c \
+        mbyte.c \
+        memfile.c \
+        memline.c \
+        menu.c \
+        misc1.c \
+        misc2.c \
+        mouse.c \
+        move.c \
+        normal.c \
+        ops.c \
+        option.c \
+        optionstr.c \
+        os_unix.c \
+        auto/pathdef.c \
+        popupmenu.c \
+        popupwin.c \
+        profiler.c \
+        pty.c \
+        quickfix.c \
+        regexp.c \
+        register.c \
+        screen.c \
+        scriptfile.c \
+        search.c \
+        session.c \
+        sha256.c \
+        sign.c \
+        sound.c \
        spell.c \
        strings.c \
         syntax.c \
         tag.c \
         term.c \
     \
-	textformat.c \
-	textobject.c \
-	textprop.c \
-	time.c \
-	tuple.c \
-	typval.c \
-	ui.c \
-	undo.c \
-	usercmd.c \
-	userfunc.c \
-	version.c \
-	vim9class.c \
-	vim9cmds.c \
-	vim9compile.c \
-	vim9execute.c \
-	vim9expr.c \
-	vim9generics.c \
-	vim9instr.c \
-	vim9script.c \
-	vim9type.c \
-	viminfo.c \
-	window.c \
-	bufwrite.c \
-	$(OS_EXTRA_SRC)
+        textformat.c \
+        textobject.c \
+        textprop.c \
+        time.c \
+        tuple.c \
+        typval.c \
+        ui.c \
+        undo.c \
+        usercmd.c \
+        userfunc.c \
+        version.c \
+        vim9class.c \
+        vim9cmds.c \
+        vim9compile.c \
+        vim9execute.c \
+        vim9expr.c \
+        vim9generics.c \
+        vim9instr.c \
+        vim9script.c \
+        vim9type.c \
+        viminfo.c \
+        window.c \
+        bufwrite.c \
+        $(OS_EXTRA_SRC)
 
 SRC =	$(BASIC_SRC) \
 	$(GUI_SRC) \
@@ -3315,8 +3313,7 @@ objects/buffer.o: buffer.c
 objects/bufwrite.o: bufwrite.c
 	$(CCC) -o $@ bufwrite.c
 
-objects/change.o: change.c
-	$(CCC) -o $@ change.c
+ 
 
 objects/charset.o: charset.c
 	$(CCC) -o $@ charset.c
@@ -3378,8 +3375,7 @@ objects/evalvars.o: evalvars.c
 objects/evalwindow.o: evalwindow.c
 	$(CCC) -o $@ evalwindow.c
 
-# objects/ex_cmds.o: ex_cmds.c
-#	$(CCC) -o $@ ex_cmds.c
+ 
 
 objects/ex_eval.o: ex_eval.c
 	$(CCC) -o $@ ex_eval.c
@@ -3853,7 +3849,7 @@ objects/buffer.o: buffer.c vim.h protodef.h auto/config.h feature.h os_unix.h \
    proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
    libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
    globals.h errors.h version.h
-objects/change.o: # change.c replaced by rust_change crate
+ 
 objects/charset.o: charset.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
@@ -3949,7 +3945,7 @@ objects/evalwindow.o: evalwindow.c vim.h protodef.h auto/config.h feature.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h errors.h
-objects/ex_cmds.o: # ex_cmds.c replaced by rust_excmds crate
+ 
 objects/ex_eval.o: ex_eval.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \

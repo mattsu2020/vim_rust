@@ -41,7 +41,6 @@ SRC_ALL =	\
 		src/beval.h \
 		src/buffer.c \
 		src/bufwrite.c \
-		src/change.c \
 		src/channel.c \
 		src/charset.c \
 		src/cindent.c \
@@ -66,7 +65,6 @@ SRC_ALL =	\
 		src/evalvars.c \
 		src/evalwindow.c \
 		src/ex_cmdidxs.h \
-		src/ex_cmds.c \
 		src/ex_cmds.h \
 		src/ex_eval.c \
 		src/ex_getln.c \
