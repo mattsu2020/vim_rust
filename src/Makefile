@@ -1811,8 +1811,6 @@ BASIC_SRC = \
         findfile.c \
         float.c \
         fold.c \
-        fuzzy.c \
-        gc.c \
         gui_xim.c \
         hardcopy.c \
         hashtab.c \
@@ -3384,14 +3382,8 @@ objects/float.o: float.c
 objects/fold.o: fold.c
 	$(CCC) -o $@ fold.c
 
-objects/fuzzy.o: fuzzy.c
-	$(CCC) -o $@ fuzzy.c
-
-objects/gc.o: gc.c
-	$(CCC) -o $@ gc.c
-
 objects/hardcopy.o: hardcopy.c
-	$(CCC) -o $@ hardcopy.c
+       $(CCC) -o $@ hardcopy.c
 
 objects/hashtab.o: hashtab.c
 	$(CCC) -o $@ hashtab.c
@@ -3939,16 +3931,6 @@ objects/float.o: float.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
 objects/fold.o: fold.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
-objects/fuzzy.o: fuzzy.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
-objects/gc.o: gc.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \

@@ -14,10 +14,9 @@ use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int, c_long, c_void};
 use regex::bytes::{NoExpand, Regex, RegexBuilder};
 
-mod fuzzy;
 mod linematch;
 
-pub use fuzzy::fuzzy_match;
+pub use rust_fuzzy::fuzzy_match;
 pub use linematch::line_match;
 
 /// Search for a match of `pat` anywhere in `text`.
