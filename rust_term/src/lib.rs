@@ -2,8 +2,7 @@ use std::ffi::CStr;
 use std::io::{stdout, Write};
 use std::os::raw::{c_char, c_int};
 
-#[cfg(unix)]
-use libc::{ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ};
+mod platform;
 
 /// Simple owned buffer used for terminal output.
 struct TermBuffer {
@@ -149,24 +148,7 @@ pub unsafe extern "C" fn rust_term_get_winsize(
     width: *mut c_int,
     height: *mut c_int,
 ) -> c_int {
-    #[cfg(unix)]
-    {
-        let mut ws: winsize = std::mem::zeroed();
-        if ioctl(STDOUT_FILENO, TIOCGWINSZ, &mut ws) == -1 {
-            return -1;
-        }
-        if !width.is_null() {
-            *width = ws.ws_col as c_int;
-        }
-        if !height.is_null() {
-            *height = ws.ws_row as c_int;
-        }
-        0
-    }
-    #[cfg(not(unix))]
-    {
-        -1
-    }
+    platform::get_winsize(width, height)
 }
 
 // --- Tests -----------------------------------------------------------------
