@@ -5,6 +5,8 @@ edition = "2021"
 
 [lib]
 name = "rust_mbyte"
-crate-type = ["staticlib"]
+crate-type = ["staticlib", "rlib"]
 
 [dependencies]
+unicode-segmentation = "1.10"
+unicode-normalization = "0.1"
