@@ -1712,8 +1712,6 @@ $(OUTDIR)/search.obj: $(OUTDIR) search.c $(INCL)
 
 $(OUTDIR)/session.obj: $(OUTDIR) session.c $(INCL)
 
-$(OUTDIR)/sha256.obj: $(OUTDIR) sha256.c $(INCL)
-
 $(OUTDIR)/sign.obj: $(OUTDIR) sign.c $(INCL)
 
 $(OUTDIR)/spell.obj: $(OUTDIR) spell.c $(INCL)

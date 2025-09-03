@@ -132,7 +132,6 @@ SRC_ALL =	\
 		src/scriptfile.c \
 		src/screen.c \
 		src/session.c \
-		src/sha256.c \
                 src/sound.c \
 		src/spell.c \
                 src/spell.h \
