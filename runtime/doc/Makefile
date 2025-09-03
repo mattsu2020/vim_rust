@@ -16,23 +16,15 @@ include ../../src/auto/config.mk
 include Make_all.mak
 
 .SUFFIXES:
-.SUFFIXES: .c .o .txt .html
-.PHONY: all vimtags noerrors perlhtml clean test_urls
+.SUFFIXES: .txt .html
+.PHONY: all noerrors perlhtml clean test_urls
 
 all: tags vim.man evim.man vimdiff.man vimtutor.man xxd.man $(CONVERTED)
 
 # Use Vim to generate the tags file.  Can only be used when Vim has been
 # compiled.  Supports multiple languages.
-vimtags: $(DOCS)
-	@$(VIMPROG) --clean -esX -V1 -u doctags.vim
-
-# Use "doctags" to generate the tags file.  Only works for English!
-tags: doctags $(DOCS)
-	./doctags $(DOCS) | LANG=C LC_ALL=C sort >$@
-	uniq -d -2 tags
-
-doctags: doctags.c
-	$(CC) doctags.c -o doctags
+tags: $(DOCS)
+        @$(VIMPROG) --clean -esX -V1 -u doctags.vim
 
 vim.man: vim.1
 	nroff -man $? | sed -e s/.//g > $@
@@ -83,7 +75,7 @@ test_urls:
 	$(VIMPROG) --clean -S test_urls.vim
 
 clean:
-	-rm -f doctags *.html tags.ref tags-* vim-stylesheet.css
+        -rm -f *.html tags.ref tags-* vim-stylesheet.css
 
 # These files are in the extra archive, skip if not present
 
