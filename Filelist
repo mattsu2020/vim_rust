@@ -479,7 +479,6 @@ SRC_UNIX =	\
 		src/auto/wayland/protocols/wlr-data-control-unstable-v1.xml \
 		src/auto/wayland/protocols/xdg-shell.xml \
 		src/auto/wayland/protocols/primary-selection-unstable-v1.xml \
-		src/if_xcmdsrv.c \
 		src/link.sh \
 		src/installman.sh \
 		src/installml.sh \
@@ -498,7 +497,6 @@ SRC_UNIX =	\
 		src/proto/gui_xmdlg.pro \
 		src/proto/gui_x11.pro \
 		src/proto/wayland.pro \
-		src/proto/if_xcmdsrv.pro \
 		src/proto/os_unix.pro \
 		src/proto/pty.pro \
 		src/pty.c \
@@ -517,27 +515,7 @@ SRC_UNIX =	\
 # Source files for both MS Windows and Unix-like.
 SRC_DOS_UNIX =	\
 		src/gui_xim.c \
-		src/if_cscope.c \
-		src/if_lua.c \
-		src/if_mzsch.c \
-		src/if_mzsch.h \
-		src/if_perl.xs \
-		src/if_perlsfio.c \
-		src/if_python.c \
-		src/if_python3.c \
-		src/if_py_both.h \
-		src/if_ruby.c \
-		src/if_tcl.c \
 		src/proto/gui_xim.pro \
-		src/proto/if_cscope.pro \
-		src/proto/if_lua.pro \
-		src/proto/if_mzsch.pro \
-		src/proto/if_perl.pro \
-		src/proto/if_perlsfio.pro \
-		src/proto/if_python.pro \
-		src/proto/if_python3.pro \
-		src/proto/if_ruby.pro \
-		src/proto/if_tcl.pro \
 		src/typemap \
 
 # Source files for MS Windows (also in the extra archive).
@@ -579,9 +557,6 @@ SRC_DOS =	\
 		src/gui_dwrite.h \
 		src/gui_w32.c \
 		src/gui_w32_rc.h \
-		src/if_ole.cpp \
-		src/if_ole.h \
-		src/if_ole.idl \
 		src/iscygpty.c \
 		src/iscygpty.h \
 		src/iid_ole.c \
@@ -592,7 +567,6 @@ SRC_DOS =	\
 		src/os_mswin.c \
 		src/os_win32.h \
 		src/proto/gui_w32.pro \
-		src/proto/if_ole.pro \
 		src/proto/os_win32.pro \
 		src/proto/os_mswin.pro \
 		src/testdir/Make_dos.mak \
