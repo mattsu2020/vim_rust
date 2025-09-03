@@ -32,9 +32,6 @@
 #  define XImage int
 # endif
 
-# ifdef AMIGA
-#  include "os_amiga.pro"
-# endif
 # if defined(UNIX) || defined(VMS)
 #  include "os_unix.pro"
 # endif
@@ -48,9 +45,6 @@ extern int _stricoll(char *a, char *b);
 # endif
 # ifdef VMS
 #  include "os_vms.pro"
-# endif
-# ifdef __QNX__
-#  include "os_qnx.pro"
 # endif
 
 // xdiff の mmfile_t 定義が必要なプロトタイプに先行させる

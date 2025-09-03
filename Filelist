@@ -561,9 +561,6 @@ SRC_AMI =	\
 		src.info \
 		src/INSTALLami.txt \
 		src/Make_ami.mak \
-		src/os_amiga.c \
-		src/os_amiga.h \
-		src/proto/os_amiga.pro \
 		src/testdir/Make_amiga.mak \
 		src/testdir/util/amiga.vim \
 
@@ -585,11 +582,8 @@ SRC_MAC =	\
 
 # Source files for QNX (in the extra archive).
 SRC_QNX =	\
-		src/os_qnx.c \
-		src/os_qnx.h \
-		src/gui_photon.c \
-		src/proto/gui_photon.pro \
-		src/proto/os_qnx.pro \
+                src/gui_photon.c \
+                src/proto/gui_photon.pro \
 
 # Source files for the extra archive (all sources that are not for Unix).
 SRC_EXTRA =	\
