@@ -19,11 +19,6 @@
 // Rust implementations for command execution and key mapping.
 extern const char *rs_map_lookup(const char *lhs);
 
-int op_change(oparg_T *oap)
-{
-    return rs_op_change(oap);
-}
-
 static void shift_block(oparg_T *oap, int amount);
 static void	mb_adjust_opend(oparg_T *oap);
 static int	do_addsub(int op_type, pos_T *pos, int length, linenr_T Prenum1);
@@ -149,7 +144,7 @@ get_extra_op_char(int optype)
  * op_shift - handle a shift operation
  */
     void
-op_shift(oparg_T *oap, int curs_top, int amount)
+op_shift_c(oparg_T *oap, int curs_top, int amount)
 {
     long	    i;
     int		    first_char;
@@ -778,7 +773,7 @@ block_insert(
  * Return FAIL if undo failed, OK otherwise.
  */
     int
-op_delete(oparg_T *oap)
+op_delete_c(oparg_T *oap)
 {
     int			n;
     linenr_T		lnum;
@@ -1185,7 +1180,7 @@ replace_character(int c)
  * Replace a whole area with one character.
  */
     int
-op_replace(oparg_T *oap, int c)
+op_replace_c(oparg_T *oap, int c)
 {
     int			n, numc;
     int			num_chars;
@@ -1438,8 +1433,8 @@ static int swapchars(int op_type, pos_T *pos, int length);
 /*
  * Handle the (non-standard vi) tilde operator.  Also for "gu", "gU" and "g?".
  */
-    static void
-op_tilde(oparg_T *oap)
+    void
+op_tilde_c(oparg_T *oap)
 {
     pos_T		pos;
     struct block_def	bd;
@@ -1657,7 +1652,7 @@ swapchar(int op_type, pos_T *pos)
  * op_insert - Insert and append operators for Visual mode.
  */
     void
-op_insert(oparg_T *oap, long count1)
+op_insert_c(oparg_T *oap, long count1)
 {
     long		pre_textlen = 0;
     colnr_T		ind_pre_col = 0, ind_post_col;
@@ -1922,7 +1917,7 @@ op_change_c(oparg_T *oap)
 	if (u_save_cursor() == FAIL)
 	    return FALSE;
     }
-    else if (op_delete(oap) == FAIL)
+    else if (op_delete_c(oap) == FAIL)
 	return FALSE;
 
     if ((l > curwin->w_cursor.col) && !LINEEMPTY(curwin->w_cursor.lnum)
@@ -2664,7 +2659,7 @@ charwise_block_prep(
  * Handle the add/subtract operator.
  */
     void
-op_addsub(
+op_addsub_c(
     oparg_T	*oap,
     linenr_T	Prenum1,	    // Amount of add/subtract
     int		g_cmd)		    // was g<c-a>/g<c-x>
@@ -3599,8 +3594,8 @@ cursor_pos_info(dict_T *dict)
 /*
  * Handle indent and format operators and visual mode ":".
  */
-    static void
-op_colon(oparg_T *oap)
+    void
+op_colon_c(oparg_T *oap)
 {
     stuffcharReadbuff(':');
     if (oap->is_VIsual)
@@ -3715,8 +3710,8 @@ set_ref_in_opfunc(int copyID UNUSED)
 /*
  * Handle the "g@" operator: call 'operatorfunc'.
  */
-    static void
-op_function(oparg_T *oap UNUSED)
+    void
+op_function_c(oparg_T *oap UNUSED)
 {
 #ifdef FEAT_EVAL
     typval_T	argv[2];
@@ -4316,9 +4311,9 @@ do_pending_operator(cmdarg_T *cap, int old_col, int gui_yank)
 
 	switch (oap->op_type)
 	{
-	case OP_LSHIFT:
-	case OP_RSHIFT:
-	    op_shift(oap, TRUE, oap->is_VIsual ? (int)cap->count1 : 1);
+        case OP_LSHIFT:
+        case OP_RSHIFT:
+            rs_op_shift(oap, TRUE, oap->is_VIsual ? (int)cap->count1 : 1);
 	    auto_format(FALSE, TRUE);
 	    break;
 
@@ -4346,7 +4341,7 @@ do_pending_operator(cmdarg_T *cap, int old_col, int gui_yank)
 	    }
 	    else
 	    {
-		(void)op_delete(oap);
+                (void)rs_op_delete(oap);
 		// save cursor line for undo if it wasn't saved yet
 		if (oap->motion_type == MLINE && has_format_option(FO_AUTO)
 						      && u_save_cursor() == OK)
@@ -4400,7 +4395,7 @@ do_pending_operator(cmdarg_T *cap, int old_col, int gui_yank)
 		// trigger TextChangedI
 		curbuf->b_last_changedtick_i = CHANGEDTICK(curbuf);
 
-		if (op_change(oap))	// will call edit()
+		if (rs_op_change(oap))	// will call edit()
 		    cap->retval |= CA_COMMAND_BUSY;
 		if (restart_edit == 0)
 		    restart_edit = restart_edit_save;
@@ -4438,7 +4433,7 @@ do_pending_operator(cmdarg_T *cap, int old_col, int gui_yank)
 		break;
 	    }
 
-	    op_colon(oap);
+            rs_op_colon(oap);
 	    break;
 
 	case OP_TILDE:
@@ -4451,7 +4446,7 @@ do_pending_operator(cmdarg_T *cap, int old_col, int gui_yank)
 		CancelRedo();
 	    }
 	    else
-		op_tilde(oap);
+                rs_op_tilde(oap);
 	    check_cursor_col();
 	    break;
 
@@ -4463,7 +4458,7 @@ do_pending_operator(cmdarg_T *cap, int old_col, int gui_yank)
 #endif
 	    {
 		if (*p_fp != NUL || *curbuf->b_p_fp != NUL)
-		    op_colon(oap);		// use external command
+		    rs_op_colon(oap);		// use external command
 		else
 		    op_format(oap, FALSE);	// use internal function
 	    }
@@ -4482,7 +4477,7 @@ do_pending_operator(cmdarg_T *cap, int old_col, int gui_yank)
 		restore_lbr(lbr_saved);
 #endif
 		// call 'operatorfunc'
-		op_function(oap);
+                rs_op_function(oap);
 
 		// Restore the info for redoing Visual mode, the function may
 		// invoke another operator and unintentionally change it.
@@ -4513,7 +4508,7 @@ do_pending_operator(cmdarg_T *cap, int old_col, int gui_yank)
 		// trigger TextChangedI
 		curbuf->b_last_changedtick_i = CHANGEDTICK(curbuf);
 
-		op_insert(oap, cap->count1);
+                rs_op_insert(oap, cap->count1);
 #ifdef FEAT_LINEBREAK
 		// Reset linebreak, so that formatting works correctly.
 		(void)reset_lbr();
@@ -4544,7 +4539,7 @@ do_pending_operator(cmdarg_T *cap, int old_col, int gui_yank)
 		// before.
 		restore_lbr(lbr_saved);
 #endif
-		op_replace(oap, cap->nchar);
+                rs_op_replace(oap, cap->nchar);
 	    }
 	    break;
 
@@ -4587,7 +4582,7 @@ do_pending_operator(cmdarg_T *cap, int old_col, int gui_yank)
 #ifdef FEAT_LINEBREAK
 		restore_lbr(lbr_saved);
 #endif
-		op_addsub(oap, cap->count1, redo_VIsual.rv_arg);
+                rs_op_addsub(oap, cap->count1, redo_VIsual.rv_arg);
 		VIsual_active = FALSE;
 	    }
 	    check_cursor_col();
