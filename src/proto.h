@@ -123,9 +123,6 @@ extern int _stricoll(char *a, char *b);
 # ifdef FEAT_VIMINFO
 #  include "viminfo.pro"
 # endif
-# ifdef FEAT_TABPANEL
-#  include "tabpanel.pro"
-# endif
 
 // These prototypes cannot be produced automatically.
 int smsg(const char *, ...) ATTRIBUTE_COLD ATTRIBUTE_FORMAT_PRINTF(1, 2);

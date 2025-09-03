@@ -854,11 +854,10 @@ OBJ = \
 	$(OUTDIR)/sha256.o \
 	$(OUTDIR)/sign.o \
 	$(OUTDIR)/spell.o \
-	$(OUTDIR)/strings.o \
-	$(OUTDIR)/syntax.o \
-	$(OUTDIR)/tabpanel.o \
-	$(OUTDIR)/tag.o \
-	$(OUTDIR)/term.o \
+        $(OUTDIR)/strings.o \
+        $(OUTDIR)/syntax.o \
+        $(OUTDIR)/tag.o \
+        $(OUTDIR)/term.o \
 	$(OUTDIR)/testing.o \
 	$(OUTDIR)/textformat.o \
 	$(OUTDIR)/textobject.o \

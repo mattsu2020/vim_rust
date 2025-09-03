@@ -538,12 +538,6 @@
 # define FEAT_GUI_TABLINE
 #endif
 
-/*
- * +tabpanel		Tab SideBar
- */
-#ifdef FEAT_HUGE
-# define FEAT_TABPANEL
-#endif
 
 /*
  * +browse		":browse" command.
