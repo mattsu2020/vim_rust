@@ -6,7 +6,10 @@ edition = "2021"
 [dependencies]
 libc = "0.2"
 blowfish = "0.8"
-rust_sha256 = { path = "../rust_sha256" }
+pbkdf2 = "0.12"
+hmac = "0.12"
+sha2 = "0.10"
+hex = "0.4"
 
 [lib]
 name = "rust_blowfish"
