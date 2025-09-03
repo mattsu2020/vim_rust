@@ -743,7 +743,6 @@ OBJ = \
 	$(OUTDIR)\popupmenu.obj \
 	$(OUTDIR)\popupwin.obj \
 	$(OUTDIR)\profiler.obj \
-	$(OUTDIR)\quickfix.obj \
 	$(OUTDIR)\regexp.obj \
 	$(OUTDIR)\register.obj \
 	$(OUTDIR)\scriptfile.obj \
@@ -1668,7 +1667,6 @@ $(OUTDIR)/popupwin.obj: $(OUTDIR) popupwin.c $(INCL)
 
 $(OUTDIR)/profiler.obj: $(OUTDIR) profiler.c $(INCL)
 
-$(OUTDIR)/quickfix.obj: $(OUTDIR) quickfix.c $(INCL)
 
 $(OUTDIR)/register.obj: $(OUTDIR) register.c $(INCL)
 
@@ -1907,7 +1905,6 @@ proto.h: \
 	proto/popupmenu.pro \
 	proto/popupwin.pro \
 	proto/profiler.pro \
-        proto/quickfix.pro \
         proto/register.pro \
         proto/scriptfile.pro \
 	proto/screen.pro \

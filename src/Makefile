@@ -1844,7 +1844,6 @@ BASIC_SRC = \
         popupwin.c \
         profiler.c \
         pty.c \
-        quickfix.c \
         register.c \
         screen.c \
         scriptfile.c \
@@ -1994,7 +1993,6 @@ OBJ_COMMON = \
 	objects/popupwin.o \
 	objects/profiler.o \
 	objects/pty.o \
-	objects/quickfix.o \
 	objects/regexp.o \
 	objects/register.o \
 	objects/screen.o \
@@ -2140,7 +2138,6 @@ PRO_AUTO = \
 	popupwin.pro \
 	profiler.pro \
 	pty.pro \
-	quickfix.pro \
 	regexp.pro \
 	register.pro \
 	screen.pro \
@@ -3564,8 +3561,6 @@ objects/profiler.o: profiler.c
 objects/pty.o: pty.c
 	$(CCC) -o $@ pty.c
 
-objects/quickfix.o: quickfix.c
-	$(CCC) -o $@ quickfix.c
 
 objects/register.o: register.c
 $(CCC) -o $@ register.c
@@ -4098,8 +4093,6 @@ objects/pty.o: pty.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/quickfix.o: quickfix.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
