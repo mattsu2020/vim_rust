@@ -1,6 +1,7 @@
 use libc::{c_char, c_int};
 use std::collections::VecDeque;
 use std::ffi::{CStr, CString};
+use std::io::Write;
 use std::ptr;
 use std::sync::{LazyLock, Mutex};
 
@@ -58,6 +59,17 @@ fn enqueue_message(text: CString, level: LogLevel) {
     if level == LogLevel::Error {
         *LAST_ERROR.lock().unwrap() = Some(cstring.clone());
     }
+    // Print to stderr with an optional prefix.
+    let prefix = match level {
+        LogLevel::Warn => "W: ",
+        LogLevel::Error => "E: ",
+        LogLevel::Info => "",
+    };
+    let mut stderr = std::io::stderr();
+    let _ = stderr.write_all(prefix.as_bytes());
+    let _ = stderr.write_all(cstring.as_bytes());
+    let _ = stderr.write_all(b"\n");
+
     MSG_QUEUE.lock().unwrap().push_back(QueuedMsg {
         text: cstring,
         level,
@@ -168,6 +180,29 @@ mod tests {
             assert!(!ptr.is_null());
             rs_free_cstring(ptr);
             assert_eq!(lvl, LogLevel::Info as c_int);
+        }
+    }
+
+    #[test]
+    fn queue_prints_prefix() {
+        unsafe {
+            rs_clear_messages();
+            use std::io::{Read, Seek, SeekFrom};
+            use std::os::unix::io::AsRawFd;
+            let file = tempfile::tempfile().unwrap();
+            let fd = file.as_raw_fd();
+            let saved = libc::dup(libc::STDERR_FILENO);
+            libc::dup2(fd, libc::STDERR_FILENO);
+            let msg = CString::new("warn").unwrap();
+            rs_queue_message(msg.as_ptr(), LogLevel::Warn as c_int);
+            libc::fflush(std::ptr::null_mut());
+            libc::dup2(saved, libc::STDERR_FILENO);
+            libc::close(saved);
+            let mut reader = file;
+            reader.seek(SeekFrom::Start(0)).unwrap();
+            let mut out = String::new();
+            reader.read_to_string(&mut out).unwrap();
+            assert_eq!(out, "W: warn\n");
         }
     }
 }
