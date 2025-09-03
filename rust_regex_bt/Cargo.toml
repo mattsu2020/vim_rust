@@ -1,0 +1,11 @@
+[package]
+name = "rust_regex_bt"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "rust_regex_bt"
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+regex = "1"
