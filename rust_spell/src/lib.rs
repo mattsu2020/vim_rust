@@ -1,6 +1,6 @@
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int, c_uchar};
-use std::sync::{Mutex, OnceLock};
+use std::sync::{Mutex, MutexGuard, OnceLock, PoisonError};
 
 use rust_spellfile::{load_dict, Trie};
 use rust_spellsuggest::suggest;
@@ -11,8 +11,8 @@ const WF_KEEPCAP: c_int = 0x80;
 
 static TRIE: OnceLock<Mutex<Trie>> = OnceLock::new();
 
-fn trie() -> &'static Mutex<Trie> {
-    TRIE.get_or_init(|| Mutex::new(Trie::new()))
+fn trie() -> Result<MutexGuard<'static, Trie>, PoisonError<MutexGuard<'static, Trie>>> {
+    TRIE.get_or_init(|| Mutex::new(Trie::new())).lock()
 }
 
 #[no_mangle]
@@ -21,12 +21,17 @@ pub extern "C" fn rs_spell_load_dict(path: *const c_char) -> bool {
         return false;
     }
     let cstr = unsafe { CStr::from_ptr(path) };
-    let Ok(p) = cstr.to_str() else { return false; };
+    let Ok(p) = cstr.to_str() else {
+        return false;
+    };
     match load_dict(p) {
-        Ok(t) => {
-            *trie().lock().unwrap() = t;
-            true
-        }
+        Ok(t) => match trie() {
+            Ok(mut guard) => {
+                *guard = t;
+                true
+            }
+            Err(_) => false,
+        },
         Err(_) => false,
     }
 }
@@ -41,12 +46,19 @@ pub extern "C" fn rs_spell_suggest(
         return std::ptr::null_mut();
     }
     let cstr = unsafe { CStr::from_ptr(word) };
-    let Ok(w) = cstr.to_str() else { return std::ptr::null_mut(); };
-    let suggestions = {
-        let trie_guard = trie().lock().unwrap();
-        suggest(&*trie_guard, w, max)
+    let Ok(w) = cstr.to_str() else {
+        return std::ptr::null_mut();
     };
-    unsafe { *len = suggestions.len(); }
+    let suggestions = match trie() {
+        Ok(trie_guard) => suggest(&*trie_guard, w, max),
+        Err(_) => {
+            unsafe { *len = 0 }; // set length to zero on error
+            return std::ptr::null_mut();
+        }
+    };
+    unsafe {
+        *len = suggestions.len();
+    }
     let mut c_vec: Vec<*mut c_char> = suggestions
         .into_iter()
         .filter_map(|s| CString::new(s).ok().map(|cs| cs.into_raw()))
@@ -87,24 +99,14 @@ pub extern "C" fn captype(word: *const c_uchar, end: *const c_uchar) -> c_int {
             end.offset_from(word) as usize
         };
         let bytes = std::slice::from_raw_parts(word, len);
-        let mut idx = 0;
-        while idx < bytes.len() && !bytes[idx].is_ascii_alphabetic() {
-            idx += 1;
-        }
-        if idx >= bytes.len() {
+        let mut iter = bytes.iter().skip_while(|&&c| !c.is_ascii_alphabetic());
+        let Some(&first) = iter.next() else {
             return 0;
-        }
-        let first = bytes[idx];
+        };
         let firstcap = first.is_ascii_uppercase();
         let mut allcap = firstcap;
-        idx += 1;
         let mut past_second = false;
-        while idx < bytes.len() {
-            let c = bytes[idx];
-            idx += 1;
-            if !c.is_ascii_alphabetic() {
-                continue;
-            }
+        for &c in iter.filter(|&&c| c.is_ascii_alphabetic()) {
             if !c.is_ascii_uppercase() {
                 if past_second && allcap {
                     return WF_KEEPCAP;
@@ -145,6 +147,15 @@ mod tests {
         assert_eq!(captype(w.as_ptr() as *const u8, ptr::null()), WF_ALLCAP);
         let w = CString::new("vIM").unwrap();
         assert_eq!(captype(w.as_ptr() as *const u8, ptr::null()), WF_KEEPCAP);
+    }
+
+    #[test]
+    fn captype_edge_cases() {
+        let _g = TEST_MUTEX.lock().unwrap();
+        let w = CString::new("123Vim").unwrap();
+        assert_eq!(captype(w.as_ptr() as *const u8, ptr::null()), WF_ONECAP);
+        let w = CString::new("123").unwrap();
+        assert_eq!(captype(w.as_ptr() as *const u8, ptr::null()), 0);
     }
 
     #[test]
@@ -225,5 +236,36 @@ mod tests {
         let elapsed = start.elapsed();
         // basic sanity check: loading should be reasonably fast
         assert!(elapsed.as_secs() < 1, "loading took {:?}", elapsed);
+    }
+
+    #[test]
+    fn trie_lock_error() {
+        let _g = TEST_MUTEX.lock().unwrap();
+
+        // Poison the lock
+        let _ = std::panic::catch_unwind(|| {
+            let _guard = trie().unwrap();
+            panic!("poison");
+        });
+
+        // prepare valid dictionary path
+        let mut path = std::env::temp_dir();
+        path.push("dict_poison.txt");
+        let mut f = File::create(&path).unwrap();
+        writeln!(f, "apple").unwrap();
+
+        let cpath = CString::new(path.to_str().unwrap()).unwrap();
+        // loading should fail due to poisoned lock
+        assert!(!rs_spell_load_dict(cpath.as_ptr()));
+
+        // suggestions should also fail gracefully
+        let word = CString::new("appl").unwrap();
+        let mut len: usize = 0;
+        let ptr = rs_spell_suggest(word.as_ptr(), 5, &mut len as *mut usize);
+        assert!(ptr.is_null());
+        assert_eq!(len, 0);
+
+        // clear poison for other tests
+        TRIE.get().unwrap().clear_poison();
     }
 }
