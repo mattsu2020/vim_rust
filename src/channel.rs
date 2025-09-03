@@ -15,13 +15,18 @@ use std::os::windows::io::{AsRawSocket, RawSocket as RawFd};
 pub struct Channel {
     stream: TcpStream,
     timeout: Duration,
+    recv_buf: Vec<u8>,
 }
 
 impl Channel {
     /// Connect to `addr` and construct a `Channel` with the specified timeout.
     pub async fn connect<A: ToSocketAddrs>(addr: A, timeout: Duration) -> io::Result<Self> {
         let stream = timeout_io(timeout, TcpStream::connect(addr)).await?;
-        Ok(Self { stream, timeout })
+        Ok(Self {
+            stream,
+            timeout,
+            recv_buf: Vec::with_capacity(1024),
+        })
     }
 
     /// Read data from the channel and invoke `cb` with the bytes read.  The
@@ -30,10 +35,12 @@ impl Channel {
     where
         F: FnMut(&[u8]),
     {
-        let mut buf = vec![0u8; 1024];
-        let n = timeout_io(self.timeout, self.stream.read(&mut buf)).await?;
+        if self.recv_buf.len() < self.recv_buf.capacity() {
+            self.recv_buf.resize(self.recv_buf.capacity(), 0);
+        }
+        let n = timeout_io(self.timeout, self.stream.read(&mut self.recv_buf)).await?;
         if n > 0 {
-            cb(&buf[..n]);
+            cb(&self.recv_buf[..n]);
         }
         Ok(n)
     }
@@ -84,10 +91,14 @@ mod tests {
         let mut chan = Channel::connect(&addr, Duration::from_secs(5))
             .await
             .unwrap();
+        let ptr = chan.recv_buf.as_ptr();
+        let cap = chan.recv_buf.capacity();
         let mut got = Vec::new();
         chan.channel_read(|b| got.extend_from_slice(b))
             .await
             .unwrap();
+        assert_eq!(ptr, chan.recv_buf.as_ptr());
+        assert_eq!(cap, chan.recv_buf.capacity());
         assert_eq!(got, b"ping");
         chan.channel_write(b"pong").await.unwrap();
         server.await.unwrap();
