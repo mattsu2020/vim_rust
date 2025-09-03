@@ -69,18 +69,27 @@ pub fn parse_viminfo_version(contents: &str) -> u32 {
     0
 }
 
+// Internal helpers ------------------------------------------------------------
+
+fn c_ptr_to_str<'a>(ptr: *const c_char) -> Result<&'a str, c_int> {
+    if ptr.is_null() {
+        return Err(-1);
+    }
+    unsafe { CStr::from_ptr(ptr) }.to_str().map_err(|_| -1)
+}
+
 // FFI wrappers ----------------------------------------------------------------
 
 /// Escape a file name.  Returns a newly allocated C string that must be freed
 /// with `CString::from_raw` by the caller.
 #[no_mangle]
 pub extern "C" fn rs_escape_session_filename(ptr: *const c_char) -> *mut c_char {
-    if ptr.is_null() {
-        return std::ptr::null_mut();
-    }
-    let cstr = unsafe { CStr::from_ptr(ptr) };
-    match cstr.to_str() {
-        Ok(s) => CString::new(escape_filename(s)).unwrap().into_raw(),
+    let s = match c_ptr_to_str(ptr) {
+        Ok(s) => s,
+        Err(_) => return std::ptr::null_mut(),
+    };
+    match CString::new(escape_filename(s)) {
+        Ok(cs) => cs.into_raw(),
         Err(_) => std::ptr::null_mut(),
     }
 }
@@ -93,47 +102,35 @@ pub extern "C" fn rs_save_session(
     len: usize,
     version: u32,
 ) -> c_int {
-    if path.is_null() || data.is_null() {
-        return -1;
-    }
-    let c_path = unsafe { CStr::from_ptr(path) };
-    let slice = unsafe { std::slice::from_raw_parts(data as *const u8, len) };
-    let content = match std::str::from_utf8(slice) {
-        Ok(s) => s,
-        Err(_) => return -1,
-    };
-    match c_path.to_str() {
-        Ok(p) => match save_session(p, content, version) {
-            Ok(_) => 0,
-            Err(_) => -1,
-        },
-        Err(_) => -1,
-    }
+    (|| -> Result<c_int, c_int> {
+        let p = c_ptr_to_str(path)?;
+        if data.is_null() {
+            return Err(-1);
+        }
+        let slice = unsafe { std::slice::from_raw_parts(data as *const u8, len) };
+        let content = std::str::from_utf8(slice).map_err(|_| -1)?;
+        save_session(p, content, version).map_err(|_| -1)?;
+        Ok(0)
+    })()
+    .unwrap_or(-1)
 }
 
 /// Load a session file.  The caller is responsible for freeing the returned
 /// string using `CString::from_raw`.
 #[no_mangle]
 pub extern "C" fn rs_load_session(path: *const c_char, out_version: *mut u32) -> *mut c_char {
-    if path.is_null() {
-        return std::ptr::null_mut();
-    }
-    let c_path = unsafe { CStr::from_ptr(path) };
-    let p = match c_path.to_str() {
-        Ok(p) => p,
-        Err(_) => return std::ptr::null_mut(),
-    };
-    match load_session(p) {
-        Ok((version, data)) => {
-            unsafe {
-                if !out_version.is_null() {
-                    *out_version = version;
-                }
+    (|| -> Result<*mut c_char, c_int> {
+        let p = c_ptr_to_str(path)?;
+        let (version, data) = load_session(p).map_err(|_| -1)?;
+        unsafe {
+            if !out_version.is_null() {
+                *out_version = version;
             }
-            CString::new(data).unwrap().into_raw()
         }
-        Err(_) => std::ptr::null_mut(),
-    }
+        let cstr = CString::new(data).map_err(|_| -1)?;
+        Ok(cstr.into_raw())
+    })()
+    .unwrap_or(std::ptr::null_mut())
 }
 
 /// Parse the version from a viminfo file on disk.
