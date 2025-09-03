@@ -1683,6 +1683,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_cmdexpand"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rust_cmdhist"
 version = "0.1.0"
 dependencies = [
@@ -1791,6 +1798,10 @@ dependencies = [
  "libc",
  "rust_evalvars",
 ]
+
+[[package]]
+name = "rust_ex_eval"
+version = "0.1.0"
 
 [[package]]
 name = "rust_excmds"
@@ -2148,6 +2159,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_scriptfile"
+version = "0.1.0"
+
+[[package]]
 name = "rust_search"
 version = "0.1.0"
 dependencies = [
@@ -2263,6 +2278,10 @@ dependencies = [
  "libc",
  "rust_memline",
 ]
+
+[[package]]
+name = "rust_usercmd"
+version = "0.1.0"
 
 [[package]]
 name = "rust_userfunc"
@@ -2795,6 +2814,7 @@ dependencies = [
  "rust_debugger",
  "rust_evalfunc_stubs",
  "rust_evalwindow",
+ "rust_ex_eval",
  "rust_excmds",
  "rust_fold",
  "rust_job",
@@ -2806,8 +2826,10 @@ dependencies = [
  "rust_profiler",
  "rust_pty",
  "rust_python",
+ "rust_scriptfile",
  "rust_sha256",
  "rust_spell",
+ "rust_usercmd",
  "rust_wayland",
  "serde",
  "serde_json",

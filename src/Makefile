@@ -1444,6 +1444,12 @@ RUST_SHA256_DIR = ../rust_sha256
 RUST_SHA256_LIB = $(RUST_SHA256_DIR)/target/release/librust_sha256.a
 RUST_XCMDSRV_DIR = ../rust_xcmdsrv
 RUST_XCMDSRV_LIB = $(RUST_XCMDSRV_DIR)/target/release/librust_xcmdsrv.a
+RUST_EX_EVAL_DIR = ../rust_ex_eval
+RUST_EX_EVAL_LIB = $(RUST_EX_EVAL_DIR)/target/release/librust_ex_eval.a
+RUST_SCRIPTFILE_DIR = ../rust_scriptfile
+RUST_SCRIPTFILE_LIB = $(RUST_SCRIPTFILE_DIR)/target/release/librust_scriptfile.a
+RUST_USERCMD_DIR = ../rust_usercmd
+RUST_USERCMD_LIB = $(RUST_USERCMD_DIR)/target/release/librust_usercmd.a
 
 # Additional Rust crates used by this configuration
 RUST_CHANGE_DIR = ../rust_change
@@ -1484,6 +1490,9 @@ ALL_LIBS = \
            $(RUST_VIM9_LIB) \
            $(RUST_EXCMD_LIB) \
            $(RUST_CMDHIST_LIB) \
+           $(RUST_EX_EVAL_LIB) \
+           $(RUST_SCRIPTFILE_LIB) \
+           $(RUST_USERCMD_LIB) \
            $(RUST_ARABIC_LIB) \
            $(RUST_BEVAL_LIB) \
            $(RUST_MBYTE_LIB) \
@@ -1652,6 +1661,15 @@ $(RUST_SHA256_LIB):
 $(RUST_XCMDSRV_LIB):
        cd $(RUST_XCMDSRV_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
+$(RUST_EX_EVAL_LIB):
+       cd $(RUST_EX_EVAL_DIR) && CARGO_TARGET_DIR=target cargo build --release
+
+$(RUST_SCRIPTFILE_LIB):
+       cd $(RUST_SCRIPTFILE_DIR) && CARGO_TARGET_DIR=target cargo build --release
+
+$(RUST_USERCMD_LIB):
+       cd $(RUST_USERCMD_DIR) && CARGO_TARGET_DIR=target cargo build --release
+
 # Additional Rust libraries providing rs_* APIs used across the C codebase
 RUST_ARGLIST_DIR = ../rust_arglist
 RUST_ARGLIST_LIB = $(RUST_ARGLIST_DIR)/target/release/librust_arglist.a
@@ -1804,8 +1822,6 @@ BASIC_SRC = \
         evalfunc.c \
         evalvars.c \
         evalwindow.c \
-        ex_eval.c \
-        ex_getln.c \
         fileio.c \
         filepath.c \
         findfile.c \
@@ -1849,7 +1865,6 @@ BASIC_SRC = \
         quickfix.c \
         register.c \
         screen.c \
-        scriptfile.c \
         search.c \
         session.c \
         sha256.c \
@@ -1868,7 +1883,6 @@ BASIC_SRC = \
         typval.c \
         ui.c \
         undo.c \
-        usercmd.c \
         userfunc.c \
         version.c \
         vim9class.c \
@@ -1957,8 +1971,6 @@ OBJ_COMMON = \
 	objects/evalvars.o \
 	objects/evalwindow.o \
  # objects/ex_cmds.o \
-        objects/ex_eval.o \
-        objects/ex_getln.o \
 	objects/fileio.o \
 	objects/filepath.o \
 	objects/findfile.o \
@@ -2002,7 +2014,6 @@ OBJ_COMMON = \
 	objects/regexp.o \
 	objects/register.o \
 	objects/screen.o \
-	objects/scriptfile.o \
 	objects/search.o \
 	objects/session.o \
 	objects/sign.o \
@@ -2021,7 +2032,6 @@ OBJ_COMMON = \
 	objects/ui.o \
         objects/undo.o \
         objects/undo_stubs.o \
-        objects/usercmd.o \
         objects/userfunc.o \
         objects/version.o \
         objects/vim9class.o \
@@ -2302,7 +2312,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(SRC_RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_BUFWRITE_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_EVALFUNC_STUBS_LIB) $(RUST_EVAL_LIB) $(RUST_VIM9_LIB) $(RUST_EXCMD_LIB) $(RUST_CMDHIST_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB) $(RUST_TAG_LIB) $(RUST_ALLOC_LIB) $(RUST_BLOB_LIB) $(RUST_SHA256_LIB)
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(SRC_RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_BUFWRITE_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_EVALFUNC_STUBS_LIB) $(RUST_EVAL_LIB) $(RUST_VIM9_LIB) $(RUST_EXCMD_LIB) $(RUST_CMDHIST_LIB) $(RUST_EX_EVAL_LIB) $(RUST_SCRIPTFILE_LIB) $(RUST_USERCMD_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB) $(RUST_TAG_LIB) $(RUST_ALLOC_LIB) $(RUST_BLOB_LIB) $(RUST_SHA256_LIB)
 	@$(BUILD_DATE_MSG)
     @LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) objects/*.o $(ALL_LIBS)" \
@@ -3366,11 +3376,7 @@ objects/evalwindow.o: evalwindow.c
 
  
 
-objects/ex_eval.o: ex_eval.c
-	$(CCC) -o $@ ex_eval.c
 
-objects/ex_getln.o: ex_getln.c
-	$(CCC) -o $@ ex_getln.c
 
 objects/fileio.o: fileio.c
 	$(CCC) -o $@ fileio.c
@@ -3582,8 +3588,6 @@ objects/quickfix.o: quickfix.c
 objects/register.o: register.c
 $(CCC) -o $@ register.c
 
-objects/scriptfile.o: scriptfile.c
-	$(CCC) -o $@ scriptfile.c
 
 objects/screen.o: screen.c
 	$(CCC) -o $@ screen.c
@@ -3644,8 +3648,6 @@ objects/ui.o: ui.c
 objects/undo.o: undo.c
 	$(CCC) -o $@ undo.c
 
-objects/usercmd.o: usercmd.c
-	$(CCC) -o $@ usercmd.c
 
 objects/userfunc.o: userfunc.c
 	$(CCC) -o $@ userfunc.c
@@ -3914,12 +3916,10 @@ objects/evalwindow.o: evalwindow.c vim.h protodef.h auto/config.h feature.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h errors.h
  
-objects/ex_eval.o: ex_eval.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/ex_getln.o: ex_getln.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
@@ -4140,7 +4140,6 @@ objects/screen.o: screen.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/scriptfile.o: scriptfile.c vim.h protodef.h auto/config.h feature.h \
  os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
@@ -4240,7 +4239,6 @@ objects/undo.o: undo.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/usercmd.o: usercmd.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
