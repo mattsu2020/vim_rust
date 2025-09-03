@@ -13,6 +13,7 @@
  */
 
 #include "vim.h"
+#include "fold_rs.h"
 
 #if defined(FEAT_FOLDING) || defined(PROTO)
 
@@ -91,18 +92,30 @@ static int foldstartmarkerlen;
 static char_u *foldendmarker;
 static int foldendmarkerlen;
 
+static FoldState *global_fold_state = NULL;
+
+static FoldState *
+get_global_fold_state(void)
+{
+    if (global_fold_state == NULL)
+        global_fold_state = rs_fold_state_new();
+    return global_fold_state;
+}
+
 // Exported folding functions. {{{1
 // copyFoldingState() {{{2
 
 /*
  * Copy that folding state from window "wp_from" to window "wp_to".
+ * All structural information lives in the Rust side, so only flags are
+ * copied here.
  */
     void
 copyFoldingState(win_T *wp_from, win_T *wp_to)
 {
     wp_to->w_fold_manual = wp_from->w_fold_manual;
     wp_to->w_foldinvalid = wp_from->w_foldinvalid;
-    cloneFoldGrowArray(&wp_from->w_folds, &wp_to->w_folds);
+    // Folds are managed by Rust; nothing else to copy.
 }
 
 // hasAnyFolding() {{{2
@@ -112,9 +125,8 @@ copyFoldingState(win_T *wp_from, win_T *wp_to)
     int
 hasAnyFolding(win_T *win)
 {
-    // very simple now, but can become more complex later
-    return (win->w_p_fen
-	    && (!foldmethodIsManual(win) || win->w_folds.ga_len > 0));
+    (void)win; // folds handled in Rust
+    return rs_fold_has_any(get_global_fold_state());
 }
 
 // hasFolding() {{{2
@@ -127,7 +139,22 @@ hasAnyFolding(win_T *win)
     int
 hasFolding(linenr_T lnum, linenr_T *firstp, linenr_T *lastp)
 {
-    return hasFoldingWin(curwin, lnum, firstp, lastp, TRUE, NULL);
+    return rs_fold_find(get_global_fold_state(), lnum, firstp, lastp);
+}
+
+// Wrappers to manipulate folds through Rust implementation.  These are
+// currently unused in the C code but allow external callers to manage the
+// fold tree.
+void
+fold_add_rust(linenr_T top, linenr_T len, unsigned char flags, unsigned char small)
+{
+    rs_fold_add(get_global_fold_state(), top, len, flags, small);
+}
+
+void
+fold_update_rust(long idx, linenr_T top, linenr_T len, unsigned char flags, unsigned char small)
+{
+    rs_fold_update(get_global_fold_state(), idx, top, len, flags, small);
 }
 
 // hasFoldingWin() {{{2
