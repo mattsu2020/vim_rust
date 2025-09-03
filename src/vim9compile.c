@@ -13,6 +13,7 @@
 
 #define USING_FLOAT_STUFF
 #include "vim.h"
+#include "../rust_vim9/include/rust_vim9.h"
 
 #if defined(FEAT_EVAL) || defined(PROTO)
 
@@ -1442,24 +1443,7 @@ skip_index(char_u *start)
     void
 vim9_declare_error(char_u *name)
 {
-    char *scope = "";
-
-    switch (*name)
-    {
-	case 'g': scope = _("global"); break;
-	case 'b': scope = _("buffer"); break;
-	case 'w': scope = _("window"); break;
-	case 't': scope = _("tab"); break;
-	case 'v': scope = "v:"; break;
-	case '$': semsg(_(e_cannot_declare_an_environment_variable_str), name);
-		  return;
-	case '&': semsg(_(e_cannot_declare_an_option_str), name);
-		  return;
-	case '@': semsg(_(e_cannot_declare_a_register_str), name);
-		  return;
-	default: return;
-    }
-    semsg(_(e_cannot_declare_a_scope_variable_str), scope, name);
+    vim9_declare_error_rs((const char *)name);
 }
 
 /*

@@ -81,6 +81,28 @@ pub extern "C" fn vim9_exec_rs(expr: *const c_char, out: *mut typval_T) -> bool 
     }
 }
 
+#[no_mangle]
+pub extern "C" fn vim9_declare_error_rs(name: *const c_char) {
+    if name.is_null() {
+        return;
+    }
+    let c_str = unsafe { CStr::from_ptr(name) };
+    if let Ok(name) = c_str.to_str() {
+        let msg = match name.chars().next().unwrap_or('\0') {
+            'g' => format!("cannot declare a global variable {name}"),
+            'b' => format!("cannot declare a buffer variable {name}"),
+            'w' => format!("cannot declare a window variable {name}"),
+            't' => format!("cannot declare a tab variable {name}"),
+            'v' => format!("cannot declare a v: variable {name}"),
+            '$' => format!("cannot declare an environment variable {name}"),
+            '&' => format!("cannot declare an option {name}"),
+            '@' => format!("cannot declare a register {name}"),
+            _ => return,
+        };
+        eprintln!("{msg}");
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
