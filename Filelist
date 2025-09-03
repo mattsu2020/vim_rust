@@ -32,14 +32,13 @@ SRC_ALL =	\
 		ci/ddebs.list \
 		ci/pinned-pkgs \
 		src/Make_all.mak \
-		src/README.md \
-		src/alloc.h \
-		src/arglist.c \
-		src/ascii.h \
-		src/autocmd.c \
-		src/beval.c \
-		src/beval.h \
-		src/buffer.c \
+                src/README.md \
+                src/alloc.h \
+                src/ascii.h \
+                src/autocmd.c \
+                src/beval.c \
+                src/beval.h \
+                src/buffer.c \
 		src/bufwrite.c \
 		src/channel.c \
 		src/charset.c \
@@ -223,14 +222,13 @@ SRC_ALL =	\
 		src/testdir/util/window_manager.vim \
 		src/testdir/viewdumps.vim \
 		src/proto.h \
-		src/protodef.h \
-		src/proto/alloc.pro \
-		src/proto/arglist.pro \
-		src/proto/autocmd.pro \
-		src/proto/beval.pro \
-		src/proto/buffer.pro \
-		src/proto/bufwrite.pro \
-		src/proto/change.pro \
+                src/protodef.h \
+                src/proto/alloc.pro \
+                src/proto/autocmd.pro \
+                src/proto/beval.pro \
+                src/proto/buffer.pro \
+                src/proto/bufwrite.pro \
+                src/proto/change.pro \
 		src/proto/channel.pro \
 		src/proto/charset.pro \
 		src/proto/cindent.pro \

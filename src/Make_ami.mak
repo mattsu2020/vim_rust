@@ -73,7 +73,6 @@ endif
 
 # Common sources
 SRC += \
-	arglist.c \
         autocmd.c \
         beval.c \
         buffer.c \

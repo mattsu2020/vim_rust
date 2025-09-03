@@ -71,7 +71,6 @@ extern int _stricoll(char *a, char *b);
 #  endif
 # endif
 # include "alloc.pro"
-# include "arglist.pro"
 # include "autocmd.pro"
 # include "buffer.pro"
 # include "bufwrite.pro"
