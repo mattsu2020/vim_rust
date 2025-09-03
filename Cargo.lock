@@ -1318,6 +1318,7 @@ version = "0.1.0"
 dependencies = [
  "rust_path",
  "tempfile",
+ "tokio",
 ]
 
 [[package]]
@@ -1659,6 +1660,7 @@ version = "0.1.0"
 name = "rust_spellsuggest"
 version = "0.1.0"
 dependencies = [
+ "criterion",
  "rust_spellfile",
 ]
 

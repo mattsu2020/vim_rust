@@ -8,6 +8,7 @@ crate-type = ["staticlib"]
 
 [dependencies]
 rust_path = { path = "../rust_path" }
+tokio = { version = "1", features = ["fs", "macros", "rt"] }
 
 [dev-dependencies]
 tempfile = "3"

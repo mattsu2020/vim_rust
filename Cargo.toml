@@ -22,7 +22,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tokio = { version = "1", features = ["net", "time", "macros", "io-util", "rt"] }
+tokio = { version = "1", features = ["net", "time", "macros", "io-util", "rt", "fs"] }
 rust_spell = { path = "rust_spell" }
 diff = { path = "rust/diff" }
 rust_buffer = { path = "rust_buffer" }

@@ -1,7 +1,7 @@
 use std::ffi::CStr;
-use std::fs;
 use std::os::raw::{c_char, c_int, c_void};
 use std::path::PathBuf;
+use tokio::fs;
 
 // Maximum number of bytes we are willing to read or write in one go.  This
 // prevents passing a ridiculously large length from C and accidentally
@@ -21,8 +21,7 @@ fn c_path_to_normalized(ptr: *const c_char) -> Option<PathBuf> {
 
 /// Read the file at `fname`.
 /// Unused parameters mirror the original C API.
-#[no_mangle]
-pub extern "C" fn rs_readfile(
+async fn rs_readfile(
     fname: *const c_char,
     _sfname: *const c_char,
     _from: isize,
@@ -36,20 +35,19 @@ pub extern "C" fn rs_readfile(
         None => return -1,
     };
 
-    match fs::metadata(&norm) {
+    match fs::metadata(&norm).await {
         Ok(meta) if meta.len() as usize <= MAX_IO_SIZE => (),
         _ => return -1,
     }
 
-    match fs::read(&norm) {
+    match fs::read(&norm).await {
         Ok(_) => 0,
         Err(_) => -1,
     }
 }
 
 /// Write `len` bytes from `data` to the file at `fname`.
-#[no_mangle]
-pub extern "C" fn rs_writefile(
+async fn rs_writefile(
     fname: *const c_char,
     data: *const c_char,
     len: usize,
@@ -66,9 +64,47 @@ pub extern "C" fn rs_writefile(
         return -1;
     }
     let slice = unsafe { std::slice::from_raw_parts(data as *const u8, len) };
-    match fs::write(&norm, slice) {
+    match fs::write(&norm, slice).await {
         Ok(_) => 0,
         Err(_) => -1,
+    }
+}
+
+pub mod ffi {
+    use super::*;
+    use tokio::runtime::Handle;
+
+    #[no_mangle]
+    pub extern "C" fn rs_readfile(
+        fname: *const c_char,
+        _sfname: *const c_char,
+        _from: isize,
+        _lines_to_skip: isize,
+        _lines_to_read: isize,
+        _eap: *mut c_void,
+        _flags: c_int,
+    ) -> c_int {
+        Handle::current().block_on(super::rs_readfile(
+            fname,
+            _sfname,
+            _from,
+            _lines_to_skip,
+            _lines_to_read,
+            _eap,
+            _flags,
+        ))
+    }
+
+    #[no_mangle]
+    pub extern "C" fn rs_writefile(
+        fname: *const c_char,
+        data: *const c_char,
+        len: usize,
+        _flags: c_int,
+    ) -> c_int {
+        Handle::current().block_on(super::rs_writefile(
+            fname, data, len, _flags,
+        ))
     }
 }
 
@@ -78,13 +114,13 @@ mod tests {
     use std::ffi::CString;
     use std::fs;
 
-    #[test]
-    fn write_then_read() {
+    #[tokio::test]
+    async fn write_then_read() {
         let name = CString::new("./tmp_rust_fileio.txt").unwrap();
         fs::File::create("tmp_rust_fileio.txt").unwrap();
         let data = b"hello rust";
         assert_eq!(
-            rs_writefile(name.as_ptr(), data.as_ptr() as *const c_char, data.len(), 0),
+            rs_writefile(name.as_ptr(), data.as_ptr() as *const c_char, data.len(), 0).await,
             0
         );
         assert_eq!(
@@ -96,7 +132,7 @@ mod tests {
                 0,
                 std::ptr::null_mut(),
                 0
-            ),
+            ).await,
             0
         );
         let content = fs::read_to_string("tmp_rust_fileio.txt").unwrap();
@@ -104,8 +140,8 @@ mod tests {
         fs::remove_file("tmp_rust_fileio.txt").unwrap();
     }
 
-    #[test]
-    fn large_file() {
+    #[tokio::test]
+    async fn large_file() {
         use tempfile::tempdir;
 
         let dir = tempdir().unwrap();
@@ -119,7 +155,7 @@ mod tests {
                 data.as_ptr() as *const c_char,
                 data.len(),
                 0
-            ),
+            ).await,
             0
         );
         assert_eq!(
@@ -131,16 +167,15 @@ mod tests {
                 0,
                 std::ptr::null_mut(),
                 0
-            ),
+            ).await,
             0
         );
         let metadata = fs::metadata(file_path).unwrap();
         assert_eq!(metadata.len(), data.len() as u64);
     }
 
-    #[test]
-    fn write_too_large() {
-        use std::ffi::CString;
+    #[tokio::test]
+    async fn write_too_large() {
         let name = CString::new("./tmp_large.txt").unwrap();
         fs::File::create("tmp_large.txt").unwrap();
         // Intentionally pass a huge length with a tiny buffer. The function
@@ -152,14 +187,14 @@ mod tests {
                 data.as_ptr() as *const c_char,
                 MAX_IO_SIZE + 1,
                 0
-            ),
+            ).await,
             -1
         );
         fs::remove_file("tmp_large.txt").unwrap();
     }
 
-    #[test]
-    fn read_too_large() {
+    #[tokio::test]
+    async fn read_too_large() {
         use tempfile::tempdir;
         let dir = tempdir().unwrap();
         let file_path = dir.path().join("huge.bin");
@@ -178,44 +213,50 @@ mod tests {
                 0,
                 std::ptr::null_mut(),
                 0
-            ),
+            ).await,
             -1
         );
     }
 
-    unsafe fn call_read(path: *const c_char) -> c_int {
-        rs_readfile(path, std::ptr::null(), 0, 0, 0, std::ptr::null_mut(), 0)
+    async fn call_read(path: *const c_char) -> c_int {
+        rs_readfile(path, std::ptr::null(), 0, 0, 0, std::ptr::null_mut(), 0).await
     }
 
-    unsafe fn call_write(path: *const c_char) -> c_int {
+    async fn call_write(path: *const c_char) -> c_int {
         let buf = [0u8; 1];
-        rs_writefile(path, buf.as_ptr() as *const c_char, buf.len(), 0)
+        rs_writefile(path, buf.as_ptr() as *const c_char, buf.len(), 0).await
     }
 
-    unsafe fn check_validation(f: unsafe fn(*const c_char) -> c_int) {
-        assert_eq!(f(std::ptr::null()), -1);
+    async fn check_validation<F, Fut>(f: F)
+    where
+        F: Fn(*const c_char) -> Fut,
+        Fut: std::future::Future<Output = c_int>,
+    {
+        assert_eq!(f(std::ptr::null()).await, -1);
 
         let invalid = CString::new(vec![0x80, 0x81]).unwrap();
-        assert_eq!(f(invalid.as_ptr()), -1);
+        assert_eq!(f(invalid.as_ptr()).await, -1);
 
         let missing = CString::new("./no_such_file").unwrap();
-        assert_eq!(f(missing.as_ptr()), -1);
+        assert_eq!(f(missing.as_ptr()).await, -1);
     }
 
-    unsafe fn check_success(f: unsafe fn(*const c_char) -> c_int) {
+    async fn check_success<F, Fut>(f: F)
+    where
+        F: Fn(*const c_char) -> Fut,
+        Fut: std::future::Future<Output = c_int>,
+    {
         let tmp = tempfile::NamedTempFile::new().unwrap();
         let cpath = CString::new(tmp.path().to_str().unwrap()).unwrap();
-        assert_eq!(f(cpath.as_ptr()), 0);
+        assert_eq!(f(cpath.as_ptr()).await, 0);
     }
 
-    #[test]
-    fn common_path_validation() {
-        unsafe {
-            check_success(call_read);
-            check_validation(call_read);
+    #[tokio::test]
+    async fn common_path_validation() {
+        check_success(call_read).await;
+        check_validation(call_read).await;
 
-            check_success(call_write);
-            check_validation(call_write);
-        }
+        check_success(call_write).await;
+        check_validation(call_write).await;
     }
 }
