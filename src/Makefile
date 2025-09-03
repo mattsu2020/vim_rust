@@ -1442,6 +1442,10 @@ RUST_SHA256_DIR = ../rust_sha256
 RUST_SHA256_LIB = $(RUST_SHA256_DIR)/target/release/librust_sha256.a
 RUST_BLOWFISH_DIR = ../rust_blowfish
 RUST_BLOWFISH_LIB = $(RUST_BLOWFISH_DIR)/target/release/librust_blowfish.a
+RUST_CLIENTSERVER_DIR = ../rust_clientserver
+RUST_CLIENTSERVER_LIB = $(RUST_CLIENTSERVER_DIR)/target/release/librust_clientserver.a
+RUST_NETBEANS_DIR = ../rust_netbeans
+RUST_NETBEANS_LIB = $(RUST_NETBEANS_DIR)/target/release/librust_netbeans.a
 
 # Additional Rust crates used by this configuration
 RUST_CHANGE_DIR = ../rust_change
@@ -1499,6 +1503,8 @@ ALL_LIBS = \
            $(RUST_BLOB_LIB) \
            $(RUST_SHA256_LIB) \
            $(RUST_BLOWFISH_LIB) \
+           $(RUST_CLIENTSERVER_LIB) \
+           $(RUST_NETBEANS_LIB) \
            $(LUA_LIBS) \
            $(PERL_LIBS) \
            $(PYTHON_LIBS) \
@@ -1644,7 +1650,13 @@ $(RUST_SHA256_LIB):
 	cd $(RUST_SHA256_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_BLOWFISH_LIB):
-	cd $(RUST_BLOWFISH_DIR) && CARGO_TARGET_DIR=target cargo build --release
+        cd $(RUST_BLOWFISH_DIR) && CARGO_TARGET_DIR=target cargo build --release
+
+$(RUST_CLIENTSERVER_LIB):
+        cd $(RUST_CLIENTSERVER_DIR) && CARGO_TARGET_DIR=target cargo build --release
+
+$(RUST_NETBEANS_LIB):
+        cd $(RUST_NETBEANS_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 # Additional Rust libraries providing rs_* APIs used across the C codebase
 RUST_ARGLIST_DIR = ../rust_arglist
@@ -1783,8 +1795,8 @@ BASIC_SRC = \
        # change.c replaced by rust_change crate \
         charset.c \
 	cindent.c \
-	clientserver.c \
-	clipboard.c \
+       # clientserver.c replaced by rust_clientserver crate \
+        clipboard.c \
 	cmdexpand.c \
 	cmdhist.c \
 	crypt.c \
@@ -1901,7 +1913,7 @@ SRC =	$(BASIC_SRC) \
 
 EXTRA_SRC = if_lua.c if_mzsch.c auto/if_perl.c if_perlsfio.c \
            if_tcl.c if_ruby.c \
-           gui_beval.c netbeans.c job.c channel.c \
+           gui_beval.c job.c channel.c \
             $(GRESOURCE_SRC)
 
 $(WAYLAND_SRC):
@@ -1942,8 +1954,8 @@ OBJ_COMMON = \
         objects/buffer.o \
         objects/change.o \
         objects/cindent.o \
-	objects/clientserver.o \
-	objects/clipboard.o \
+      # objects/clientserver.o replaced by rust_clientserver crate \
+       objects/clipboard.o \
 	objects/cmdexpand.o \
 	objects/cmdhist.o \
 	objects/crypt.o \
@@ -2080,11 +2092,10 @@ PRO_AUTO = \
         bufwrite.pro \
         change.pro \
 	channel.pro \
-	charset.pro \
-	cindent.pro \
-	clientserver.pro \
-	clipboard.pro \
-	cmdexpand.pro \
+        charset.pro \
+        cindent.pro \
+        clipboard.pro \
+        cmdexpand.pro \
 	cmdhist.pro \
 	crypt.pro \
 	crypt_zip.pro \
@@ -2142,12 +2153,11 @@ PRO_AUTO = \
 	message.pro \
 	misc1.pro \
 	misc2.pro \
-	mouse.pro \
-	move.pro \
-	netbeans.pro \
-	normal.pro \
-	ops.pro \
-	option.pro \
+        mouse.pro \
+        move.pro \
+        normal.pro \
+        ops.pro \
+        option.pro \
 	optionstr.pro \
 	os_mac_conv.pro \
 	os_unix.pro \
@@ -2314,7 +2324,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(SRC_RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_BUFWRITE_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_EVAL_LIB) $(RUST_VIM9_LIB) $(RUST_EXCMD_LIB) $(RUST_CMDHIST_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB) $(RUST_TAG_LIB) $(RUST_ALLOC_LIB) $(RUST_BLOB_LIB) $(RUST_SHA256_LIB) $(RUST_BLOWFISH_LIB)
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(SRC_RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_BUFWRITE_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_EVAL_LIB) $(RUST_VIM9_LIB) $(RUST_EXCMD_LIB) $(RUST_CMDHIST_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB) $(RUST_TAG_LIB) $(RUST_ALLOC_LIB) $(RUST_BLOB_LIB) $(RUST_SHA256_LIB) $(RUST_BLOWFISH_LIB) $(RUST_CLIENTSERVER_LIB) $(RUST_NETBEANS_LIB)
 	@$(BUILD_DATE_MSG)
     @LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) objects/*.o $(ALL_LIBS)" \
@@ -3337,8 +3347,7 @@ objects/charset.o: charset.c
 objects/cindent.o: cindent.c
 	$(CCC) -o $@ cindent.c
 
-objects/clientserver.o: clientserver.c
-	$(CCC) -o $@ clientserver.c
+objects/clientserver.o: # clientserver.c replaced by rust_clientserver crate
 
 objects/clipboard.o: clipboard.c
 	$(CCC) -o $@ clipboard.c
@@ -3744,8 +3753,7 @@ objects/xdg-shell.o: auto/wayland/xdg-shell.c
 objects/primary-selection-unstable-v1.o: auto/wayland/primary-selection-unstable-v1.c
 	$(CCC) $(WAYLAND_CFLAGS) $(WAYLAND_CPPFLAGS) -o $@ auto/wayland/primary-selection-unstable-v1.c
 
-objects/netbeans.o: netbeans.c
-	$(CCC) -o $@ netbeans.c
+objects/netbeans.o: # netbeans.c replaced by rust_netbeans crate
 
 objects/channel.o: channel.c
 	$(CCC) -o $@ channel.c
@@ -3881,11 +3889,7 @@ objects/cindent.o: cindent.c vim.h protodef.h auto/config.h feature.h os_unix.h 
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/clientserver.o: clientserver.c vim.h protodef.h auto/config.h feature.h \
- os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
- beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h errors.h
+objects/clientserver.o: # clientserver.c replaced by rust_clientserver crate
 objects/clipboard.o: clipboard.c vim.h protodef.h auto/config.h feature.h \
  os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
@@ -4493,11 +4497,7 @@ objects/gui_beval.o: gui_beval.c vim.h protodef.h auto/config.h feature.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h errors.h
-objects/netbeans.o: netbeans.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h version.h
+objects/netbeans.o: # netbeans.c replaced by rust_netbeans crate
 objects/job.o: job.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \

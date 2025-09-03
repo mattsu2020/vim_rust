@@ -445,9 +445,7 @@ CHANNEL = $(GUI)
 !IF "$(GUI)" == "yes"
 # Only allow NETBEANS for a GUI build and CHANNEL.
 ! IF "$(NETBEANS)" == "yes" && "$(CHANNEL)" == "yes"
-# NETBEANS - Include support for Netbeans integration
-NETBEANS_PRO = proto/netbeans.pro
-NETBEANS_OBJ = $(OBJDIR)/netbeans.obj
+# NETBEANS - Include support for Netbeans integration via rust_netbeans crate
 NETBEANS_DEFS = -DFEAT_NETBEANS_INTG
 
 !  IF "$(NBDEBUG)" == "yes"
@@ -679,8 +677,8 @@ OBJ = \
 	$(OUTDIR)\change.obj \
 	$(OUTDIR)\charset.obj \
 	$(OUTDIR)\cindent.obj \
-	$(OUTDIR)\clientserver.obj \
-	$(OUTDIR)\clipboard.obj \
+        # $(OUTDIR)\clientserver.obj replaced by rust_clientserver crate \
+        $(OUTDIR)\clipboard.obj \
 	$(OUTDIR)\cmdexpand.obj \
 	$(OUTDIR)\cmdhist.obj \
 	$(OUTDIR)\crypt.obj \
@@ -1279,14 +1277,14 @@ all: $(MAIN_TARGET) \
 $(VIMDLLBASE).dll: $(OUTDIR) $(OBJ) $(XDIFF_OBJ) $(GUI_OBJ) $(CUI_OBJ) \
 		$(OLE_OBJ) $(OLE_IDL) $(MZSCHEME_OBJ) $(LUA_OBJ) $(PERL_OBJ) \
 		$(PYTHON_OBJ) $(PYTHON3_OBJ) $(RUBY_OBJ) $(TCL_OBJ) \
-		$(TERM_OBJ) $(SOUND_OBJ) $(NETBEANS_OBJ) $(CHANNEL_OBJ) \
+           $(TERM_OBJ) $(SOUND_OBJ) $(CHANNEL_OBJ) \
 		$(XPM_OBJ) version.c version.h
 	$(CC) $(CFLAGS_OUTDIR) version.c
 	$(LINK) @<<
 $(LINKARGS1) /dll -out:$(VIMDLLBASE).dll $(OBJ) $(XDIFF_OBJ)
 $(GUI_OBJ) $(CUI_OBJ) $(OLE_OBJ) $(LUA_OBJ) $(MZSCHEME_OBJ) $(PERL_OBJ)
 $(PYTHON_OBJ) $(PYTHON3_OBJ) $(RUBY_OBJ) $(TCL_OBJ) $(TERM_OBJ) $(SOUND_OBJ)
-$(NETBEANS_OBJ) $(CHANNEL_OBJ) $(XPM_OBJ) $(OUTDIR)\version.obj $(LINKARGS2)
+$(CHANNEL_OBJ) $(XPM_OBJ) $(OUTDIR)\version.obj $(LINKARGS2)
 <<
 
 $(GVIM).exe: $(OUTDIR) $(EXEOBJG) $(VIMDLLBASE).dll
@@ -1302,14 +1300,14 @@ $(VIM).exe: $(OUTDIR) $(EXEOBJC) $(VIMDLLBASE).dll
 $(VIM).exe: $(OUTDIR) $(OBJ) $(XDIFF_OBJ) $(GUI_OBJ) $(CUI_OBJ) \
 		$(OLE_OBJ) $(OLE_IDL) $(MZSCHEME_OBJ) $(LUA_OBJ) $(PERL_OBJ) \
 		$(PYTHON_OBJ) $(PYTHON3_OBJ) $(RUBY_OBJ) $(TCL_OBJ) \
-		$(TERM_OBJ) $(SOUND_OBJ) $(NETBEANS_OBJ) $(CHANNEL_OBJ) \
+           $(TERM_OBJ) $(SOUND_OBJ) $(CHANNEL_OBJ) \
 		$(XPM_OBJ) version.c version.h
 	$(CC) $(CFLAGS_OUTDIR) version.c
 	$(LINK) @<<
 $(LINKARGS1) /subsystem:$(SUBSYSTEM) -out:$(VIM).exe $(OBJ) $(XDIFF_OBJ)
 $(GUI_OBJ) $(CUI_OBJ) $(OLE_OBJ) $(LUA_OBJ) $(MZSCHEME_OBJ) $(PERL_OBJ)
 $(PYTHON_OBJ) $(PYTHON3_OBJ) $(RUBY_OBJ) $(TCL_OBJ) $(TERM_OBJ) $(SOUND_OBJ)
-$(NETBEANS_OBJ) $(CHANNEL_OBJ) $(XPM_OBJ) $(OUTDIR)\version.obj $(LINKARGS2)
+$(CHANNEL_OBJ) $(XPM_OBJ) $(OUTDIR)\version.obj $(LINKARGS2)
 <<
 
 !ENDIF
@@ -1500,8 +1498,6 @@ $(OUTDIR)/charset.obj: $(OUTDIR) charset.c $(INCL)
 
 $(OUTDIR)/cindent.obj: $(OUTDIR) cindent.c $(INCL)
 
-$(OUTDIR)/clientserver.obj: $(OUTDIR) clientserver.c $(INCL)
-
 $(OUTDIR)/clipboard.obj: $(OUTDIR) clipboard.c $(INCL)
 
 $(OUTDIR)/cmdexpand.obj: $(OUTDIR) cmdexpand.c $(INCL)
@@ -1658,8 +1654,6 @@ $(OUTDIR)/mouse.obj: $(OUTDIR) mouse.c $(INCL)
 $(OUTDIR)/move.obj: $(OUTDIR) move.c $(INCL)
 
 $(OUTDIR)/mbyte.obj: $(OUTDIR) mbyte.c $(INCL)
-
-$(OUTDIR)/netbeans.obj: $(OUTDIR) netbeans.c $(NBDEBUG_SRC) $(INCL) version.h
 
 $(OUTDIR)/channel.obj: $(OUTDIR) channel.c $(INCL)
 
@@ -1883,11 +1877,10 @@ proto.h: \
         proto/buffer.pro \
 	proto/bufwrite.pro \
 	proto/change.pro \
-	proto/charset.pro \
-	proto/cindent.pro \
-	proto/clientserver.pro \
-	proto/clipboard.pro \
-	proto/cmdexpand.pro \
+        proto/charset.pro \
+        proto/cindent.pro \
+        proto/clipboard.pro \
+        proto/cmdexpand.pro \
 	proto/cmdhist.pro \
 	proto/crypt.pro \
 	proto/crypt_zip.pro \

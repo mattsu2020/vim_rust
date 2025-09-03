@@ -68,7 +68,6 @@ extern int _stricoll(char *a, char *b);
 # include "change.pro"
 # include "charset.pro"
 # include "cindent.pro"
-# include "clientserver.pro"
 # include "clipboard.pro"
 # include "cmdexpand.pro"
 # include "cmdhist.pro"
@@ -277,7 +276,6 @@ void mbyte_im_set_active(int active_arg);
 # endif
 
 # ifdef FEAT_NETBEANS_INTG
-#  include "netbeans.pro"
 # endif
 # ifdef FEAT_JOB_CHANNEL
 #  include "job.pro"
