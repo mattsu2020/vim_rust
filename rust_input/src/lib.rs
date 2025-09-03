@@ -65,6 +65,20 @@ pub extern "C" fn rs_input_get(ptr: *mut InputContext) -> c_int {
 }
 
 #[no_mangle]
+pub extern "C" fn rs_input_unget(ptr: *mut InputContext, key: c_uint) {
+    if let Some(ctx) = unsafe { ptr.as_mut() } {
+        ctx.input.push_front(key as u32);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn rs_input_avail(ptr: *mut InputContext) -> c_int {
+    unsafe { ptr.as_ref() }
+        .map(|ctx| (!ctx.input.is_empty()) as c_int)
+        .unwrap_or(0)
+}
+
+#[no_mangle]
 pub extern "C" fn rs_redo_feed(ptr: *mut InputContext, key: c_uint) {
     if let Some(ctx) = unsafe { ptr.as_mut() } {
         ctx.redo.push_back(key as u32);
@@ -178,6 +192,21 @@ mod tests {
         assert_eq!(needed, got);
         let s = unsafe { CStr::from_ptr(buf.as_ptr()) }.to_str().unwrap();
         assert_eq!(s, "a");
+        unsafe {
+            rs_input_context_free(ctx);
+        }
+    }
+
+    #[test]
+    fn unget_and_avail() {
+        let ctx = rs_input_context_new();
+        assert_eq!(rs_input_avail(ctx), 0);
+        rs_input_feed(ctx, 'a' as u32);
+        assert_eq!(rs_input_get(ctx), 'a' as i32);
+        assert_eq!(rs_input_avail(ctx), 0);
+        rs_input_unget(ctx, 'b' as u32);
+        assert_eq!(rs_input_avail(ctx), 1);
+        assert_eq!(rs_input_get(ctx), 'b' as i32);
         unsafe {
             rs_input_context_free(ctx);
         }
