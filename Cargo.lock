@@ -1017,6 +1017,9 @@ dependencies = [
 [[package]]
 name = "rust_alloc"
 version = "0.1.0"
+dependencies = [
+ "libc",
+]
 
 [[package]]
 name = "rust_arabic"
@@ -1108,6 +1111,9 @@ name = "rust_drawscreen"
 version = "0.1.0"
 dependencies = [
  "libc",
+ "rust_gui_core",
+ "rust_gui_w32",
+ "rust_gui_x11",
 ]
 
 [[package]]
@@ -1156,6 +1162,7 @@ name = "rust_fileio"
 version = "0.1.0"
 dependencies = [
  "rust_path",
+ "tempfile",
 ]
 
 [[package]]
@@ -1303,13 +1310,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust_os_mswin"
-version = "0.1.0"
-dependencies = [
- "windows",
-]
-
-[[package]]
 name = "rust_os_qnx"
 version = "0.1.0"
 dependencies = [
@@ -1317,10 +1317,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_os_unix"
+version = "0.1.0"
+
+[[package]]
 name = "rust_os_vms"
 version = "0.1.0"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "rust_os_win32"
+version = "0.1.0"
+dependencies = [
+ "windows",
 ]
 
 [[package]]
@@ -1834,10 +1845,12 @@ dependencies = [
  "rust_debugger",
  "rust_excmd",
  "rust_job",
+ "rust_message",
  "rust_os_amiga",
- "rust_os_mswin",
  "rust_os_qnx",
+ "rust_os_unix",
  "rust_os_vms",
+ "rust_os_win32",
  "rust_profiler",
  "rust_pty",
  "rust_python",

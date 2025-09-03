@@ -40,8 +40,11 @@ default = []
 [build-dependencies]
 cc = "1.0"
 
-[target.'cfg(target_os = "windows")'.dependencies]
-rust_os_mswin = { path = "rust_os_mswin" }
+[target.'cfg(windows)'.dependencies]
+rust_os_win32 = { path = "rust_os_win32" }
+
+[target.'cfg(unix)'.dependencies]
+rust_os_unix = { path = "rust_os_unix" }
 
 [target.'cfg(target_os = "amiga")'.dependencies]
 rust_os_amiga = { path = "rust_os_amiga" }
