@@ -145,16 +145,15 @@ SRC += \
 	screen.c \
 	scriptfile.c \
 	search.c \
-	session.c \
-	sha256.c \
-	sign.c \
-	spell.c \
+        session.c \
+        sha256.c \
+        spell.c \
         strings.c \
         syntax.c \
         tag.c \
         term.c \
         termlib.c \
-	testing.c \
+        testing.c \
 	textformat.c \
 	textobject.c \
 	textprop.c \

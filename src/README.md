@@ -78,7 +78,6 @@ scriptfile.c	| runtime directory handling and sourcing scripts
 screen.c	| lower level screen functions
 search.c	| pattern searching
 session.c	| sessions and views
-sign.c		| signs
 spell.c		| spell checking core
 rust_spellfile/    | spell file handling
 rust_spellsuggest/ | spell correction suggestions
