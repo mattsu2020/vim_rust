@@ -4,7 +4,12 @@ use std::slice;
 
 use blowfish::cipher::{generic_array::GenericArray, BlockEncrypt, NewBlockCipher};
 use blowfish::Blowfish;
-use rust_sha256::sha256_digest;
+use hex::{decode, encode};
+use hmac::Hmac;
+use pbkdf2::pbkdf2;
+use sha2::Sha256;
+
+type HmacSha256 = Hmac<Sha256>;
 
 #[repr(C)]
 pub struct cryptstate_T {
@@ -59,34 +64,6 @@ impl BlowfishState {
     }
 }
 
-fn sha256_hex(data: &[u8], salt: &[u8]) -> String {
-    let mut input = Vec::from(data);
-    input.extend_from_slice(salt);
-    let digest = sha256_digest(&input);
-    let mut s = String::with_capacity(64);
-    for b in digest {
-        s.push_str(&format!("{:02x}", b));
-    }
-    s
-}
-
-fn hex_to_bytes(s: &str) -> Vec<u8> {
-    let mut out = Vec::with_capacity(s.len()/2);
-    for i in (0..s.len()).step_by(2) {
-        let byte = u8::from_str_radix(&s[i..i+2], 16).unwrap();
-        out.push(byte);
-    }
-    out
-}
-
-fn derive_key(password: &[u8], salt: &[u8]) -> Vec<u8> {
-    let mut key = sha256_hex(password, salt);
-    for _ in 0..1000 {
-        key = sha256_hex(key.as_bytes(), salt);
-    }
-    hex_to_bytes(&key)
-}
-
 fn cfb_init(state: &mut BlowfishState, seed: &[u8]) {
     state.cfb.fill(0);
     state.randbyte_offset = 0;
@@ -101,52 +78,107 @@ fn cfb_init(state: &mut BlowfishState, seed: &[u8]) {
 }
 
 #[no_mangle]
-pub extern "C" fn crypt_blowfish_init(state: *mut cryptstate_T, key: *const c_char, arg: *mut crypt_arg_T) -> c_int {
-    if state.is_null() || key.is_null() || arg.is_null() { return 0; }
+pub extern "C" fn crypt_blowfish_init(
+    state: *mut cryptstate_T,
+    key: *const c_char,
+    arg: *mut crypt_arg_T,
+) -> c_int {
+    if state.is_null() || key.is_null() || arg.is_null() {
+        return 0;
+    }
     let key_slice = unsafe { CStr::from_ptr(key).to_bytes() };
     let arg = unsafe { &*arg };
     let salt = unsafe { slice::from_raw_parts(arg.cat_salt, arg.cat_salt_len as usize) };
     let seed = unsafe { slice::from_raw_parts(arg.cat_seed, arg.cat_seed_len as usize) };
-    let key_bytes = derive_key(key_slice, salt);
-    let cipher = match Blowfish::new_from_slice(&key_bytes) { Ok(c) => c, Err(_) => return 0 };
-    let cfb_len = if unsafe { (*state).method_nr } == CRYPT_M_BF { 64 } else { 8 };
-    let mut st = BlowfishState { cipher, cfb: vec![0u8; cfb_len], cfb_len, randbyte_offset:0, update_offset:0 };
+    let mut key_bytes = [0u8; 32];
+    pbkdf2::<HmacSha256>(key_slice, salt, 1001, &mut key_bytes).expect("pbkdf2");
+    let key_bytes = decode(encode(key_bytes)).unwrap();
+    let cipher = match Blowfish::new_from_slice(&key_bytes) {
+        Ok(c) => c,
+        Err(_) => return 0,
+    };
+    let cfb_len = if unsafe { (*state).method_nr } == CRYPT_M_BF {
+        64
+    } else {
+        8
+    };
+    let mut st = BlowfishState {
+        cipher,
+        cfb: vec![0u8; cfb_len],
+        cfb_len,
+        randbyte_offset: 0,
+        update_offset: 0,
+    };
     cfb_init(&mut st, seed);
-    unsafe { (*state).method_state = Box::into_raw(Box::new(st)) as *mut c_void; }
+    unsafe {
+        (*state).method_state = Box::into_raw(Box::new(st)) as *mut c_void;
+    }
     1
 }
 
 #[no_mangle]
-pub extern "C" fn crypt_blowfish_encode(state: *mut cryptstate_T, from: *const u8, len: usize, to: *mut u8, _last: c_int) {
-    if state.is_null() || from.is_null() || to.is_null() { return; }
+pub extern "C" fn crypt_blowfish_encode(
+    state: *mut cryptstate_T,
+    from: *const u8,
+    len: usize,
+    to: *mut u8,
+    _last: c_int,
+) {
+    if state.is_null() || from.is_null() || to.is_null() {
+        return;
+    }
     let st = unsafe { &mut *(*state).method_state.cast::<BlowfishState>() };
     for i in 0..len {
         let z = unsafe { *from.add(i) };
         let t = st.randbyte();
         st.cfb_update(z);
-        unsafe { *to.add(i) = t ^ z; }
+        unsafe {
+            *to.add(i) = t ^ z;
+        }
     }
 }
 
 #[no_mangle]
-pub extern "C" fn crypt_blowfish_decode(state: *mut cryptstate_T, from: *const u8, len: usize, to: *mut u8, _last: c_int) {
-    if state.is_null() || from.is_null() || to.is_null() { return; }
+pub extern "C" fn crypt_blowfish_decode(
+    state: *mut cryptstate_T,
+    from: *const u8,
+    len: usize,
+    to: *mut u8,
+    _last: c_int,
+) {
+    if state.is_null() || from.is_null() || to.is_null() {
+        return;
+    }
     let st = unsafe { &mut *(*state).method_state.cast::<BlowfishState>() };
     for i in 0..len {
         let t = st.randbyte();
         let val = unsafe { *from.add(i) } ^ t;
         st.cfb_update(val);
-        unsafe { *to.add(i) = val; }
+        unsafe {
+            *to.add(i) = val;
+        }
     }
 }
 
 #[no_mangle]
-pub extern "C" fn crypt_blowfish_encode_inplace(state: *mut cryptstate_T, buf: *mut u8, len: usize, _p2: *mut u8, last: c_int) {
+pub extern "C" fn crypt_blowfish_encode_inplace(
+    state: *mut cryptstate_T,
+    buf: *mut u8,
+    len: usize,
+    _p2: *mut u8,
+    last: c_int,
+) {
     crypt_blowfish_encode(state, buf as *const u8, len, buf, last);
 }
 
 #[no_mangle]
-pub extern "C" fn crypt_blowfish_decode_inplace(state: *mut cryptstate_T, buf: *mut u8, len: usize, _p2: *mut u8, last: c_int) {
+pub extern "C" fn crypt_blowfish_decode_inplace(
+    state: *mut cryptstate_T,
+    buf: *mut u8,
+    len: usize,
+    _p2: *mut u8,
+    last: c_int,
+) {
     crypt_blowfish_decode(state, buf as *const u8, len, buf, last);
 }
 
@@ -169,12 +201,18 @@ mod tests {
             cat_add_len: 0,
             cat_init_from_file: 0,
         };
-        let mut st_enc = cryptstate_T { method_nr: CRYPT_M_BF2, method_state: std::ptr::null_mut() };
+        let mut st_enc = cryptstate_T {
+            method_nr: CRYPT_M_BF2,
+            method_state: std::ptr::null_mut(),
+        };
         assert_eq!(1, crypt_blowfish_init(&mut st_enc, key.as_ptr(), &mut arg));
         let data = b"hello world";
         let mut enc = vec![0u8; data.len()];
         crypt_blowfish_encode(&mut st_enc, data.as_ptr(), data.len(), enc.as_mut_ptr(), 1);
-        let mut st_dec = cryptstate_T { method_nr: CRYPT_M_BF2, method_state: std::ptr::null_mut() };
+        let mut st_dec = cryptstate_T {
+            method_nr: CRYPT_M_BF2,
+            method_state: std::ptr::null_mut(),
+        };
         assert_eq!(1, crypt_blowfish_init(&mut st_dec, key.as_ptr(), &mut arg));
         let mut dec = vec![0u8; data.len()];
         crypt_blowfish_decode(&mut st_dec, enc.as_ptr(), enc.len(), dec.as_mut_ptr(), 1);
