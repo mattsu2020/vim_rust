@@ -773,7 +773,6 @@ OBJ = \
 	$(OUTDIR)/autocmd.o \
 	$(OUTDIR)/beval.o \
         $(OUTDIR)/blob.o \
-        $(OUTDIR)/buffer.o \
 	$(OUTDIR)/bufwrite.o \
 	$(OUTDIR)/change.o \
 	$(OUTDIR)/charset.o \
@@ -791,7 +790,6 @@ OBJ = \
 	$(OUTDIR)/drawscreen.o \
 	$(OUTDIR)/edit.o \
 	$(OUTDIR)/eval.o \
-	$(OUTDIR)/evalbuffer.o \
 	$(OUTDIR)/evalfunc.o \
 	$(OUTDIR)/evalvars.o \
 	$(OUTDIR)/evalwindow.o \
@@ -851,7 +849,6 @@ OBJ = \
 	$(OUTDIR)/screen.o \
 	$(OUTDIR)/search.o \
 	$(OUTDIR)/session.o \
-	$(OUTDIR)/sha256.o \
 	$(OUTDIR)/sign.o \
 	$(OUTDIR)/spell.o \
         $(OUTDIR)/strings.o \
@@ -1262,7 +1259,6 @@ endif
 $(OUTDIR):
 	$(MKDIR) $(OUTDIR)
 
-$(OUTDIR)/buffer.o: buffer.c $(INCL) version.h
 
 $(OUTDIR)/evalfunc.o: evalfunc.c $(INCL) version.h
 

@@ -675,7 +675,6 @@ OBJ = \
         $(OUTDIR)\arglist.obj \
         $(OUTDIR)\autocmd.obj \
         $(OUTDIR)\beval.obj \
-        $(OUTDIR)\buffer.obj \
 	$(OUTDIR)\bufwrite.obj \
 	$(OUTDIR)\change.obj \
 	$(OUTDIR)\charset.obj \
@@ -693,7 +692,6 @@ OBJ = \
 	$(OUTDIR)\drawscreen.obj \
 	$(OUTDIR)\edit.obj \
 	$(OUTDIR)\eval.obj \
-	$(OUTDIR)\evalbuffer.obj \
 	$(OUTDIR)\evalfunc.obj \
 	$(OUTDIR)\evalvars.obj \
 	$(OUTDIR)\evalwindow.obj \
@@ -752,7 +750,6 @@ OBJ = \
 	$(OUTDIR)\screen.obj \
 	$(OUTDIR)\search.obj \
 	$(OUTDIR)\session.obj \
-	$(OUTDIR)\sha256.obj \
 	$(OUTDIR)\sign.obj \
 	$(OUTDIR)\spell.obj \
         $(OUTDIR)\strings.obj \
@@ -1473,7 +1470,6 @@ test_vim9:
 $(OUTDIR)/autocmd.obj: $(OUTDIR) autocmd.c $(INCL)
 
 $(OUTDIR)/beval.obj: $(OUTDIR) beval.c $(INCL)
-$(OUTDIR)/buffer.obj: $(OUTDIR) buffer.c $(INCL) version.h
 
 $(OUTDIR)/bufwrite.obj: $(OUTDIR) bufwrite.c $(INCL)
 
@@ -1513,7 +1509,6 @@ $(OUTDIR)/edit.obj: $(OUTDIR) edit.c $(INCL)
 
 $(OUTDIR)/eval.obj: $(OUTDIR) eval.c $(INCL)
 
-$(OUTDIR)/evalbuffer.obj: $(OUTDIR) evalbuffer.c $(INCL)
 
 $(OUTDIR)/evalfunc.obj: $(OUTDIR) evalfunc.c $(INCL) version.h
 
@@ -1687,7 +1682,6 @@ $(OUTDIR)/search.obj: $(OUTDIR) search.c $(INCL)
 
 $(OUTDIR)/session.obj: $(OUTDIR) session.c $(INCL)
 
-$(OUTDIR)/sha256.obj: $(OUTDIR) sha256.c $(INCL)
 
 $(OUTDIR)/spell.obj: $(OUTDIR) spell.c $(INCL)
 
@@ -1850,7 +1844,6 @@ $(PATHDEF_SRC): Make_mvc.mak
 proto.h: \
 	proto/alloc.pro \
         proto/autocmd.pro \
-        proto/buffer.pro \
 	proto/bufwrite.pro \
 	proto/change.pro \
 	proto/charset.pro \
@@ -1868,7 +1861,6 @@ proto.h: \
 	proto/drawscreen.pro \
 	proto/edit.pro \
 	proto/eval.pro \
-	proto/evalbuffer.pro \
 	proto/evalfunc.pro \
 	proto/evalvars.pro \
 	proto/evalwindow.pro \
@@ -1924,7 +1916,6 @@ proto.h: \
 	proto/screen.pro \
 	proto/search.pro \
 	proto/session.pro \
-	proto/sha256.pro \
         proto/spell.pro \
    proto/strings.pro \
    proto/syntax.pro \

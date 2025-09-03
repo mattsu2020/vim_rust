@@ -76,7 +76,6 @@ endif
 SRC += \
         autocmd.c \
         beval.c \
-        buffer.c \
         bufwrite.c \
 	charset.c \
 	cindent.c \
@@ -93,7 +92,6 @@ SRC += \
 	drawscreen.c \
 	edit.c \
 	eval.c \
-	evalbuffer.c \
 	evalfunc.c \
 	evalvars.c \
         evalwindow.c \
@@ -145,7 +143,6 @@ SRC += \
         scriptfile.c \
 	search.c \
         session.c \
-        sha256.c \
         spell.c \
         strings.c \
         syntax.c \

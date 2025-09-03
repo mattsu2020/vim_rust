@@ -1784,7 +1784,6 @@ include testdir/Make_all.mak
 
 BASIC_SRC = \
         autocmd.c \
-        buffer.c \
         charset.c \
         cindent.c \
         clientserver.c \
@@ -1800,7 +1799,6 @@ BASIC_SRC = \
         drawscreen.c \
         edit.c \
         eval.c \
-        evalbuffer.c \
         evalfunc.c \
         evalvars.c \
         evalwindow.c \
@@ -1852,7 +1850,6 @@ BASIC_SRC = \
         scriptfile.c \
         search.c \
         session.c \
-        sha256.c \
         sound.c \
        spell.c \
        strings.c \
@@ -3299,8 +3296,6 @@ $(ALL_OBJ): objects/.dirstamp
 objects/autocmd.o: autocmd.c
         $(CCC) -o $@ autocmd.c
 
-objects/buffer.o: buffer.c
-        $(CCC) -o $@ buffer.c
 
 objects/bufwrite.o: bufwrite.c
 	$(CCC) -o $@ bufwrite.c
@@ -3352,8 +3347,6 @@ objects/edit.o: edit.c
 objects/eval.o: eval.c
 	$(CCC) -o $@ eval.c
 
-objects/evalbuffer.o: evalbuffer.c
-	$(CCC) -o $@ evalbuffer.c
 
 objects/evalfunc.o: evalfunc.c
 	$(CCC) -o $@ evalfunc.c
@@ -3594,8 +3587,6 @@ objects/search.o: search.c
 objects/session.o: session.c
 	$(CCC) -o $@ session.c
 
-objects/sha256.o: sha256.c
-        $(CCC) -o $@ sha256.c
 
 objects/sound.o: sound.c
         $(CCC) -o $@ sound.c
@@ -3817,7 +3808,6 @@ objects/autocmd.o: autocmd.c vim.h protodef.h auto/config.h feature.h os_unix.h 
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/buffer.o: buffer.c vim.h protodef.h auto/config.h feature.h os_unix.h \
        auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
    proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
    libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
@@ -3893,7 +3883,6 @@ objects/eval.o: eval.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/evalbuffer.o: evalbuffer.c vim.h protodef.h auto/config.h feature.h \
  os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
@@ -4155,7 +4144,6 @@ objects/session.o: session.c vim.h protodef.h auto/config.h feature.h os_unix.h 
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/sha256.o: sha256.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \

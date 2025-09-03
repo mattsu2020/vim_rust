@@ -38,7 +38,6 @@ SRC_ALL =	\
                 src/autocmd.c \
                 src/beval.c \
                 src/beval.h \
-                src/buffer.c \
 		src/bufwrite.c \
 		src/channel.c \
 		src/charset.c \
@@ -57,7 +56,6 @@ SRC_ALL =	\
 		src/edit.c \
 		src/errors.h \
 		src/eval.c \
-		src/evalbuffer.c \
 		src/evalfunc.c \
 		src/evalvars.c \
 		src/evalwindow.c \
@@ -121,7 +119,6 @@ SRC_ALL =	\
                 src/register.c \
 		src/scriptfile.c \
 		src/session.c \
-		src/sha256.c \
                 src/sound.c \
 		src/spell.c \
                 src/spell.h \
@@ -221,7 +218,6 @@ SRC_ALL =	\
                 src/proto/alloc.pro \
                 src/proto/autocmd.pro \
                 src/proto/beval.pro \
-                src/proto/buffer.pro \
                 src/proto/bufwrite.pro \
                 src/proto/change.pro \
 		src/proto/channel.pro \
@@ -240,7 +236,6 @@ SRC_ALL =	\
 		src/proto/drawscreen.pro \
 		src/proto/edit.pro \
 		src/proto/eval.pro \
-		src/proto/evalbuffer.pro \
 		src/proto/evalfunc.pro \
 		src/proto/evalvars.pro \
 		src/proto/evalwindow.pro \
@@ -297,7 +292,6 @@ SRC_ALL =	\
 		src/proto/screen.pro \
 		src/proto/search.pro \
 		src/proto/session.pro \
-		src/proto/sha256.pro \
                 src/proto/sound.pro \
 		src/proto/spell.pro \
 		src/proto/spellfile.pro \
