@@ -1,72 +1,58 @@
 use std::ffi::CStr;
-use std::io::{stdout, Write};
+use std::io::{stdout, Stdout, Write};
 use std::os::raw::{c_char, c_int};
 
-#[cfg(unix)]
-use libc::{ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ};
+use crossterm::{cursor, execute, queue, style::Print, terminal};
 
-/// Simple owned buffer used for terminal output.
-struct TermBuffer {
-    buf: Vec<u8>,
-    cap: usize,
+/// Terminal state object wrapping a stdout handle.
+pub struct Terminal {
+    out: Stdout,
 }
 
-impl TermBuffer {
+impl Terminal {
     fn new() -> Self {
-        // use a small default similar to Vim's OUT_SIZE
-        let cap = 1024;
-        Self { buf: Vec::with_capacity(cap), cap }
+        Self { out: stdout() }
     }
 
-    fn write_byte(&mut self, b: u8) {
-        self.buf.push(b);
-        if self.buf.len() >= self.cap {
-            // ignore errors on flush; caller can handle via explicit flush
-            let _ = self.flush();
-        }
-    }
-
-    fn write_str(&mut self, s: &str) {
-        for &b in s.as_bytes() {
-            self.write_byte(b);
-        }
-    }
-
-    fn flush(&mut self) -> c_int {
-        let mut out = stdout();
-        if out.write_all(&self.buf).is_ok() && out.flush().is_ok() {
-            self.buf.clear();
+    fn move_cursor(&mut self, x: c_int, y: c_int) -> c_int {
+        if execute!(self.out, cursor::MoveTo(x as u16, y as u16)).is_ok() {
             0
         } else {
             -1
         }
     }
-}
-
-/// Terminal state object holding the output buffer.
-pub struct Terminal {
-    buffer: TermBuffer,
-}
-
-impl Terminal {
-    fn new() -> Self {
-        Self { buffer: TermBuffer::new() }
-    }
-
-    fn move_cursor(&mut self, x: c_int, y: c_int) -> c_int {
-        self.buffer
-            .write_str(&format!("\x1B[{};{}H", y + 1, x + 1));
-        self.buffer.flush()
-    }
 
     fn clear_screen(&mut self) -> c_int {
-        self.buffer.write_str("\x1B[2J");
-        self.buffer.flush()
+        if execute!(self.out, terminal::Clear(terminal::ClearType::All)).is_ok() {
+            0
+        } else {
+            -1
+        }
+    }
+
+    fn out_char(&mut self, c: c_int) -> c_int {
+        let ch = (c as u8) as char;
+        if queue!(self.out, Print(ch)).is_ok() {
+            0
+        } else {
+            -1
+        }
     }
 
     fn print(&mut self, s: &str) -> c_int {
-        self.buffer.write_str(s);
-        self.buffer.flush()
+        if execute!(self.out, Print(s)).is_ok() {
+            0
+        } else {
+            -1
+        }
+    }
+
+    fn flush(&mut self) -> c_int {
+        if self.out.flush().is_ok() {
+            0
+        } else {
+            -1
+        }
     }
 }
 
@@ -89,9 +75,7 @@ pub unsafe extern "C" fn rust_term_out_char(term: *mut Terminal, c: c_int) -> c_
     if term.is_null() {
         return -1;
     }
-    let term = &mut *term;
-    term.buffer.write_byte(c as u8);
-    0
+    (&mut *term).out_char(c)
 }
 
 #[no_mangle]
@@ -99,7 +83,7 @@ pub unsafe extern "C" fn rust_term_out_flush(term: *mut Terminal) -> c_int {
     if term.is_null() {
         return -1;
     }
-    (&mut *term).buffer.flush()
+    (&mut *term).flush()
 }
 
 #[no_mangle]
@@ -149,23 +133,17 @@ pub unsafe extern "C" fn rust_term_get_winsize(
     width: *mut c_int,
     height: *mut c_int,
 ) -> c_int {
-    #[cfg(unix)]
-    {
-        let mut ws: winsize = std::mem::zeroed();
-        if ioctl(STDOUT_FILENO, TIOCGWINSZ, &mut ws) == -1 {
-            return -1;
+    match terminal::size() {
+        Ok((w, h)) => {
+            if !width.is_null() {
+                *width = w as c_int;
+            }
+            if !height.is_null() {
+                *height = h as c_int;
+            }
+            0
         }
-        if !width.is_null() {
-            *width = ws.ws_col as c_int;
-        }
-        if !height.is_null() {
-            *height = ws.ws_row as c_int;
-        }
-        0
-    }
-    #[cfg(not(unix))]
-    {
-        -1
+        Err(_) => -1,
     }
 }
 
@@ -191,7 +169,6 @@ mod tests {
         }
     }
 
-    #[cfg(unix)]
     #[test]
     fn get_winsize() {
         let mut w = 0;
