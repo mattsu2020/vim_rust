@@ -14,6 +14,7 @@
 #include "vim.h"
 
 #if defined(FEAT_EVAL) || defined(PROTO)
+extern buf_T *buflist_find_by_name_rs(char_u *name, int curtab_only);
 /*
  * Mark references in functions of buffers.
  */
@@ -59,22 +60,7 @@ set_ref_in_buffers(int copyID)
     buf_T *
 buflist_find_by_name(char_u *name, int curtab_only)
 {
-    int		save_magic;
-    char_u	*save_cpo;
-    buf_T	*buf;
-
-    // Ignore 'magic' and 'cpoptions' here to make scripts portable
-    save_magic = p_magic;
-    p_magic = TRUE;
-    save_cpo = p_cpo;
-    p_cpo = empty_option;
-
-    buf = buflist_findnr(buflist_findpat(name, name + STRLEN(name),
-						    TRUE, FALSE, curtab_only));
-
-    p_magic = save_magic;
-    p_cpo = save_cpo;
-    return buf;
+    return buflist_find_by_name_rs(name, curtab_only);
 }
 
 /*

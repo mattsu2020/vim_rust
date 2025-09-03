@@ -13,6 +13,9 @@
 
 #include "vim.h"
 
+#ifdef FEAT_EVAL
+extern int read_scriptfile_rs(const char *path);
+#endif
 #if defined(FEAT_EVAL) || defined(PROTO)
 // The names of packages that once were loaded are remembered.
 static garray_T		ga_loaded = {0, 0, sizeof(char_u *), 4, NULL};
@@ -1627,12 +1630,16 @@ do_source_ext(
 	fname_not_fixed = expand_env_save(fname);
 	if (fname_not_fixed == NULL)
 	    goto theend;
-	fname_exp = fix_fname(fname_not_fixed);
-	if (fname_exp == NULL)
-	    goto theend;
-	if (mch_isdir(fname_exp))
-	{
-	    smsg(_("Cannot source a directory: \"%s\""), fname);
+        fname_exp = fix_fname(fname_not_fixed);
+        if (fname_exp == NULL)
+            goto theend;
+#ifdef FEAT_EVAL
+        if (!read_scriptfile_rs((const char *)fname_exp))
+            goto theend;
+#endif
+        if (mch_isdir(fname_exp))
+        {
+            smsg(_("Cannot source a directory: \"%s\""), fname);
 	    goto theend;
 	}
     }
