@@ -2,6 +2,7 @@
 #define RUST_EVAL_H
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -13,6 +14,10 @@ struct typval_S;
 typedef struct typval_S typval_T;
 
 bool eval_expr_rs(const char *expr, typval_T *out);
+bool eval_variable_rs(const char *name, typval_T *out);
+bool set_variable_rs(const char *name, const typval_T *val);
+bool call_function_rs(const char *name, const typval_T *args, size_t argc,
+                      typval_T *out);
 
 #ifdef __cplusplus
 }

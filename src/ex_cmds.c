@@ -13,6 +13,7 @@
 
 #include "vim.h"
 #include "version.h"
+#include "../rust_excmd/include/rust_excmd.h"
 
 #include <float.h>
 
@@ -30,7 +31,6 @@ static int check_readonly(int *forceit, buf_T *buf);
 static void delbuf_msg(char_u *name);
 
 // Functions implemented in Rust for command handling.
-extern int rs_cmd_execute(const char *name);
 
 /*
  * ":ascii" and "ga".

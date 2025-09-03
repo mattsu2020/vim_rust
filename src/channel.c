@@ -3,6 +3,7 @@
 #if defined(FEAT_JOB_CHANNEL) || defined(PROTO)
 #include "vim.h"
 #include "channel_rs.h"
+#include <stdbool.h>
 // FFI declarations are provided by channel_rs.h, which exposes the Rust
 // channel implementation under rs_* symbols.
 
@@ -168,6 +169,15 @@ void f_ch_status(typval_T *argvars, typval_T *rettv) { (void)argvars; rettv->v_t
 char_u *channel_to_string_buf(typval_T *varp, char_u *buf) { (void)varp; buf[0] = NUL; return buf; }
 
 // Provide a trivial fallback for eval_expr_rs so that linking succeeds
-int eval_expr_rs(const char *expr, typval_T *result) { (void)expr; if (result) { result->v_type = VAR_NUMBER; result->vval.v_number = 0; } return 0; }
+bool eval_expr_rs(const char *expr, typval_T *result)
+{
+    (void)expr;
+    if (result)
+    {
+        result->v_type = VAR_NUMBER;
+        result->vval.v_number = 0;
+    }
+    return false;
+}
 
 #endif // FEAT_JOB_CHANNEL || PROTO

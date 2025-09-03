@@ -14,9 +14,9 @@
 
 #include "vim.h"
 #include "normal_rs.h"
+#include "../rust_excmd/include/rust_excmd.h"
 
 // Rust implementations for command execution and key mapping.
-extern int rs_cmd_execute(const char *name);
 extern const char *rs_map_lookup(const char *lhs);
 
 // Rust 実装由来のスペル関数の前方宣言（最小ビルド用）
