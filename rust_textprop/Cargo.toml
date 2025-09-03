@@ -1,0 +1,12 @@
+[package]
+name = "rust_textprop"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+libc = "0.2"
+once_cell = "1.18"
+
+[lib]
+name = "rust_textprop"
+crate-type = ["staticlib", "rlib"]

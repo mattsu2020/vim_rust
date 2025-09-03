@@ -1,0 +1,11 @@
+[package]
+name = "rust_textobject"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+libc = "0.2"
+
+[lib]
+name = "rust_textobject"
+crate-type = ["staticlib", "rlib"]

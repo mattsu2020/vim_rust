@@ -1469,6 +1469,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_textobject"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
+name = "rust_textprop"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "once_cell",
+]
+
+[[package]]
 name = "rust_undo"
 version = "0.1.0"
 dependencies = [
