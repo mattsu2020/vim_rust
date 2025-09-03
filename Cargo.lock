@@ -1494,6 +1494,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_core"
+version = "0.1.0"
+
+[[package]]
 name = "rust_crypto_zip"
 version = "0.1.0"
 dependencies = [
@@ -1555,6 +1559,7 @@ name = "rust_eval"
 version = "0.1.0"
 dependencies = [
  "once_cell",
+ "rust_core",
 ]
 
 [[package]]
