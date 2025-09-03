@@ -1,9 +1,7 @@
 use std::ffi::CString;
 
-use rust_vim9cmds::{
-    vim9_eval_bool, vim9_eval_int, vim9_exec_rs, vim9_declare_error_rs,
-};
 use rust_eval::{typval_T, ValUnion, Vartype};
+use rust_vim9cmds::{vim9_declare_error_rs, vim9_eval_bool, vim9_eval_int, vim9_exec_rs};
 
 #[test]
 fn ffi_eval_bool() {
@@ -29,7 +27,9 @@ fn ffi_exec_expression() {
     };
     let ok = vim9_exec_rs(expr.as_ptr(), &mut out as *mut typval_T);
     assert!(ok);
-    unsafe { assert_eq!(out.vval.v_number, 9); }
+    unsafe {
+        assert_eq!(out.vval.v_number, 9);
+    }
 }
 
 #[test]
