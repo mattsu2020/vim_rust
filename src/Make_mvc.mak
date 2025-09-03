@@ -1265,8 +1265,6 @@ VIMTESTTARGET = $(VIM).exe
 
 all: $(MAIN_TARGET) \
 	vimrun.exe \
-	install.exe \
-	uninstall.exe \
 	xxd/xxd.exe \
 	tee/tee.exe \
 	GvimExt/gvimext.dll
@@ -1327,17 +1325,8 @@ CFLAGS_INST = /nologo /O2 -DNDEBUG -DWIN32 -DWINVER=$(WINVER) \
 
 CFLAGS_INST = $(CFLAGS_INST) -DVIM_VERSION_PATCHLEVEL=$(PATCHLEVEL)
 
-install.exe: dosinst.c dosinst.h version.h
-	$(CC) $(CFLAGS_INST) /Fe$@ dosinst.c kernel32.lib shell32.lib \
-		user32.lib ole32.lib advapi32.lib uuid.lib \
-		-link -subsystem:$(SUBSYSTEM_TOOLS)
-
-uninstall.exe: uninstall.c dosinst.h version.h
-	$(CC) $(CFLAGS_INST) uninstall.c shell32.lib advapi32.lib \
-		-link -subsystem:$(SUBSYSTEM_TOOLS)
-
 vimrun.exe: vimrun.c
-	$(CC) /nologo -DNDEBUG vimrun.c -link -subsystem:$(SUBSYSTEM_TOOLS)
+        $(CC) /nologo -DNDEBUG vimrun.c -link -subsystem:$(SUBSYSTEM_TOOLS)
 
 xxd/xxd.exe:
 	cd xxd
@@ -1384,11 +1373,8 @@ clean: testclean
 	- if exist $(VIMDLLBASE).map $(RM) $(VIMDLLBASE).map
 !ENDIF
 	- if exist vimrun.exe $(RM) vimrun.exe
-	- if exist install.exe $(RM) install.exe
-	- if exist uninstall.exe $(RM) uninstall.exe
 	- if exist if_perl.c $(RM) if_perl.c
 	- if exist auto\if_perl.c $(RM) auto\if_perl.c
-	- if exist dosinst.exe $(RM) dosinst.exe
 	cd xxd
 	$(MAKE) -lf Make_mvc.mak clean
 	cd ..

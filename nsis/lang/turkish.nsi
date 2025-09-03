@@ -10,7 +10,6 @@
 !insertmacro MUI_LANGUAGE "Turkish"
 
 # Overwrite the default translation.
-# These strings should be always English.  Otherwise dosinst.c fails.
 LangString ^SetupCaption     ${LANG_TURKISH} \
         "$(^Name) Setup"
 LangString ^UninstallCaption ${LANG_TURKISH} \

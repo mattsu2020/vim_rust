@@ -1119,16 +1119,11 @@ endif
 # To increase the stack size to 16MB, uncomment the following line:
 #LFLAGS += -Wl,-stack -Wl,0x1000000
 
-all: $(MAIN_TARGET) vimrun.exe xxd/xxd.exe tee/tee.exe install.exe uninstall.exe GvimExt/gvimext.dll
+all: $(MAIN_TARGET) vimrun.exe xxd/xxd.exe tee/tee.exe GvimExt/gvimext.dll
 
 vimrun.exe: vimrun.c
 	$(CC) $(CFLAGS) -o vimrun.exe vimrun.c $(LIB)
 
-install.exe: dosinst.c dosinst.h version.h
-	$(CC) $(CFLAGS) -o install.exe dosinst.c $(LIB) -lole32 -luuid
-
-uninstall.exe: uninstall.c dosinst.h version.h
-	$(CC) $(CFLAGS) -o uninstall.exe uninstall.c $(LIB) -lole32
 
 $(OBJ): | $(OUTDIR)
 
@@ -1191,7 +1186,7 @@ clean:
 	-$(DEL) $(OUTDIR)$(DIRSLASH)*.res
 	-$(DEL) $(OUTDIR)$(DIRSLASH)pathdef.c
 	-rmdir $(OUTDIR)
-	-$(DEL) $(MAIN_TARGET) vimrun.exe install.exe uninstall.exe
+-$(DEL) $(MAIN_TARGET) vimrun.exe
 	-$(DEL) *.gcno *.gcda
 	-$(DEL) *.map
 ifdef PERL
