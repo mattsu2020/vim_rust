@@ -2,6 +2,7 @@
 pub enum Ast {
     Number(i64),
     Add(Box<Ast>, Box<Ast>),
+    LessThan(Box<Ast>, Box<Ast>),
     Echo(Box<Ast>),
 }
 
@@ -17,11 +18,21 @@ pub fn parse_addition(expr: &str) -> Option<Ast> {
     Some(ast)
 }
 
+fn parse_comparison(expr: &str) -> Option<Ast> {
+    if let Some((left, right)) = expr.split_once('<') {
+        let left_ast = parse_addition(left.trim())?;
+        let right_ast = parse_addition(right.trim())?;
+        Some(Ast::LessThan(Box::new(left_ast), Box::new(right_ast)))
+    } else {
+        parse_addition(expr)
+    }
+}
+
 pub fn parse_line(line: &str) -> Option<Ast> {
     let line = line.trim();
     if let Some(rest) = line.strip_prefix("echo ") {
-        parse_addition(rest).map(|ast| Ast::Echo(Box::new(ast)))
+        parse_comparison(rest).map(|ast| Ast::Echo(Box::new(ast)))
     } else {
-        parse_addition(line)
+        parse_comparison(line)
     }
 }

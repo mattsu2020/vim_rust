@@ -13,6 +13,7 @@ typedef struct typval_S typval_T;
 
 bool vim9_exec_rs(const char *expr, typval_T *out);
 long long vim9_eval_int(const char *expr);
+bool vim9_eval_bool(const char *expr);
 
 #ifdef __cplusplus
 }

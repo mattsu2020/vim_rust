@@ -1,7 +1,7 @@
 use std::ffi::CStr;
 use std::os::raw::c_char;
 
-use rust_eval::{typval_T, ValUnion, Vartype, eval_expr_rs};
+use rust_eval::{typval_T, ValUnion, Vartype};
 
 mod types;
 mod parser;
@@ -11,11 +11,24 @@ mod executor;
 use parser::parse_line;
 use compiler::compile;
 use executor::execute;
+use types::Vim9Type;
 
 pub fn eval_expr(expr: &str) -> Option<i64> {
     let ast = parse_line(expr)?;
     let prog = compile(&ast);
+    if prog.result_type != Vim9Type::Number {
+        return None;
+    }
     Some(execute(&prog))
+}
+
+pub fn eval_bool_expr(expr: &str) -> Option<bool> {
+    let ast = parse_line(expr)?;
+    let prog = compile(&ast);
+    if prog.result_type != Vim9Type::Bool {
+        return None;
+    }
+    Some(execute(&prog) != 0)
 }
 
 pub mod cmds {
@@ -45,6 +58,18 @@ pub extern "C" fn vim9_eval_int(expr: *const c_char) -> i64 {
 }
 
 #[no_mangle]
+pub extern "C" fn vim9_eval_bool(expr: *const c_char) -> bool {
+    if expr.is_null() {
+        return false;
+    }
+    let c_str = unsafe { CStr::from_ptr(expr) };
+    match c_str.to_str().ok().and_then(|s| eval_bool_expr(s)) {
+        Some(b) => b,
+        None => false,
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn vim9_exec_rs(expr: *const c_char, out: *mut typval_T) -> bool {
     if expr.is_null() || out.is_null() {
         return false;
@@ -59,6 +84,7 @@ pub extern "C" fn vim9_exec_rs(expr: *const c_char, out: *mut typval_T) -> bool 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rust_eval::eval_expr_rs;
 
     #[test]
     fn eval_simple_add() {
@@ -78,9 +104,15 @@ mod tests {
         let ours = eval_expr(expr).unwrap();
         let c_expr = std::ffi::CString::new(expr).unwrap();
         let mut tv = typval_T { v_type: Vartype::VAR_UNKNOWN, v_lock: 0, vval: ValUnion { v_number: 0 } };
-        let ok = unsafe { eval_expr_rs(c_expr.as_ptr(), &mut tv as *mut typval_T) };
+        let ok = eval_expr_rs(c_expr.as_ptr(), &mut tv as *mut typval_T);
         assert!(ok);
         let theirs = unsafe { tv.vval.v_number };
         assert_eq!(ours, theirs);
+    }
+
+    #[test]
+    fn eval_bool_comparison() {
+        let expr = "1 < 2";
+        assert_eq!(eval_bool_expr(expr), Some(true));
     }
 }
