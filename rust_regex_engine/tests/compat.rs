@@ -94,3 +94,31 @@ fn regexec_multi_single_line() {
         vim_regfree(prog);
     }
 }
+
+#[test]
+fn invalid_pattern_returns_null() {
+    let pat = CString::new("[a-").unwrap();
+    unsafe {
+        let prog = vim_regcomp(pat.as_ptr(), 0);
+        assert!(prog.is_null());
+    }
+}
+
+#[test]
+fn non_match_returns_zero() {
+    let pat = CString::new("foo").unwrap();
+    let text = CString::new("bar").unwrap();
+    unsafe {
+        let prog = vim_regcomp(pat.as_ptr(), 0);
+        assert!(!prog.is_null());
+        let mut rm = RegMatch {
+            regprog: prog,
+            startp: [std::ptr::null(); 10],
+            endp: [std::ptr::null(); 10],
+            rm_matchcol: 0,
+            rm_ic: 0,
+        };
+        assert_eq!(vim_regexec(&mut rm, text.as_ptr(), 0), 0);
+        vim_regfree(prog);
+    }
+}
