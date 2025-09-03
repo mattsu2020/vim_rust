@@ -1,7 +1,9 @@
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
+use std::iter::Peekable;
 use std::os::raw::c_char;
+use std::str::Chars;
 use std::sync::Mutex;
 
 #[repr(C)]
@@ -37,17 +39,26 @@ pub enum Value {
 }
 
 impl Value {
-    fn as_number(&self) -> i64 {
+    fn as_number(&self) -> Result<i64, ()> {
         match self {
-            Value::Number(n) => *n,
-            Value::Str(s) => s.parse().unwrap_or(0),
+            Value::Number(n) => Ok(*n),
+            Value::Str(s) => s.parse().map_err(|_| ()),
         }
     }
 
-    fn to_string(self) -> String {
+    fn to_string(&self) -> String {
         match self {
             Value::Number(n) => n.to_string(),
-            Value::Str(s) => s,
+            Value::Str(s) => s.clone(),
+        }
+    }
+}
+
+impl std::fmt::Display for Value {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Value::Number(n) => write!(f, "{}", n),
+            Value::Str(s) => write!(f, "{}", s),
         }
     }
 }
@@ -67,23 +78,31 @@ enum Expr {
 
 pub struct Evaluator {
     vars: HashMap<String, Value>,
-    funcs: HashMap<String, fn(&[Value]) -> Value>,
+    funcs: HashMap<String, fn(&[Value]) -> Result<Value, ()>>,
 }
 
 impl Evaluator {
     pub fn new() -> Self {
-        let mut funcs: HashMap<String, fn(&[Value]) -> Value> = HashMap::new();
-        fn add_func(args: &[Value]) -> Value {
-            let a = args.get(0).map(|v| v.as_number()).unwrap_or(0);
-            let b = args.get(1).map(|v| v.as_number()).unwrap_or(0);
-            Value::Number(a + b)
+        let mut funcs: HashMap<String, fn(&[Value]) -> Result<Value, ()>> = HashMap::new();
+        fn add_func(args: &[Value]) -> Result<Value, ()> {
+            let a = args
+                .get(0)
+                .map(|v| v.as_number())
+                .transpose()? 
+                .unwrap_or(0);
+            let b = args
+                .get(1)
+                .map(|v| v.as_number())
+                .transpose()? 
+                .unwrap_or(0);
+            Ok(Value::Number(a + b))
         }
-        fn concat_func(args: &[Value]) -> Value {
+        fn concat_func(args: &[Value]) -> Result<Value, ()> {
             let mut s = String::new();
             for v in args {
-                s.push_str(&v.clone().to_string());
+                s.push_str(&v.to_string());
             }
-            Value::Str(s)
+            Ok(Value::Str(s))
         }
         funcs.insert("add".to_string(), add_func);
         funcs.insert("concat".to_string(), concat_func);
@@ -98,8 +117,11 @@ impl Evaluator {
         self.vars.get(name).cloned()
     }
 
-    pub fn call_function(&self, name: &str, args: &[Value]) -> Option<Value> {
-        self.funcs.get(name).map(|f| f(args))
+    pub fn call_function(&self, name: &str, args: &[Value]) -> Result<Value, ()> {
+        match self.funcs.get(name) {
+            Some(f) => f(args),
+            None => Err(()),
+        }
     }
 
     pub fn eval_expr(&self, expr: &str) -> Result<Value, ()> {
@@ -108,14 +130,24 @@ impl Evaluator {
         if tokens.next_non_ws().is_some() {
             return Err(());
         }
-        Ok(eval(&ast, self))
+        eval(&ast, self)
     }
 }
 
 static GLOBAL_EVAL: Lazy<Mutex<Evaluator>> = Lazy::new(|| Mutex::new(Evaluator::new()));
 
 struct Tokenizer<'a> {
-    iter: std::iter::Peekable<std::str::Chars<'a>>,
+    iter: Peekable<Chars<'a>>,
+}
+
+fn skip_ws(iter: &mut Peekable<Chars<'_>>) {
+    while let Some(&c) = iter.peek() {
+        if c.is_whitespace() {
+            iter.next();
+        } else {
+            break;
+        }
+    }
 }
 
 impl<'a> Tokenizer<'a> {
@@ -124,25 +156,13 @@ impl<'a> Tokenizer<'a> {
     }
 
     fn next_non_ws(&mut self) -> Option<char> {
-        while let Some(&c) = self.iter.peek() {
-            if c.is_whitespace() {
-                self.iter.next();
-            } else {
-                return self.iter.next();
-            }
-        }
-        None
+        skip_ws(&mut self.iter);
+        self.iter.next()
     }
 
     fn peek_non_ws(&mut self) -> Option<char> {
-        while let Some(&c) = self.iter.peek() {
-            if c.is_whitespace() {
-                self.iter.next();
-            } else {
-                return Some(c);
-            }
-        }
-        None
+        skip_ws(&mut self.iter);
+        self.iter.peek().copied()
     }
 
     fn parse_number(&mut self) -> Option<i64> {
@@ -301,39 +321,42 @@ fn parse_concat(tokens: &mut Tokenizer) -> Result<Expr, ()> {
     Ok(node)
 }
 
-fn eval(expr: &Expr, ctx: &Evaluator) -> Value {
+fn eval(expr: &Expr, ctx: &Evaluator) -> Result<Value, ()> {
     match expr {
-        Expr::Number(n) => Value::Number(*n),
-        Expr::Str(s) => Value::Str(s.clone()),
-        Expr::Var(name) => ctx.get_var(name).unwrap_or(Value::Number(0)),
+        Expr::Number(n) => Ok(Value::Number(*n)),
+        Expr::Str(s) => Ok(Value::Str(s.clone())),
+        Expr::Var(name) => Ok(ctx.get_var(name).unwrap_or(Value::Number(0))),
         Expr::Call(name, args) => {
-            let vals: Vec<Value> = args.iter().map(|e| eval(e, ctx)).collect();
-            ctx.call_function(name, &vals).unwrap_or(Value::Number(0))
+            let vals = args
+                .iter()
+                .map(|e| eval(e, ctx))
+                .collect::<Result<Vec<_>, _>>()?;
+            ctx.call_function(name, &vals)
         }
         Expr::Add(a, b) => {
-            let a = eval(a, ctx).as_number();
-            let b = eval(b, ctx).as_number();
-            Value::Number(a + b)
+            let a = eval(a, ctx)?.as_number()?;
+            let b = eval(b, ctx)?.as_number()?;
+            Ok(Value::Number(a + b))
         }
         Expr::Sub(a, b) => {
-            let a = eval(a, ctx).as_number();
-            let b = eval(b, ctx).as_number();
-            Value::Number(a - b)
+            let a = eval(a, ctx)?.as_number()?;
+            let b = eval(b, ctx)?.as_number()?;
+            Ok(Value::Number(a - b))
         }
         Expr::Mul(a, b) => {
-            let a = eval(a, ctx).as_number();
-            let b = eval(b, ctx).as_number();
-            Value::Number(a * b)
+            let a = eval(a, ctx)?.as_number()?;
+            let b = eval(b, ctx)?.as_number()?;
+            Ok(Value::Number(a * b))
         }
         Expr::Div(a, b) => {
-            let a = eval(a, ctx).as_number();
-            let b = eval(b, ctx).as_number();
-            Value::Number(a / b)
+            let a = eval(a, ctx)?.as_number()?;
+            let b = eval(b, ctx)?.as_number()?;
+            Ok(Value::Number(a / b))
         }
         Expr::Concat(a, b) => {
-            let left = eval(a, ctx).to_string();
-            let right = eval(b, ctx).to_string();
-            Value::Str(left + &right)
+            let left = eval(a, ctx)?.to_string();
+            let right = eval(b, ctx)?.to_string();
+            Ok(Value::Str(left + &right))
         }
     }
 }
@@ -412,12 +435,20 @@ pub extern "C" fn eval_to_bool_rs(expr: *const c_char, error: *mut bool) -> bool
     };
     let eval = GLOBAL_EVAL.lock().unwrap();
     match eval.eval_expr(expr_str) {
-        Ok(val) => {
-            if !error.is_null() {
-                unsafe { *error = false; }
+        Ok(val) => match val.as_number() {
+            Ok(n) => {
+                if !error.is_null() {
+                    unsafe { *error = false; }
+                }
+                n != 0
             }
-            val.as_number() != 0
-        }
+            Err(_) => {
+                if !error.is_null() {
+                    unsafe { *error = true; }
+                }
+                false
+            }
+        },
         Err(_) => {
             if !error.is_null() {
                 unsafe { *error = true; }
@@ -492,11 +523,11 @@ pub extern "C" fn call_function_rs(name: *const c_char, args: *const typval_T, a
     }
     let eval = GLOBAL_EVAL.lock().unwrap();
     match eval.call_function(name_str, &vals) {
-        Some(v) => {
+        Ok(v) => {
             unsafe { to_typval(v, out); }
             true
         }
-        None => false,
+        Err(_) => false,
     }
 }
 
