@@ -332,7 +332,6 @@ C COMPILER					*assumptions-C-compiler*
 						*ANSI-C* *C89* *C90* *C95* *C99*
 
 Vim strives for maximum portability (see |design-multi-platform|) and must
-still build with Compaq C V6.4-005 on OpenVMS VAX V7.3.
 
 Therefore, the latest ISO C standard we follow is:
 

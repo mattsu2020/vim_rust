@@ -5930,7 +5930,6 @@ User	autocmd.txt	/*User*
 UserGettingBored	autocmd.txt	/*UserGettingBored*
 V	visual.txt	/*V*
 VIMINIT	starting.txt	/*VIMINIT*
-VMS	os_vms.txt	/*VMS*
 Vi	intro.txt	/*Vi*
 Vietnamese	vietnamese.txt	/*Vietnamese*
 View	starting.txt	/*View*
@@ -6170,7 +6169,6 @@ added-9.1	version9.txt	/*added-9.1*
 added-9.2	version9.txt	/*added-9.2*
 added-BeOS	version5.txt	/*added-BeOS*
 added-Mac	version5.txt	/*added-Mac*
-added-VMS	version5.txt	/*added-VMS*
 added-cmdline-args	version5.txt	/*added-cmdline-args*
 added-options	version5.txt	/*added-options*
 added-regexp	version5.txt	/*added-regexp*
@@ -9552,7 +9550,6 @@ os_os2.txt	os_os2.txt	/*os_os2.txt*
 os_qnx.txt	os_qnx.txt	/*os_qnx.txt*
 os_risc.txt	os_risc.txt	/*os_risc.txt*
 os_unix.txt	os_unix.txt	/*os_unix.txt*
-os_vms.txt	os_vms.txt	/*os_vms.txt*
 os_win32.txt	os_win32.txt	/*os_win32.txt*
 other-features	vi_diff.txt	/*other-features*
 out_buf	channel.txt	/*out_buf*
@@ -11639,17 +11636,6 @@ visual-start	visual.txt	/*visual-start*
 visual-use	visual.txt	/*visual-use*
 visual.txt	visual.txt	/*visual.txt*
 visualmode()	builtin.txt	/*visualmode()*
-vms	os_vms.txt	/*vms*
-vms-authors	os_vms.txt	/*vms-authors*
-vms-changes	os_vms.txt	/*vms-changes*
-vms-compiling	os_vms.txt	/*vms-compiling*
-vms-deploy	os_vms.txt	/*vms-deploy*
-vms-download	os_vms.txt	/*vms-download*
-vms-gui	os_vms.txt	/*vms-gui*
-vms-notes	os_vms.txt	/*vms-notes*
-vms-problems	os_vms.txt	/*vms-problems*
-vms-started	os_vms.txt	/*vms-started*
-vms-usage	os_vms.txt	/*vms-usage*
 vote-for-features	sponsor.txt	/*vote-for-features*
 votes-for-changes	todo.txt	/*votes-for-changes*
 vreplace-mode	insert.txt	/*vreplace-mode*

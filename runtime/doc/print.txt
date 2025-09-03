@@ -623,7 +623,6 @@ X11
 
     http://www.cs.wisc.edu/~ghost/gv/
 
-OpenVMS
 
 - Is apparently supported in the main code now (untested).
   See (link seems dead):

@@ -225,7 +225,6 @@ Remarks about specific systems ~
 |os_qnx.txt|	QNX
 |os_risc.txt|	RISC-OS
 |os_unix.txt|	Unix
-|os_vms.txt|	VMS
 |os_win32.txt|	MS-Windows
 						*standard-plugin-list*
 Standard plugins ~

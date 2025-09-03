@@ -1380,13 +1380,6 @@ name = "rust_os_unix"
 version = "0.1.0"
 
 [[package]]
-name = "rust_os_vms"
-version = "0.1.0"
-dependencies = [
- "libc",
-]
-
-[[package]]
 name = "rust_os_win32"
 version = "0.1.0"
 dependencies = [
@@ -1913,7 +1906,6 @@ dependencies = [
  "rust_os_amiga",
  "rust_os_qnx",
  "rust_os_unix",
- "rust_os_vms",
  "rust_os_win32",
  "rust_profiler",
  "rust_pty",

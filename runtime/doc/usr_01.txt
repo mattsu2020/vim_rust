@@ -134,11 +134,6 @@ available, use the two-letter language code.  For French: >
 On Unix, if you prefer using the GUI version of Vim, use "gvimtutor" or
 "vimtutor -g" instead of "vimtutor".
 
-For OpenVMS, if Vim has been properly installed, you can start vimtutor from a
-VMS prompt with: >
-
-	@VIM:vimtutor
-
 Optionally add the two-letter language code as above.
 
 

@@ -9,7 +9,6 @@
 "	      for Amiga:  s:.vimrc
 "	 for MS-Windows:  $VIM\_vimrc
 "	      for Haiku:  ~/config/settings/vim/vimrc
-"	    for OpenVMS:  sys$login:.vimrc
 
 " When started as "evim", evim.vim will already have done these settings, bail
 " out.
@@ -20,13 +19,9 @@ endif
 " Get the defaults that most users want.
 source $VIMRUNTIME/defaults.vim
 
-if has("vms")
-  set nobackup		" do not keep a backup file, use versions instead
-else
-  set backup		" keep a backup file (restore to previous version)
-  if has('persistent_undo')
-    set undofile	" keep an undo file (undo changes after closing)
-  endif
+set backup            " keep a backup file (restore to previous version)"
+if has('persistent_undo')
+  set undofile        " keep an undo file (undo changes after closing)"
 endif
 
 if &t_Co > 2 || has("gui_running")

@@ -65,7 +65,6 @@ DOCS = \
 	os_qnx.txt \
 	os_risc.txt \
 	os_unix.txt \
-	os_vms.txt \
 	os_win32.txt \
 	pattern.txt \
 	pi_getscript.txt \
@@ -221,7 +220,6 @@ HTMLS = \
 	os_qnx.html \
 	os_risc.html \
 	os_unix.html \
-	os_vms.html \
 	os_win32.html \
 	pattern.html \
 	pi_getscript.html \

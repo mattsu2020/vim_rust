@@ -4429,7 +4429,6 @@ list_version(void)
 #endif
 
 #ifdef VMS
-    msg_puts(_("\nOpenVMS (build) arch, version"));
 # ifdef HAVE_PATHDEF
     if (*compiled_arch != NUL)
     {

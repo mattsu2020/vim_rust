@@ -125,7 +125,6 @@ syn match modula2LowLineIdent "[a-zA-Z][a-zA-Z0-9]*\(_[a-zA-Z0-9]\+\)\+"
 syn match modula2ReswordDo "\(TO\)\@<!DO"
 syn match modula2ReswordTo "TO\(\sDO\)\@!"
 
-" TODO: support for OpenVMS reswords and identifiers which may include $ and %
 
 
 " -----------------------------------------------------------------------------

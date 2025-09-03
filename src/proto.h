@@ -35,7 +35,7 @@
 # ifdef AMIGA
 #  include "os_amiga.pro"
 # endif
-# if defined(UNIX) || defined(VMS)
+# if defined(UNIX)
 #  include "os_unix.pro"
 # endif
 # ifdef MSWIN
@@ -45,9 +45,6 @@
 #  if (defined(__GNUC__) && !defined(__MINGW32__))
 extern int _stricoll(char *a, char *b);
 #  endif
-# endif
-# ifdef VMS
-#  include "os_vms.pro"
 # endif
 # ifdef __QNX__
 #  include "os_qnx.pro"
@@ -210,7 +207,7 @@ void mbyte_im_set_active(int active_arg);
 #   include "terminal.pro"
 #  endif
 # endif
-# if defined(HAVE_TGETENT) && (defined(AMIGA) || defined(VMS))
+# if defined(HAVE_TGETENT) && defined(AMIGA)
 #  include "termlib.pro"
 # endif
 # ifdef FEAT_PROP_POPUP
@@ -292,14 +289,14 @@ void ch_error(channel_T *ch, const char *fmt, ...) ATTRIBUTE_FORMAT_PRINTF(2, 3)
 # endif
 
 # if defined(FEAT_GUI) || defined(FEAT_JOB_CHANNEL)
-#  if defined(UNIX) || defined(MACOS_X) || defined(VMS)
+#  if defined(UNIX) || defined(MACOS_X)
 #   include "pty.pro"
 #  endif
 # endif
 
 # ifdef FEAT_GUI
 #  include "gui.pro"
-#  if !defined(HAVE_SETENV) && !defined(HAVE_PUTENV) && !defined(VMS)
+#  if !defined(HAVE_SETENV) && !defined(HAVE_PUTENV)
 extern int putenv(const char *string);			// in misc2.c
 #   ifdef USE_VIMPTY_GETENV
 extern char_u *vimpty_getenv(const char_u *string);	// in misc2.c

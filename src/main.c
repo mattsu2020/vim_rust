@@ -2121,7 +2121,6 @@ command_line_scan(mparm_T *parmp)
 	     * However, leaving this slash-prefix scheme available is
 	     * nearly harmless.  But note that it doesn't help with the
 	     * case of other command-line arguments, such as file names.
-	     * For details, see os_vms.c:vms_init().
 	     * On VAX and old non-VAX systems, or with SET PROC/PARSE=TRAD,
 	     * DCL upcases the command line, and the C RTL downcases it.
 	     * I would not say "only uses upper case command lines".
