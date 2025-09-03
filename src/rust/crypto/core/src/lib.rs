@@ -5,6 +5,12 @@ use std::sync::Once;
 
 use blowfish::cipher::{generic_array::GenericArray, BlockEncrypt, NewBlockCipher};
 use blowfish::Blowfish;
+use hmac::Hmac;
+use pbkdf2::pbkdf2;
+use ring::digest::{Context, SHA256};
+use sha2::Sha256;
+
+type HmacSha256 = Hmac<Sha256>;
 
 #[repr(C)]
 pub struct cryptstate_T {
@@ -61,16 +67,14 @@ impl BlowfishState {
 }
 
 fn sha256_hex(data: &[u8], salt: &[u8]) -> String {
-    let mut ctx = context_sha256_T { total: [0; 2], state: [0; 8], buffer: [0; 64] };
-    sha256_start_rust(&mut ctx);
-    sha256_update_rust(&mut ctx, data);
+    let mut ctx = Context::new(&SHA256);
+    ctx.update(data);
     if !salt.is_empty() {
-        sha256_update_rust(&mut ctx, salt);
+        ctx.update(salt);
     }
-    let mut out = [0u8; 32];
-    sha256_finish_rust(&mut ctx, &mut out);
+    let digest = ctx.finish();
     let mut s = String::with_capacity(64);
-    for b in &out {
+    for b in digest.as_ref() {
         s.push_str(&format!("{:02x}", b));
     }
     s
@@ -85,12 +89,18 @@ fn hex_to_bytes(s: &str) -> Vec<u8> {
     out
 }
 
-fn derive_key(password: &[u8], salt: &[u8]) -> Vec<u8> {
-    let mut key = sha256_hex(password, salt);
-    for _ in 0..1000 {
-        key = sha256_hex(key.as_bytes(), salt);
+fn derive_key(method: c_int, password: &[u8], salt: &[u8]) -> Vec<u8> {
+    if method == CRYPT_M_BF2 {
+        let mut out = [0u8; 32];
+        pbkdf2::<HmacSha256>(password, salt, 1001, &mut out).expect("pbkdf2");
+        out.to_vec()
+    } else {
+        let mut key = sha256_hex(password, salt);
+        for _ in 0..1000 {
+            key = sha256_hex(key.as_bytes(), salt);
+        }
+        hex_to_bytes(&key)
     }
-    hex_to_bytes(&key)
 }
 
 fn cfb_init(state: &mut BlowfishState, seed: &[u8]) {
@@ -120,17 +130,14 @@ pub extern "C" fn crypt_blowfish_init(
     let arg = unsafe { &*arg };
     let salt = unsafe { slice::from_raw_parts(arg.cat_salt, arg.cat_salt_len as usize) };
     let seed = unsafe { slice::from_raw_parts(arg.cat_seed, arg.cat_seed_len as usize) };
+    let method = unsafe { (*state).method_nr };
 
-    let key_bytes = derive_key(key_slice, salt);
+    let key_bytes = derive_key(method, key_slice, salt);
     let cipher = match Blowfish::new_from_slice(&key_bytes) {
         Ok(c) => c,
         Err(_) => return 0,
     };
-    let cfb_len = if unsafe { (*state).method_nr } == CRYPT_M_BF {
-        64
-    } else {
-        8
-    };
+    let cfb_len = if method == CRYPT_M_BF { 64 } else { 8 };
     let mut st = BlowfishState {
         cipher,
         cfb: [0u8; 64],
