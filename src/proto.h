@@ -57,7 +57,6 @@ extern int _stricoll(char *a, char *b);
 # include "xdiff/xdiff.h"
 
 # ifdef FEAT_CRYPT
-#  include "blowfish.pro"
 #  include "crypt.pro"
 #  include "crypt_zip.pro"
 # endif

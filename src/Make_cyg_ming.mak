@@ -771,9 +771,8 @@ OBJ = \
 	$(OUTDIR)/arglist.o \
 	$(OUTDIR)/autocmd.o \
 	$(OUTDIR)/beval.o \
-	$(OUTDIR)/blob.o \
-	$(OUTDIR)/blowfish.o \
-	$(OUTDIR)/buffer.o \
+        $(OUTDIR)/blob.o \
+        $(OUTDIR)/buffer.o \
 	$(OUTDIR)/bufwrite.o \
 	$(OUTDIR)/change.o \
 	$(OUTDIR)/charset.o \

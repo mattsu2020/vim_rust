@@ -85,8 +85,7 @@
 # if defined(uint32_t)  // this doesn't catch typedefs, unfortunately
 #  define UINT32_TYPEDEF uint32_t
 # else
-  // Fall back to assuming unsigned int is 32 bit.  If this is wrong then the
-  // test in blowfish.c will fail.
+  // Fall back to assuming unsigned int is 32 bit.
 #  define UINT32_TYPEDEF unsigned int
 # endif
 #endif
