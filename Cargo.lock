@@ -1683,6 +1683,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_cmdexpand"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rust_cmdhist"
 version = "0.1.0"
 dependencies = [
@@ -1926,6 +1933,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_insexpand"
+version = "0.1.0"
+
+[[package]]
 name = "rust_iscygpty"
 version = "0.1.0"
 
@@ -2001,6 +2012,10 @@ version = "0.1.0"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "rust_move"
+version = "0.1.0"
 
 [[package]]
 name = "rust_normal"

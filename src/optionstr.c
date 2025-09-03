@@ -5066,8 +5066,8 @@ save_clear_shm_value(void)
 
     if (++set_shm_recursive == 1)
     {
-	STRCPY(shm_buf, p_shm);
-	set_option_value_give_err((char_u *)"shm", 0L, (char_u *)"", 0);
+        vim_strncpy(shm_buf, p_shm, SHM_LEN - 1);
+        set_option_value_give_err((char_u *)"shm", 0L, (char_u *)"", 0);
     }
 }
 
