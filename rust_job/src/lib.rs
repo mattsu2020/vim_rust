@@ -1,4 +1,4 @@
-use std::ffi::{CStr};
+use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
 use tokio::process::Command;
 use serde::Deserialize;
@@ -10,26 +10,31 @@ pub struct JobConfig {
     pub args: Vec<String>,
 }
 
-#[derive(Debug)]
+#[derive(thiserror::Error, Debug)]
 pub enum JobError {
-    Json(serde_json::Error),
-    Io(std::io::Error),
-}
-
-impl From<serde_json::Error> for JobError {
-    fn from(e: serde_json::Error) -> Self { JobError::Json(e) }
-}
-
-impl From<std::io::Error> for JobError {
-    fn from(e: std::io::Error) -> Self { JobError::Io(e) }
+    #[error("json error: {0}")]
+    Json(#[from] serde_json::Error),
+    #[error("io error: {0}")]
+    Io(#[from] std::io::Error),
 }
 
 pub fn run_job(config: JobConfig) -> Result<i32, JobError> {
-    let rt = tokio::runtime::Runtime::new().map_err(JobError::Io)?;
-    let status = rt.block_on(async {
-        Command::new(&config.cmd).args(&config.args).status().await
+    let rt = tokio::runtime::Runtime::new().map_err(|e| {
+        eprintln!("failed to create runtime: {}", e);
+        e
     })?;
+    let status = rt
+        .block_on(async { Command::new(&config.cmd).args(&config.args).status().await })
+        .map_err(|e| {
+            eprintln!("failed to run command: {}", e);
+            e
+        })?;
     Ok(status.code().unwrap_or_default())
+}
+
+fn job_start_inner(json_str: &str) -> Result<i32, JobError> {
+    let cfg = serde_json::from_str::<JobConfig>(json_str)?;
+    run_job(cfg)
 }
 
 #[no_mangle]
@@ -40,17 +45,20 @@ pub extern "C" fn job_start(config_json: *const c_char, exit_code: *mut c_int) -
     let cstr = unsafe { CStr::from_ptr(config_json) };
     let json_str = match cstr.to_str() {
         Ok(s) => s,
-        Err(_) => return false,
+        Err(e) => {
+            eprintln!("invalid utf-8 in config: {}", e);
+            return false;
+        }
     };
-    match serde_json::from_str::<JobConfig>(json_str) {
-        Ok(cfg) => match run_job(cfg) {
-            Ok(code) => {
-                unsafe { *exit_code = code; }
-                true
-            }
-            Err(_) => false,
-        },
-        Err(_) => false,
+    match job_start_inner(json_str) {
+        Ok(code) => {
+            unsafe { *exit_code = code; }
+            true
+        }
+        Err(e) => {
+            eprintln!("job failed: {}", e);
+            false
+        }
     }
 }
 
