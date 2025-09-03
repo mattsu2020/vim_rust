@@ -2,7 +2,6 @@
 
 #include "vim.h"
 
-extern void *vim_rs_memline_buf(void);
 extern unsigned char *rs_ml_get_line(void *buf, size_t lnum, int for_change, size_t *out_len);
 
 void ml_set_crypt_key(buf_T *buf, char_u *old_key, char_u *old_cm)
@@ -28,7 +27,7 @@ static char_u empty_line[] = "";
 char_u *ml_get(linenr_T lnum)
 {
     size_t len = 0;
-    char_u *p = (char_u *)rs_ml_get_line(vim_rs_memline_buf(), (size_t)lnum, 0, &len);
+    char_u *p = (char_u *)rs_ml_get_line((void *)curbuf->b_ml.ml_mfp, (size_t)lnum, 0, &len);
     curbuf->b_ml.ml_line_ptr = p;
     curbuf->b_ml.ml_line_lnum = lnum;
     curbuf->b_ml.ml_line_len = (colnr_T)(len + 1);
@@ -57,7 +56,7 @@ char_u *ml_get_cursor(void)
 colnr_T ml_get_len(linenr_T lnum)
 {
     size_t len = 0;
-    (void)rs_ml_get_line(vim_rs_memline_buf(), (size_t)lnum, 0, &len);
+    (void)rs_ml_get_line((void *)curbuf->b_ml.ml_mfp, (size_t)lnum, 0, &len);
     return (colnr_T)len;
 }
 
@@ -79,15 +78,15 @@ colnr_T ml_get_cursor_len(void)
 
 colnr_T ml_get_buf_len(buf_T *buf, linenr_T lnum)
 {
-    (void)buf; // single buffer backend for now
-    return ml_get_len(lnum);
+    size_t len = 0;
+    (void)rs_ml_get_line((void *)buf->b_ml.ml_mfp, (size_t)lnum, 0, &len);
+    return (colnr_T)len;
 }
 
 char_u *ml_get_buf(buf_T *buf, linenr_T lnum, int will_change)
 {
-    (void)buf; // single buffer backend for now
     size_t len = 0;
-    char_u *p = (char_u *)rs_ml_get_line(vim_rs_memline_buf(), (size_t)lnum, will_change ? 1 : 0, &len);
+    char_u *p = (char_u *)rs_ml_get_line((void *)buf->b_ml.ml_mfp, (size_t)lnum, will_change ? 1 : 0, &len);
     curbuf->b_ml.ml_line_ptr = p;
     curbuf->b_ml.ml_line_lnum = lnum;
     curbuf->b_ml.ml_line_len = (colnr_T)(len + 1);
