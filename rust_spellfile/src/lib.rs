@@ -1,60 +1,52 @@
-use std::collections::HashMap;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{self, BufRead, BufReader};
 
-#[derive(Default)]
-pub struct Node {
-    pub children: HashMap<char, Node>,
-    pub is_word: bool,
-}
+use fst::Set as FstSet;
 
-#[derive(Default)]
-pub struct Trie {
-    pub root: Node,
-}
+pub type Set = FstSet<Vec<u8>>;
 
-impl Trie {
-    pub fn new() -> Self {
-        Self { root: Node::default() }
-    }
-
-    pub fn insert(&mut self, word: &str) {
-        let mut node = &mut self.root;
-        for ch in word.chars() {
-            node = node.children.entry(ch).or_default();
-        }
-        node.is_word = true;
-    }
-
-    fn collect(node: &Node, prefix: &mut String, out: &mut Vec<String>) {
-        if node.is_word {
-            out.push(prefix.clone());
-        }
-        for (ch, child) in &node.children {
-            prefix.push(*ch);
-            Self::collect(child, prefix, out);
-            prefix.pop();
-        }
-    }
-
-    pub fn all_words(&self) -> Vec<String> {
-        let mut out = Vec::new();
-        let mut prefix = String::new();
-        Self::collect(&self.root, &mut prefix, &mut out);
-        out
-    }
-}
-
-pub fn load_dict(path: &str) -> std::io::Result<Trie> {
+/// Load a dictionary from a file into an `fst::Set`.
+///
+/// The file is expected to contain one word per line. Empty lines are ignored.
+pub fn load_dict(path: &str) -> io::Result<Set> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
-    let mut trie = Trie::new();
+
+    let mut words: Vec<String> = Vec::new();
     for line in reader.lines() {
         let line = line?;
         let word = line.trim();
         if !word.is_empty() {
-            trie.insert(word);
+            words.push(word.to_owned());
         }
     }
-    Ok(trie)
+
+    words.sort();
+    words.dedup();
+
+    FstSet::from_iter(words.into_iter()).map_err(|e| io::Error::new(io::ErrorKind::Other, e))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs::{self, File};
+    use std::io::Write;
+
+    #[test]
+    fn load_dict_basic() {
+        let mut path = std::env::temp_dir();
+        path.push("dict_test.txt");
+        let mut file = File::create(&path).unwrap();
+        writeln!(file, "apple").unwrap();
+        writeln!(file, "banana").unwrap();
+        writeln!(file, "apple").unwrap();
+
+        let set = load_dict(path.to_str().unwrap()).unwrap();
+        assert!(set.contains("apple"));
+        assert!(set.contains("banana"));
+        assert!(!set.contains("orange"));
+
+        fs::remove_file(path).unwrap();
+    }
 }

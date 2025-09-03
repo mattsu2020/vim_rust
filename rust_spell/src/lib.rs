@@ -2,17 +2,17 @@ use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int, c_uchar};
 use std::sync::{Mutex, OnceLock};
 
-use rust_spellfile::{load_dict, Trie};
+use rust_spellfile::{load_dict, Set};
 use rust_spellsuggest::suggest;
 
 const WF_ONECAP: c_int = 0x02;
 const WF_ALLCAP: c_int = 0x04;
 const WF_KEEPCAP: c_int = 0x80;
 
-static TRIE: OnceLock<Mutex<Trie>> = OnceLock::new();
+static DICT: OnceLock<Mutex<Option<Set>>> = OnceLock::new();
 
-fn trie() -> &'static Mutex<Trie> {
-    TRIE.get_or_init(|| Mutex::new(Trie::new()))
+fn dict() -> &'static Mutex<Option<Set>> {
+    DICT.get_or_init(|| Mutex::new(None))
 }
 
 #[no_mangle]
@@ -21,10 +21,12 @@ pub extern "C" fn rs_spell_load_dict(path: *const c_char) -> bool {
         return false;
     }
     let cstr = unsafe { CStr::from_ptr(path) };
-    let Ok(p) = cstr.to_str() else { return false; };
+    let Ok(p) = cstr.to_str() else {
+        return false;
+    };
     match load_dict(p) {
-        Ok(t) => {
-            *trie().lock().unwrap() = t;
+        Ok(set) => {
+            *dict().lock().unwrap() = Some(set);
             true
         }
         Err(_) => false,
@@ -41,12 +43,20 @@ pub extern "C" fn rs_spell_suggest(
         return std::ptr::null_mut();
     }
     let cstr = unsafe { CStr::from_ptr(word) };
-    let Ok(w) = cstr.to_str() else { return std::ptr::null_mut(); };
-    let suggestions = {
-        let trie_guard = trie().lock().unwrap();
-        suggest(&*trie_guard, w, max)
+    let Ok(w) = cstr.to_str() else {
+        return std::ptr::null_mut();
     };
-    unsafe { *len = suggestions.len(); }
+    let suggestions = {
+        let dict_guard = dict().lock().unwrap();
+        if let Some(ref set) = *dict_guard {
+            suggest(set, w, max)
+        } else {
+            Vec::new()
+        }
+    };
+    unsafe {
+        *len = suggestions.len();
+    }
     let mut c_vec: Vec<*mut c_char> = suggestions
         .into_iter()
         .filter_map(|s| CString::new(s).ok().map(|cs| cs.into_raw()))

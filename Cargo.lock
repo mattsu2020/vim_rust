@@ -445,6 +445,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e178e4fba8a2726903f6ba98a6d221e76f9c12c650d5dc0e6afdc50677b49650"
 
 [[package]]
+name = "fst"
+version = "0.4.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7ab85b9b05e3978cc9a9cf8fea7f01b494e1a09ed3037e16ba39edc7a29eb61a"
+
+[[package]]
 name = "generic-array"
 version = "0.14.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1313,6 +1319,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_gui_gtk_x11"
+version = "0.1.0"
+dependencies = [
+ "rust_gui_core",
+]
+
+[[package]]
+name = "rust_gui_motif"
+version = "0.1.0"
+dependencies = [
+ "rust_gui_core",
+]
+
+[[package]]
 name = "rust_gui_w32"
 version = "0.1.0"
 dependencies = [
@@ -1577,12 +1597,16 @@ dependencies = [
 [[package]]
 name = "rust_spellfile"
 version = "0.1.0"
+dependencies = [
+ "fst",
+]
 
 [[package]]
 name = "rust_spellsuggest"
 version = "0.1.0"
 dependencies = [
  "rust_spellfile",
+ "strsim",
 ]
 
 [[package]]
