@@ -11,10 +11,7 @@
 
 " Generate the table of normal/visual mode command characters and their
 " corresponding index.
-let cmd = 'create_nvcmdidxs'
-if has('unix')
-  let cmd = './' .. cmd
-endif
+let cmd = 'rust_create_nvcmdidxs'
 let nv_cmdtbl = systemlist(cmd)->map({i, ch -> {'idx': i, 'cmdchar': ch}})
 
 " sort the table by the command character

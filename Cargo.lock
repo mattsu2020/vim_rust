@@ -1683,6 +1683,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_cmdexpand"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rust_cmdhist"
 version = "0.1.0"
 dependencies = [
@@ -1692,6 +1699,14 @@ dependencies = [
 [[package]]
 name = "rust_core"
 version = "0.1.0"
+
+[[package]]
+name = "rust_create_nvcmdidxs"
+version = "0.1.0"
+dependencies = [
+ "cc",
+ "libc",
+]
 
 [[package]]
 name = "rust_crypto_zip"
@@ -1894,6 +1909,10 @@ dependencies = [
  "rust_gui_core",
  "x11rb 0.11.1",
 ]
+
+[[package]]
+name = "rust_hardcopy"
+version = "0.1.0"
 
 [[package]]
 name = "rust_hashtab"

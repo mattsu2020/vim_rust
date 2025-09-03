@@ -2290,9 +2290,8 @@ cmdidxs: ex_cmds.h
 #   - change nv_cmds[] in nv_cmds.h to add the new normal/visual mode command.
 #   - run "make nvcmdidxs" to generate nv_cmdidxs.h
 nvcmdidxs: auto/config.mk nv_cmds.h
-	$(CC) -I$(srcdir) $(ALL_CFLAGS) create_nvcmdidxs.c -o create_nvcmdidxs
-	vim --clean -X --not-a-term -S create_nvcmdidxs.vim -c quit
-	-rm -f create_nvcmdidxs
+cargo build --quiet -p rust_create_nvcmdidxs --manifest-path ../Cargo.toml
+PATH=../target/debug:$$PATH vim --clean -X --not-a-term -S create_nvcmdidxs.vim -c quit
 
 # The normal command to compile a .c file to its .o file.
 # Without or with ALL_CFLAGS.

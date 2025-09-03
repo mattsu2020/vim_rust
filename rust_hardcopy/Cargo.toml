@@ -1,0 +1,10 @@
+[package]
+name = "rust_hardcopy"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[[bin]]
+name = "rust_hardcopy"
+path = "src/main.rs"
