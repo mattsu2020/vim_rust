@@ -119,10 +119,9 @@ SRC += \
 	help.c \
 	highlight.c \
 	if_cscope.c \
-	indent.c \
-	insexpand.c \
-	json.c \
-	linematch.c\
+        indent.c \
+        insexpand.c \
+        linematch.c\
 	list.c \
 	locale.c \
 	logfile.c \

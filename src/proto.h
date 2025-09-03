@@ -106,7 +106,6 @@ extern int _stricoll(char *a, char *b);
 # include "highlight.pro"
 # include "indent.pro"
 # include "insexpand.pro"
-# include "json.pro"
 # include "list.pro"
 # include "locale.pro"
 /* logfile.c をビルド対象から外しているため、対応するプロトタイプも除外 */
