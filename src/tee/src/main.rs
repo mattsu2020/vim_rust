@@ -43,11 +43,14 @@ fn run(args: Args) -> io::Result<()> {
             break;
         }
         out_writer.write_all(&buffer[..n])?;
-        out_writer.flush()?;
         for writer in &mut file_writers {
             writer.write_all(&buffer[..n])?;
-            writer.flush()?;
         }
+    }
+    // Ensure any buffered data is written out before exiting.
+    out_writer.flush()?;
+    for writer in &mut file_writers {
+        writer.flush()?;
     }
     Ok(())
 }
