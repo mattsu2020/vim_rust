@@ -29,19 +29,19 @@ pub extern "C" fn rs_readfile(
         Ok(s) => s,
         Err(_) => return -1,
     };
-    let norm = match normalize_path(path_str) {
-        Some(p) => p,
-        None => return -1,
-    };
+    let norm = normalize_path(path_str).unwrap_or_else(|| path_str.to_string());
 
     match fs::metadata(&norm) {
         Ok(meta) if meta.len() as usize <= MAX_IO_SIZE => (),
         _ => return -1,
     }
 
-    match fs::read(&norm) {
+    match fs_err::read(&norm) {
         Ok(_) => 0,
-        Err(_) => -1,
+        Err(err) => {
+            eprintln!("read error: {err}");
+            -1
+        }
     }
 }
 
@@ -61,17 +61,17 @@ pub extern "C" fn rs_writefile(
         Ok(s) => s,
         Err(_) => return -1,
     };
-    let norm = match normalize_path(path_str) {
-        Some(p) => p,
-        None => return -1,
-    };
+    let norm = normalize_path(path_str).unwrap_or_else(|| path_str.to_string());
     if len > MAX_IO_SIZE {
         return -1;
     }
     let slice = unsafe { std::slice::from_raw_parts(data as *const u8, len) };
-    match fs::write(&norm, slice) {
+    match fs_err::write(&norm, slice) {
         Ok(_) => 0,
-        Err(_) => -1,
+        Err(err) => {
+            eprintln!("write error: {err}");
+            -1
+        }
     }
 }
 

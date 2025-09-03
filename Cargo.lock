@@ -445,6 +445,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e178e4fba8a2726903f6ba98a6d221e76f9c12c650d5dc0e6afdc50677b49650"
 
 [[package]]
+name = "fs-err"
+version = "2.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "88a41f105fe1d5b6b34b2055e3dc59bb79b46b48b2040b9e6c7b4b5de097aa41"
+dependencies = [
+ "autocfg",
+]
+
+[[package]]
 name = "generic-array"
 version = "0.14.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1280,6 +1289,7 @@ version = "0.1.0"
 name = "rust_fileio"
 version = "0.1.0"
 dependencies = [
+ "fs-err",
  "rust_path",
  "tempfile",
 ]
@@ -1307,6 +1317,20 @@ version = "0.1.0"
 
 [[package]]
 name = "rust_gui_gtk"
+version = "0.1.0"
+dependencies = [
+ "rust_gui_core",
+]
+
+[[package]]
+name = "rust_gui_gtk_x11"
+version = "0.1.0"
+dependencies = [
+ "rust_gui_core",
+]
+
+[[package]]
+name = "rust_gui_motif"
 version = "0.1.0"
 dependencies = [
  "rust_gui_core",
