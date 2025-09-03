@@ -1,0 +1,14 @@
+[package]
+name = "rust_gui_gtk_x11"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rust_gui_core = { path = "../rust_gui_core" }
+rust_gui_gtk = { path = "../rust_gui_gtk" }
+rust_gui_x11 = { path = "../rust_gui_x11", optional = true }
+
+[features]
+default = []
+use_x11 = ["rust_gui_x11"]
+
