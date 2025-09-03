@@ -1380,8 +1380,6 @@ DEPEND_CFLAGS = -DPROTO -DDEPEND -DFEAT_GUI $(LINT_CFLAGS)
 # Location of the Rust memory management crate
 RUST_MEM_DIR = rust/mem
 RUST_MEM_LIB = $(RUST_MEM_DIR)/target/release/libvim_mem.a
-RUST_REGEX_DIR = ../rust_regex_engine
-RUST_REGEX_LIB = $(RUST_REGEX_DIR)/target/release/librust_regex_engine.a
 # Additional Rust regex helpers used by evalfunc/search wrappers
 SRC_RUST_REGEX_DIR = rust_regex
 SRC_RUST_REGEX_LIB = $(SRC_RUST_REGEX_DIR)/target/release/libvim_rust_regex.a
@@ -1470,7 +1468,6 @@ ALL_LIBS = \
            $(LIBS) \
            $(EXTRA_LIBS) \
            $(RUST_MEM_LIB) \
-           $(RUST_REGEX_LIB) \
            $(SRC_RUST_REGEX_LIB) \
            $(RUST_BUFFER_LIB) \
            $(RUST_BUFWRITE_LIB) \
@@ -1558,9 +1555,6 @@ DEST_FTP = $(DESTDIR)$(FTPLUGSUBLOC)
 # Build the Rust memory management library
 $(RUST_MEM_LIB):
 	cd $(RUST_MEM_DIR) && CARGO_TARGET_DIR=target cargo build --release
-
-$(RUST_REGEX_LIB):
-	cd $(RUST_REGEX_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(SRC_RUST_REGEX_LIB):
 	cd $(SRC_RUST_REGEX_DIR) && CARGO_TARGET_DIR=target cargo build --release
@@ -2314,7 +2308,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(SRC_RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_BUFWRITE_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_EVAL_LIB) $(RUST_VIM9_LIB) $(RUST_EXCMD_LIB) $(RUST_CMDHIST_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB) $(RUST_TAG_LIB) $(RUST_ALLOC_LIB) $(RUST_BLOB_LIB) $(RUST_SHA256_LIB) $(RUST_BLOWFISH_LIB)
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(SRC_RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_BUFWRITE_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_EVAL_LIB) $(RUST_VIM9_LIB) $(RUST_EXCMD_LIB) $(RUST_CMDHIST_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB) $(RUST_TAG_LIB) $(RUST_ALLOC_LIB) $(RUST_BLOB_LIB) $(RUST_SHA256_LIB) $(RUST_BLOWFISH_LIB)
 	@$(BUILD_DATE_MSG)
     @LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) objects/*.o $(ALL_LIBS)" \
