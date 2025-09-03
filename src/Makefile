@@ -1759,7 +1759,6 @@ include testdir/Make_all.mak
 BASIC_SRC = \
         arglist.c \
         autocmd.c \
-        blob.c \
         buffer.c \
        # change.c replaced by rust_change crate \
         charset.c \
@@ -1922,7 +1921,6 @@ OBJ_COMMON = \
         objects/autocmd.o \
         objects/buffer.o \
         objects/change.o \
-        objects/blob.o \
         objects/cindent.o \
 	objects/clientserver.o \
 	objects/clipboard.o \
@@ -3373,11 +3371,8 @@ objects/arglist.o: arglist.c
 objects/autocmd.o: autocmd.c
 	$(CCC) -o $@ autocmd.c
 
-objects/blob.o: blob.c
-	$(CCC) -o $@ blob.c
-
 objects/buffer.o: buffer.c
-	$(CCC) -o $@ buffer.c
+        $(CCC) -o $@ buffer.c
 
 objects/bufwrite.o: bufwrite.c
 	$(CCC) -o $@ bufwrite.c
@@ -3952,13 +3947,8 @@ objects/autocmd.o: autocmd.c vim.h protodef.h auto/config.h feature.h os_unix.h 
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/blob.o: blob.c vim.h protodef.h auto/config.h feature.h os_unix.h \
-   auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
-   proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
-   libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
-   globals.h errors.h
 objects/buffer.o: buffer.c vim.h protodef.h auto/config.h feature.h os_unix.h \
-   auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
+       auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
    proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
    libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
    globals.h errors.h version.h
