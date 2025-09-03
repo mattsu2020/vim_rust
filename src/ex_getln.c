@@ -13,10 +13,10 @@
 
 #include "vim.h"
 #include "rust_arabic.h"
+#include "../rust_excmd/include/rust_excmd.h"
 extern int rust_empty_pattern_magic(char_u *p, size_t len, int magic_val);
 
 // Functions implemented in Rust for command line history.
-extern void rs_cmd_history_add(const char *cmd);
 
 // Return value when handling keys in command-line mode.
 #define CMDLINE_NOT_CHANGED	1

@@ -503,4 +503,36 @@ mod tests {
             assert_eq!(back, val);
         }
     }
+
+    #[test]
+    fn test_ffi_variable_and_function() {
+        let name = CString::new("x").unwrap();
+        let mut out = typval_T {
+            v_type: Vartype::VAR_UNKNOWN,
+            v_lock: 0,
+            vval: ValUnion { v_number: 0 },
+        };
+        let val = typval_T {
+            v_type: Vartype::VAR_NUMBER,
+            v_lock: 0,
+            vval: ValUnion { v_number: 40 },
+        };
+        assert!(set_variable_rs(name.as_ptr(), &val));
+        assert!(eval_variable_rs(name.as_ptr(), &mut out));
+        unsafe { assert_eq!(out.vval.v_number, 40); }
+
+        let mut ret = typval_T {
+            v_type: Vartype::VAR_UNKNOWN,
+            v_lock: 0,
+            vval: ValUnion { v_number: 0 },
+        };
+        let args = [val, typval_T { v_type: Vartype::VAR_NUMBER, v_lock: 0, vval: ValUnion { v_number: 40 } }];
+        assert!(call_function_rs(
+            CString::new("add").unwrap().as_ptr(),
+            args.as_ptr(),
+            args.len(),
+            &mut ret,
+        ));
+        unsafe { assert_eq!(ret.vval.v_number, 80); }
+    }
 }

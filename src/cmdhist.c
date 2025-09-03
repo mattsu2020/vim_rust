@@ -12,10 +12,9 @@
  */
 
 #include "vim.h"
+#include "../rust_excmd/include/rust_excmd.h"
 
 // Functions implemented in Rust for command history.
-extern void rs_cmd_history_add(const char *cmd);
-extern const char *rs_cmd_history_get(int idx);
 
 static histentry_T *(history[HIST_COUNT]) = {NULL, NULL, NULL, NULL, NULL};
 static int	hisidx[HIST_COUNT] = {-1, -1, -1, -1, -1};  // lastused entry

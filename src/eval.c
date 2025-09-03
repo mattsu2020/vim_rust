@@ -13,6 +13,7 @@
 #define USING_FLOAT_STUFF
 
 #include "vim.h"
+#include "../rust_eval/include/rust_eval.h"
 
 #if defined(FEAT_EVAL) || defined(PROTO)
 
@@ -24,7 +25,6 @@
 
 // FFI interface to the Rust expression evaluator.
 // Returns non-zero on success and stores the evaluated result in "result".
-extern int eval_expr_rs(const char *expr, typval_T *result);
 
 // Forward declarations for internal eval* helpers and helpers used before
 // their definitions, to avoid implicit declarations with C99+ compilers.
