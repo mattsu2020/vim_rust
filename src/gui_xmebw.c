@@ -974,16 +974,6 @@ set_size(XmEnhancedButtonWidget newtb)
 	// adjust it.
     }
 
-#if 0
-    printf("%d %d %d %d %d %d - %d %d\n", newtb->enhancedbutton.normal_pixmap,
-	    h, newtb->core.height,
-	    newtb->primitive.shadow_thickness,
-	    newtb->primitive.highlight_thickness,
-	    newtb->label.margin_height,
-	    newtb->core.width,
-	    newtb->core.height);
-#endif
-
     // Invoke Label's Resize procedure.
     {
 	XtWidgetProc resize;
