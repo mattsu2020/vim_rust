@@ -2,33 +2,46 @@ use std::ffi::CString;
 use std::os::raw::{c_char, c_int};
 use std::sync::{Mutex, OnceLock};
 
-#[cfg(any(feature = "x11", feature = "wayland", feature = "windows"))]
+#[cfg(any(feature = "x11", feature = "wayland"))]
 use copypasta::{ClipboardContext, ClipboardProvider};
 
-#[cfg(not(any(feature = "x11", feature = "wayland", feature = "windows")))]
+#[cfg(feature = "windows")]
+use clipboard_win::{get_clipboard_string, set_clipboard_string};
+
+#[cfg(all(not(feature = "x11"), not(feature = "wayland"), not(feature = "windows")))]
 static MEMORY: OnceLock<Mutex<String>> = OnceLock::new();
 
-#[cfg(not(any(feature = "x11", feature = "wayland", feature = "windows")))]
+#[cfg(all(not(feature = "x11"), not(feature = "wayland"), not(feature = "windows")))]
 fn set_clipboard_text(s: &str) -> Result<(), ()> {
     *MEMORY.get_or_init(|| Mutex::new(String::new())).lock().unwrap() = s.to_string();
     Ok(())
 }
 
-#[cfg(not(any(feature = "x11", feature = "wayland", feature = "windows")))]
+#[cfg(all(not(feature = "x11"), not(feature = "wayland"), not(feature = "windows")))]
 fn get_clipboard_text() -> Option<String> {
     Some(MEMORY.get_or_init(|| Mutex::new(String::new())).lock().unwrap().clone())
 }
 
-#[cfg(any(feature = "x11", feature = "wayland", feature = "windows"))]
+#[cfg(any(feature = "x11", feature = "wayland"))]
 fn set_clipboard_text(s: &str) -> Result<(), ()> {
     let mut ctx = ClipboardContext::new().map_err(|_| ())?;
     ctx.set_contents(s.to_string()).map_err(|_| ())
 }
 
-#[cfg(any(feature = "x11", feature = "wayland", feature = "windows"))]
+#[cfg(any(feature = "x11", feature = "wayland"))]
 fn get_clipboard_text() -> Option<String> {
     let mut ctx = ClipboardContext::new().ok()?;
     ctx.get_contents().ok()
+}
+
+#[cfg(feature = "windows")]
+fn set_clipboard_text(s: &str) -> Result<(), ()> {
+    set_clipboard_string(s).map_err(|_| ())
+}
+
+#[cfg(feature = "windows")]
+fn get_clipboard_text() -> Option<String> {
+    get_clipboard_string().ok()
 }
 
 /// Set the clipboard contents to the provided text.

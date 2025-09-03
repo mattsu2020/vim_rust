@@ -31,7 +31,7 @@ bufwrite.c	| writing a buffer to file
 rust_change/	| handling changes to text
 cindent.c	| C and Lisp indentation
 clientserver.c	| client server functionality
-clipboard.c	| handling the clipboard
+rust_clipboard/	| handling the clipboard
 cmdexpand.c	| command-line completion
 cmdhist.c	| command-line history
 debugger.c	| Vim script debugger
