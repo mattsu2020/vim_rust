@@ -1289,6 +1289,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_blob"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
+name = "rust_blowfish"
+version = "0.1.0"
+dependencies = [
+ "blowfish",
+ "libc",
+ "rust_sha256",
+]
+
+[[package]]
 name = "rust_buffer"
 version = "0.1.0"
 dependencies = [
@@ -1659,6 +1675,13 @@ dependencies = [
 [[package]]
 name = "rust_session"
 version = "0.1.0"
+
+[[package]]
+name = "rust_sha256"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
 
 [[package]]
 name = "rust_sign"
@@ -2127,6 +2150,8 @@ version = "0.1.0"
 dependencies = [
  "diff",
  "rust_alloc",
+ "rust_blob",
+ "rust_blowfish",
  "rust_buffer",
  "rust_change",
  "rust_debugger",
@@ -2141,6 +2166,7 @@ dependencies = [
  "rust_profiler",
  "rust_pty",
  "rust_python",
+ "rust_sha256",
  "rust_spell",
  "rust_wayland",
  "tokio",

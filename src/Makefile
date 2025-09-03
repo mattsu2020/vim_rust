@@ -1427,6 +1427,12 @@ RUST_SCREEN_DIR = ../rust_screen
 RUST_SCREEN_LIB = $(RUST_SCREEN_DIR)/target/release/librust_screen.a
 RUST_SIGN_DIR = ../rust_sign
 RUST_SIGN_LIB = $(RUST_SIGN_DIR)/target/release/librust_sign.a
+RUST_BLOB_DIR = ../rust_blob
+RUST_BLOB_LIB = $(RUST_BLOB_DIR)/target/release/librust_blob.a
+RUST_SHA256_DIR = ../rust_sha256
+RUST_SHA256_LIB = $(RUST_SHA256_DIR)/target/release/librust_sha256.a
+RUST_BLOWFISH_DIR = ../rust_blowfish
+RUST_BLOWFISH_LIB = $(RUST_BLOWFISH_DIR)/target/release/librust_blowfish.a
 
 # Additional Rust crates used by this configuration
 RUST_CHANGE_DIR = ../rust_change
@@ -1473,6 +1479,9 @@ ALL_LIBS = \
            $(RUST_EVALVARS_LIB) \
            $(RUST_SCREEN_LIB) \
            $(RUST_SIGN_LIB) \
+           $(RUST_BLOB_LIB) \
+           $(RUST_SHA256_LIB) \
+           $(RUST_BLOWFISH_LIB) \
            $(LUA_LIBS) \
            $(PERL_LIBS) \
            $(PYTHON_LIBS) \
@@ -1597,7 +1606,16 @@ $(RUST_SCREEN_LIB):
 	cd $(RUST_SCREEN_DIR) && cargo build --release
 
 $(RUST_SIGN_LIB):
-	cd $(RUST_SIGN_DIR) && cargo build --release
+       cd $(RUST_SIGN_DIR) && cargo build --release
+
+$(RUST_BLOB_LIB):
+       cd $(RUST_BLOB_DIR) && cargo build --release
+
+$(RUST_SHA256_LIB):
+       cd $(RUST_SHA256_DIR) && cargo build --release
+
+$(RUST_BLOWFISH_LIB):
+       cd $(RUST_BLOWFISH_DIR) && cargo build --release
 
 # Additional Rust libraries providing rs_* APIs used across the C codebase
 RUST_ARGLIST_DIR = ../rust_arglist
@@ -2283,7 +2301,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(SRC_RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_EVAL_LIB) $(RUST_EXCMD_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB) $(RUST_ALLOC_LIB)
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(SRC_RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_EVAL_LIB) $(RUST_EXCMD_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB) $(RUST_ALLOC_LIB) $(RUST_BLOB_LIB) $(RUST_SHA256_LIB) $(RUST_BLOWFISH_LIB)
 	@$(BUILD_DATE_MSG)
 	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) $(OBJ) $(ALL_LIBS)" \
