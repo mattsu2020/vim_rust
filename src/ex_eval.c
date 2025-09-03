@@ -52,18 +52,11 @@ static char	*get_end_emsg(cstack_T *cstack);
  * is an error exception.)  -  The macros can be defined as expressions checking
  * for a variable that is allowed to be changed during execution of a script.
  */
-#if 0
-// Expressions used for testing during the development phase.
-# define THROW_ON_ERROR		(!eval_to_number("$VIMNOERRTHROW"))
-# define THROW_ON_INTERRUPT	(!eval_to_number("$VIMNOINTTHROW"))
-# define THROW_TEST
-#else
 // Values used for the Vim release.
-# define THROW_ON_ERROR		TRUE
+# define THROW_ON_ERROR         TRUE
 # define THROW_ON_ERROR_TRUE
-# define THROW_ON_INTERRUPT	TRUE
+# define THROW_ON_INTERRUPT     TRUE
 # define THROW_ON_INTERRUPT_TRUE
-#endif
 
 /*
  * When several errors appear in a row, setting "force_abort" is delayed until
@@ -1699,22 +1692,6 @@ do_throw(cstack_T *cstack)
 	cstack->cs_flags[idx] &= ~CSF_ACTIVE;
 	cstack->cs_exception[idx] = current_exception;
     }
-#if 0
-    // TODO: Add optimization below.  Not yet done because of interface
-    // problems to eval.c and ex_cmds2.c. (Servatius)
-    else
-    {
-	/*
-	 * There are no catch clauses to check or finally clauses to execute.
-	 * End the current script or function.  The exception will be rethrown
-	 * in the caller.
-	 */
-	if (getline_equal(eap->getline, eap->cookie, get_func_line))
-	    current_funccal->returned = TRUE;
-	elseif (eap->get_func_line == getsourceline)
-	    ((struct source_cookie *)eap->cookie)->finished = TRUE;
-    }
-#endif
 
     did_throw = TRUE;
 }
