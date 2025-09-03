@@ -197,3 +197,8 @@ pub extern "C" fn vim_regsub(
         .into_owned();
     CString::new(replaced).unwrap().into_raw()
 }
+
+#[no_mangle]
+pub extern "C" fn vim_regcomp_had_eol() -> c_int {
+    0
+}
