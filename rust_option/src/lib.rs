@@ -59,23 +59,34 @@ pub extern "C" fn rs_options_init() {
     }
 }
 
+fn apply_option(name: &str, value: &str) -> bool {
+    let name = name.trim();
+    if name.is_empty() {
+        return false;
+    }
+    let value = value.trim();
+    options()
+        .lock()
+        .unwrap()
+        .insert(name.to_string(), value.to_string());
+    true
+}
+
 #[no_mangle]
-pub extern "C" fn rs_set_option(name: *const c_char, value: *const c_char) -> bool {
+pub extern "C" fn rs_apply_option(name: *const c_char, value: *const c_char) -> bool {
     if name.is_null() || value.is_null() {
         return false;
     }
     let name = unsafe { CStr::from_ptr(name) };
     let value = unsafe { CStr::from_ptr(value) };
-    let name = match name.to_str() {
-        Ok(s) => s.to_string(),
-        Err(_) => return false,
-    };
-    let value = match value.to_str() {
-        Ok(s) => s.to_string(),
-        Err(_) => return false,
-    };
-    options().lock().unwrap().insert(name, value);
-    true
+    let Ok(name) = name.to_str() else { return false };
+    let Ok(value) = value.to_str() else { return false };
+    apply_option(name, value)
+}
+
+#[no_mangle]
+pub extern "C" fn rs_set_option(name: *const c_char, value: *const c_char) -> bool {
+    rs_apply_option(name, value)
 }
 
 #[no_mangle]
@@ -173,8 +184,15 @@ pub extern "C" fn rs_parse_option(assignment: *const c_char) -> bool {
     let cstr = unsafe { CStr::from_ptr(assignment) };
     let Ok(s) = cstr.to_str() else { return false };
     if let Some(opt) = parse_option(s) {
-        options().lock().unwrap().insert(opt.name, opt.value);
-        true
+        let name = match CString::new(opt.name) {
+            Ok(c) => c,
+            Err(_) => return false,
+        };
+        let value = match CString::new(opt.value) {
+            Ok(c) => c,
+            Err(_) => return false,
+        };
+        rs_apply_option(name.as_ptr(), value.as_ptr())
     } else {
         false
     }
@@ -241,6 +259,18 @@ mod tests {
         assert!(!val_ptr.is_null());
         let val = unsafe { CString::from_raw(val_ptr) };
         assert_eq!(val.to_str().unwrap(), "bar");
+    }
+
+    #[test]
+    fn apply_option_direct() {
+        rs_options_init();
+        let name = CString::new("direct").unwrap();
+        let value = CString::new("42").unwrap();
+        assert!(rs_apply_option(name.as_ptr(), value.as_ptr()));
+        let res_ptr = rs_get_option(name.as_ptr());
+        assert!(!res_ptr.is_null());
+        let res = unsafe { CString::from_raw(res_ptr) };
+        assert_eq!(res.to_str().unwrap(), "42");
     }
 
     #[test]
