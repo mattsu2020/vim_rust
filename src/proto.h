@@ -194,9 +194,6 @@ void mbyte_im_set_active(int active_arg);
 # endif
 # include "fuzzy.pro"
 # include "search.pro"
-# ifdef FEAT_SIGNS
-#  include "sign.pro"
-# endif
 # include "sound.pro"
 # include "spell.pro"
 # include "strings.pro"
