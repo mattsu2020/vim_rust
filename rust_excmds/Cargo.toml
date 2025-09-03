@@ -1,10 +1,10 @@
 [package]
-name = "rust_excmd"
+name = "rust_excmds"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "rust_excmd"
+name = "rust_excmds"
 crate-type = ["staticlib", "rlib"]
 
 [dependencies]

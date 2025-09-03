@@ -1,10 +1,8 @@
-use rust_excmd::{
+use rust_excmds::{
     ex_ascii,
     ex_mark_changed,
     rs_cmd_add,
     rs_cmd_execute,
-    rs_cmd_history_add,
-    rs_cmd_history_get,
 };
 use rust_change::Buffer;
 use std::ffi::CStr;
@@ -40,10 +38,3 @@ fn command_table_runs_function() {
     assert!(unsafe { CALLED });
 }
 
-#[test]
-fn history_tracks_commands() {
-    rs_cmd_history_add(b"cmd1\0".as_ptr() as *const c_char);
-    let ptr = rs_cmd_history_get(0);
-    let cstr = unsafe { CStr::from_ptr(ptr) };
-    assert_eq!(cstr.to_str().unwrap(), "cmd1");
-}

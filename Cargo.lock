@@ -1074,6 +1074,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_cmdhist"
+version = "0.1.0"
+dependencies = [
+ "once_cell",
+]
+
+[[package]]
 name = "rust_crypt"
 version = "0.1.0"
 dependencies = [
@@ -1146,7 +1153,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust_excmd"
+name = "rust_excmds"
 version = "0.1.0"
 dependencies = [
  "once_cell",
@@ -1842,8 +1849,9 @@ dependencies = [
  "rust_alloc",
  "rust_buffer",
  "rust_change",
+ "rust_cmdhist",
  "rust_debugger",
- "rust_excmd",
+ "rust_excmds",
  "rust_job",
  "rust_message",
  "rust_os_amiga",
