@@ -4,13 +4,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
-// Encrypt input buffer into output using AES-128-CBC with PKCS#7 padding.
+// Encrypt input buffer into output using the traditional Zip crypto algorithm.
 // Returns number of bytes written to output or 0 on error.
 size_t rs_encrypt(const uint8_t *input, size_t input_len,
                   const uint8_t *key, size_t key_len,
                   uint8_t *output, size_t output_len);
 
-// Decrypt input buffer into output using AES-128-CBC with PKCS#7 padding.
+// Decrypt input buffer into output using the traditional Zip crypto algorithm.
 // Returns number of bytes written to output or 0 on error.
 size_t rs_decrypt(const uint8_t *input, size_t input_len,
                   const uint8_t *key, size_t key_len,

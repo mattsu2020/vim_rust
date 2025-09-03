@@ -1,40 +1,73 @@
 use std::io::{Cursor, Read, Write};
 use std::slice;
+use std::sync::Once;
 
-use aes::Aes128;
-use cbc::{Decryptor, Encryptor};
-use crypto::cipher::{block_padding::Pkcs7, BlockDecryptMut, BlockEncryptMut, KeyIvInit};
 use zip::{read::ZipArchive, write::FileOptions, CompressionMethod, ZipWriter};
 
-// Internal helper for AES-128-CBC encryption.
-fn aes_encrypt(data: &[u8], key: &[u8]) -> Option<Vec<u8>> {
-    if key.len() != 16 {
-        return None;
+// The classic Zip crypto algorithm uses a CRC table and three 32-bit keys
+// that are updated for each processed byte.  The table only needs to be
+// generated once.
+static mut CRC_TABLE: [u32; 256] = [0; 256];
+static INIT: Once = Once::new();
+
+fn make_crc_tab() {
+    INIT.call_once(|| unsafe {
+        for t in 0..256 {
+            let mut v = t as u32;
+            for _ in 0..8 {
+                v = (v >> 1) ^ ((v & 1) * 0xedb88320);
+            }
+            CRC_TABLE[t] = v;
+        }
+    });
+}
+
+fn crc32(c: u32, b: u8) -> u32 {
+    unsafe { CRC_TABLE[(c as u8 ^ b) as usize] ^ (c >> 8) }
+}
+
+fn update_keys(keys: &mut [u32; 3], c: u8) {
+    keys[0] = crc32(keys[0], c);
+    keys[1] = keys[1].wrapping_add(keys[0] & 0xff);
+    keys[1] = keys[1].wrapping_mul(134775813).wrapping_add(1);
+    keys[2] = crc32(keys[2], (keys[1] >> 24) as u8);
+}
+
+fn decrypt_byte(keys: &[u32; 3]) -> u8 {
+    let temp = (keys[2] | 2) as u16;
+    (((temp as u32) * ((temp ^ 1) as u32) >> 8) & 0xff) as u8
+}
+
+// Encrypt data using the traditional Zip crypto algorithm.
+fn zip_encrypt(data: &[u8], key: &[u8]) -> Option<Vec<u8>> {
+    make_crc_tab();
+    let mut keys = [305419896u32, 591751049u32, 878082192u32];
+    for &b in key {
+        update_keys(&mut keys, b);
     }
-    let iv = [0u8; 16];
-    let mut out = vec![0u8; data.len() + 16];
-    let cipher = Encryptor::<Aes128>::new(key.into(), &iv.into());
-    let n = cipher
-        .encrypt_padded_b2b_mut::<Pkcs7>(data, &mut out)
-        .ok()?
-        .len();
-    out.truncate(n);
+    let mut out = Vec::with_capacity(data.len());
+    for &b in data {
+        let t = decrypt_byte(&keys);
+        update_keys(&mut keys, b);
+        out.push(t ^ b);
+    }
     Some(out)
 }
 
-// Internal helper for AES-128-CBC decryption.
-fn aes_decrypt(data: &[u8], key: &[u8]) -> Option<Vec<u8>> {
-    if key.len() != 16 {
-        return None;
+// Decrypt data using the traditional Zip crypto algorithm.
+fn zip_decrypt(data: &[u8], key: &[u8]) -> Option<Vec<u8>> {
+    make_crc_tab();
+    let mut keys = [305419896u32, 591751049u32, 878082192u32];
+    for &b in key {
+        update_keys(&mut keys, b);
     }
-    let iv = [0u8; 16];
-    let mut out = vec![0u8; data.len()];
-    let cipher = Decryptor::<Aes128>::new(key.into(), &iv.into());
-    let n = cipher
-        .decrypt_padded_b2b_mut::<Pkcs7>(data, &mut out)
-        .ok()?
-        .len();
-    out.truncate(n);
+    let mut out = Vec::with_capacity(data.len());
+    for &b in data {
+        let t = decrypt_byte(&keys);
+        let val = b ^ t;
+        update_keys(&mut keys, val);
+        out.push(val);
+    }
     Some(out)
 }
 
@@ -61,7 +94,7 @@ fn zip_decompress(data: &[u8]) -> Option<Vec<u8>> {
     Some(out)
 }
 
-// FFI: encrypt buffer using AES-128-CBC with PKCS#7 padding.
+// FFI: encrypt buffer using the classic Zip crypto algorithm.
 #[no_mangle]
 pub extern "C" fn rs_encrypt(
     input: *const u8,
@@ -77,7 +110,7 @@ pub extern "C" fn rs_encrypt(
     let input = unsafe { slice::from_raw_parts(input, input_len) };
     let key = unsafe { slice::from_raw_parts(key, key_len) };
     let out_slice = unsafe { slice::from_raw_parts_mut(output, output_len) };
-    if let Some(enc) = aes_encrypt(input, key) {
+    if let Some(enc) = zip_encrypt(input, key) {
         if enc.len() > out_slice.len() {
             return 0;
         }
@@ -88,7 +121,7 @@ pub extern "C" fn rs_encrypt(
     }
 }
 
-// FFI: decrypt buffer using AES-128-CBC with PKCS#7 padding.
+// FFI: decrypt buffer using the classic Zip crypto algorithm.
 #[no_mangle]
 pub extern "C" fn rs_decrypt(
     input: *const u8,
@@ -104,7 +137,7 @@ pub extern "C" fn rs_decrypt(
     let input = unsafe { slice::from_raw_parts(input, input_len) };
     let key = unsafe { slice::from_raw_parts(key, key_len) };
     let out_slice = unsafe { slice::from_raw_parts_mut(output, output_len) };
-    if let Some(dec) = aes_decrypt(input, key) {
+    if let Some(dec) = zip_decrypt(input, key) {
         if dec.len() > out_slice.len() {
             return 0;
         }
