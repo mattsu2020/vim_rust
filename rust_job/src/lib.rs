@@ -1,7 +1,9 @@
-use std::ffi::{CStr};
+use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
-use tokio::process::Command;
+use once_cell::sync::OnceCell;
 use serde::Deserialize;
+use tokio::process::Command;
+use tokio::runtime::Runtime;
 
 #[derive(Debug, Deserialize)]
 pub struct JobConfig {
@@ -24,8 +26,10 @@ impl From<std::io::Error> for JobError {
     fn from(e: std::io::Error) -> Self { JobError::Io(e) }
 }
 
+static RUNTIME: OnceCell<Runtime> = OnceCell::new();
+
 pub fn run_job(config: JobConfig) -> Result<i32, JobError> {
-    let rt = tokio::runtime::Runtime::new().map_err(JobError::Io)?;
+    let rt = RUNTIME.get_or_init(|| Runtime::new().unwrap());
     let status = rt.block_on(async {
         Command::new(&config.cmd).args(&config.args).status().await
     })?;
