@@ -104,6 +104,20 @@ mod tests {
         assert_eq!(res, file_path.to_string_lossy());
     }
 
+    #[test]
+    fn normalize_relative_components() {
+        let dir = tempfile::tempdir().unwrap();
+        let nested = dir.path().join("subdir");
+        std::fs::create_dir(&nested).unwrap();
+        let rel = nested.join("..");
+        let c_path = CString::new(rel.to_str().unwrap()).unwrap();
+        let ptr = rs_normalize_path(c_path.as_ptr());
+        assert!(!ptr.is_null());
+        let norm = unsafe { CStr::from_ptr(ptr) }.to_str().unwrap().to_string();
+        unsafe { let _ = CString::from_raw(ptr); }
+        assert_eq!(norm, dir.path().canonicalize().unwrap().to_string_lossy());
+    }
+
     #[cfg(windows)]
     #[test]
     fn normalize_backslashes() {
