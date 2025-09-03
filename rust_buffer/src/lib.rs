@@ -98,10 +98,10 @@ pub extern "C" fn buf_freeall(_buf: *mut FileBuffer, _flags: c_int) {
 
 #[no_mangle]
 pub extern "C" fn calc_percentage(part: c_long, whole: c_long) -> c_int {
-    if whole == 0 {
+    if whole <= 0 {
         return 0;
     }
-    if part > 1_000_000 {
+    if part > 1_000_000 && whole >= 100 {
         (part / (whole / 100)) as c_int
     } else {
         ((part * 100) / whole) as c_int
@@ -177,6 +177,7 @@ mod tests {
     fn percentage_calculation() {
         assert_eq!(calc_percentage(50, 200), 25);
         assert_eq!(calc_percentage(1_000_001, 2_000_000), 50);
+        assert_eq!(calc_percentage(1_000_001, 50), 2_000_002);
     }
 
     #[test]
