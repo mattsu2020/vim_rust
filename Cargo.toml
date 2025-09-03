@@ -33,18 +33,20 @@ rust_change = { path = "rust_change" }
 rust_excmd = { path = "rust_excmd" }
 rust_alloc = { path = "rust_alloc" }
 rust_message = { path = "rust_message" }
-
 [features]
 default = []
+clipboard_platform = ["rust_clipboard_platform"]
 
 [build-dependencies]
 cc = "1.0"
 
 [target.'cfg(windows)'.dependencies]
 rust_os_win32 = { path = "rust_os_win32" }
+rust_clipboard_platform = { path = "rust_clipboard_platform", optional = true }
 
 [target.'cfg(unix)'.dependencies]
 rust_os_unix = { path = "rust_os_unix" }
+rust_clipboard_platform = { path = "rust_clipboard_platform", optional = true }
 
 [target.'cfg(target_os = "amiga")'.dependencies]
 rust_os_amiga = { path = "rust_os_amiga" }
