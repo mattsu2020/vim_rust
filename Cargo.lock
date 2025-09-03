@@ -2113,6 +2113,13 @@ name = "rust_core"
 version = "0.1.0"
 
 [[package]]
+name = "rust_crypt"
+version = "0.1.0"
+dependencies = [
+ "ring",
+]
+
+[[package]]
 name = "rust_crypto_zip"
 version = "0.1.0"
 dependencies = [
