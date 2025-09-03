@@ -34,7 +34,7 @@ static int	VIsual_mode_orig = NUL;		// saved Visual mode
 static void	set_vcount_ca(cmdarg_T *cap, int *set_prevcount);
 #endif
 static void	unshift_special(cmdarg_T *cap);
-static void	del_from_showcmd(int);
+// static void	del_from_showcmd(int);
 
 /*
  * nv_*(): functions called to handle Normal and Visual mode commands.
@@ -253,7 +253,7 @@ getcount:
 	    if (c == K_DEL || c == K_KDEL)
 	    {
 		cap->count0 /= 10;
-		del_from_showcmd(4);	// delete the digit and ~@%
+		rs_del_from_showcmd(4);	// delete the digit and ~@%
 	    }
 	    else if (cap->count0 > 99999999L)
 	    {
@@ -507,7 +507,7 @@ normal_cmd_get_more_chars(
 		{
 		    *cp = c;
 		    // Guessing how to update showcmd here...
-		    del_from_showcmd(3);
+		    rs_del_from_showcmd(3);
 		    *need_flushbuf |= add_to_showcmd(*cp);
 		}
 	    }
@@ -1790,26 +1790,6 @@ add_to_showcmd_c(int c)
 {
     if (!add_to_showcmd(c))
 	setcursor();
-}
-
-/*
- * Delete 'len' characters from the end of the shown command.
- */
-    static void
-del_from_showcmd(int len)
-{
-    int	    old_len;
-
-    if (!p_sc)
-	return;
-
-    old_len = (int)STRLEN(showcmd_buf);
-    if (len > old_len)
-	len = old_len;
-    showcmd_buf[old_len - len] = NUL;
-
-    if (!char_avail())
-	display_showcmd();
 }
 
 /*

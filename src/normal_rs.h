@@ -8,6 +8,7 @@ extern "C" {
 #endif
 
 void rs_normal_cmd(oparg_T *oap, int toplevel);
+void rs_del_from_showcmd(int len);
 
 #ifdef __cplusplus
 }
