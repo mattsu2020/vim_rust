@@ -22,61 +22,11 @@ type Event = i32;
 static AUTOCMDS: Lazy<Mutex<HashMap<Event, Vec<AutoPat>>>> =
     Lazy::new(|| Mutex::new(HashMap::new()));
 
-#[no_mangle]
-pub extern "C" fn rust_autocmd_clear() {
-    AUTOCMDS.lock().unwrap().clear();
-}
-
 fn ptr_to_str<'a>(ptr: *const c_char) -> Option<&'a str> {
     if ptr.is_null() {
         return None;
     }
     unsafe { CStr::from_ptr(ptr).to_str().ok() }
-}
-
-#[no_mangle]
-pub extern "C" fn rust_autocmd_add(
-    event: c_int,
-    pat: *const c_char,
-    cmd: *const c_char,
-    once: c_int,
-    nested: c_int,
-) -> c_int {
-    let pat_str = match ptr_to_str(pat) {
-        Some(s) => s.to_owned(),
-        None => return 0,
-    };
-    let cmd_str = match ptr_to_str(cmd) {
-        Some(s) => s,
-        None => return 0,
-    };
-    let re = match Regex::new(&pat_str) {
-        Ok(r) => r,
-        Err(_) => return 0,
-    };
-
-    let cmd_cstring = match CString::new(cmd_str) {
-        Ok(c) => c,
-        Err(_) => return 0,
-    };
-    let acmd = AutoCmd {
-        cmd: cmd_cstring,
-        once: once != 0,
-        nested: nested != 0,
-    };
-    let mut map = AUTOCMDS.lock().unwrap();
-    let list = map.entry(event).or_insert_with(Vec::new);
-
-    if let Some(ap) = list.iter_mut().find(|ap| ap.pattern == pat_str) {
-        ap.cmds.push(acmd);
-    } else {
-        list.push(AutoPat {
-            pattern: pat_str,
-            regex: re,
-            cmds: vec![acmd],
-        });
-    }
-    1
 }
 
 #[no_mangle]
@@ -99,34 +49,4 @@ pub extern "C" fn rust_autocmd_do(event: c_int, name: *const c_char) -> c_int {
         list.retain(|ap| !ap.cmds.is_empty());
     }
     done
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::ffi::CString;
-
-    #[test]
-    fn basic_match() {
-        rust_autocmd_clear();
-        let pat = CString::new("^foo").unwrap();
-        let cmd = CString::new("echo foo").unwrap();
-        assert_eq!(rust_autocmd_add(1, pat.as_ptr(), cmd.as_ptr(), 0, 0), 1);
-        let name = CString::new("foobar").unwrap();
-        assert_eq!(rust_autocmd_do(1, name.as_ptr()), 1);
-        // second trigger should still find command since once=0
-        assert_eq!(rust_autocmd_do(1, name.as_ptr()), 1);
-    }
-
-    #[test]
-    fn once_clears_command() {
-        rust_autocmd_clear();
-        let pat = CString::new("bar$").unwrap();
-        let cmd = CString::new("echo bar").unwrap();
-        assert_eq!(rust_autocmd_add(2, pat.as_ptr(), cmd.as_ptr(), 1, 0), 1);
-        let name = CString::new("mybar").unwrap();
-        assert_eq!(rust_autocmd_do(2, name.as_ptr()), 1);
-        // command removed after once
-        assert_eq!(rust_autocmd_do(2, name.as_ptr()), 0);
-    }
 }
