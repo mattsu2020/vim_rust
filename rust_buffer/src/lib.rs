@@ -62,9 +62,7 @@ pub extern "C" fn buf_free(buf: *mut FileBuffer) {
     };
     if let Some(m) = BUFFERS.get() {
         let mut buffers = m.0.lock().unwrap();
-        if let Some(pos) = buffers.iter().position(|&p| p == ptr) {
-            buffers.remove(pos);
-        }
+        buffers.retain(|&p| p != ptr);
     }
     free_file_buffer(ptr);
 }
