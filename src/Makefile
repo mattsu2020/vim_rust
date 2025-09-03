@@ -1792,7 +1792,6 @@ BASIC_SRC = \
         cmdexpand.c \
         cmdhist.c \
         crypt.c \
-        crypt_zip.c \
         debugger.c \
         dict.c \
         diff.c \
@@ -1946,12 +1945,11 @@ OBJ_COMMON = \
 	objects/clientserver.o \
 	objects/clipboard.o \
 	objects/cmdexpand.o \
-	objects/cmdhist.o \
-	objects/crypt.o \
-	objects/crypt_zip.o \
-	objects/debugger.o \
-	objects/dict.o \
-	objects/diff.o \
+        objects/cmdhist.o \
+        objects/crypt.o \
+        objects/debugger.o \
+        objects/dict.o \
+        objects/diff.o \
 	objects/digraph.o \
 	objects/drawline.o \
 	objects/drawscreen.o \
@@ -2082,12 +2080,11 @@ PRO_AUTO = \
 	clientserver.pro \
 	clipboard.pro \
 	cmdexpand.pro \
-	cmdhist.pro \
-	crypt.pro \
-	crypt_zip.pro \
-	debugger.pro \
-	dict.pro \
-	diff.pro \
+        cmdhist.pro \
+        crypt.pro \
+        debugger.pro \
+        dict.pro \
+        diff.pro \
 	linematch.pro \
 	digraph.pro \
 	drawline.pro \
@@ -3335,9 +3332,6 @@ objects/cmdhist.o: cmdhist.c
 objects/crypt.o: crypt.c
 	$(CCC) -o $@ crypt.c
 
-objects/crypt_zip.o: crypt_zip.c
-	$(CCC) -o $@ crypt_zip.c
-
 objects/debugger.o: debugger.c
 	$(CCC) -o $@ debugger.c
 
@@ -3877,11 +3871,6 @@ objects/crypt.o: crypt.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/crypt_zip.o: crypt_zip.c vim.h protodef.h auto/config.h feature.h \
- os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
- beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h errors.h
 objects/debugger.o: debugger.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
