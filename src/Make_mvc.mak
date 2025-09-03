@@ -1677,8 +1677,6 @@ $(OUTDIR)/profiler.obj: $(OUTDIR) profiler.c $(INCL)
 
 $(OUTDIR)/quickfix.obj: $(OUTDIR) quickfix.c $(INCL)
 
-$(OUTDIR)/regexp.obj: $(OUTDIR) regexp.c $(INCL)
-
 $(OUTDIR)/register.obj: $(OUTDIR) register.c $(INCL)
 
 $(OUTDIR)/scriptfile.obj: $(OUTDIR) scriptfile.c $(INCL)
@@ -1920,10 +1918,9 @@ proto.h: \
 	proto/popupmenu.pro \
 	proto/popupwin.pro \
 	proto/profiler.pro \
-	proto/quickfix.pro \
-	proto/regexp.pro \
-	proto/register.pro \
-	proto/scriptfile.pro \
+        proto/quickfix.pro \
+        proto/register.pro \
+        proto/scriptfile.pro \
 	proto/screen.pro \
 	proto/search.pro \
 	proto/session.pro \

@@ -137,13 +137,12 @@ SRC += \
 	option.c \
 	optionstr.c \
 	os_amiga.c \
-	popupmenu.c \
-	popupwin.c \
-	quickfix.c \
-	regexp.c \
-	register.c \
-	screen.c \
-	scriptfile.c \
+        popupmenu.c \
+        popupwin.c \
+        quickfix.c \
+        register.c \
+        screen.c \
+        scriptfile.c \
 	search.c \
         session.c \
         sha256.c \

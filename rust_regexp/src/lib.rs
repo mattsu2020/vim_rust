@@ -180,6 +180,30 @@ pub extern "C" fn vim_regexec_multi(
 }
 
 #[no_mangle]
+pub extern "C" fn vim_regexec_prog(
+    prog: *mut *mut RegProg,
+    ignore_case: c_int,
+    line: *const c_char,
+    col: c_int,
+) -> c_int {
+    if prog.is_null() {
+        return 0;
+    }
+    let regprog = unsafe { *prog };
+    if regprog.is_null() {
+        return 0;
+    }
+    let mut rmp = RegMatch {
+        regprog,
+        startp: [std::ptr::null(); 10],
+        endp: [std::ptr::null(); 10],
+        rm_matchcol: 0,
+        rm_ic: ignore_case,
+    };
+    vim_regexec(&mut rmp, line, col)
+}
+
+#[no_mangle]
 pub extern "C" fn vim_regsub(
     prog: *mut RegProg,
     text: *const c_char,

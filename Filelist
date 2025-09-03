@@ -117,10 +117,9 @@ SRC_ALL =	\
 		src/optiondefs.h \
 		src/optionstr.c \
 		src/profiler.c \
-		src/quickfix.c \
-		src/regexp.c \
-		src/regexp.h \
-		src/register.c \
+                src/quickfix.c \
+                src/regexp.h \
+                src/register.c \
 		src/scriptfile.c \
 		src/session.c \
 		src/sha256.c \
@@ -293,10 +292,9 @@ SRC_ALL =	\
 		src/proto/popupmenu.pro \
 		src/proto/popupwin.pro \
 		src/proto/profiler.pro \
-		src/proto/quickfix.pro \
-		src/proto/regexp.pro \
-		src/proto/register.pro \
-		src/proto/scriptfile.pro \
+                src/proto/quickfix.pro \
+                src/proto/register.pro \
+                src/proto/scriptfile.pro \
 		src/proto/screen.pro \
 		src/proto/search.pro \
 		src/proto/session.pro \
