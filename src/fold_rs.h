@@ -14,6 +14,8 @@ void rs_fold_state_free(FoldState *state);
 void rs_fold_add(FoldState *state, long top, long len, unsigned char flags, unsigned char small);
 void rs_fold_update(FoldState *state, long idx, long top, long len, unsigned char flags, unsigned char small);
 long rs_fold_render(const FoldState *state);
+int rs_fold_has_any(const FoldState *state);
+int rs_fold_find(const FoldState *state, long lnum, long *firstp, long *lastp);
 
 #ifdef __cplusplus
 }
