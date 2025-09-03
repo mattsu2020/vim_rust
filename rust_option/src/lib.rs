@@ -9,6 +9,47 @@ mod bindings {
 use bindings::rs_opt_t;
 unsafe impl Sync for rs_opt_t {}
 
+#[derive(Debug)]
+struct StringOptionDef {
+    name: &'static str,
+    values: &'static [&'static str],
+}
+
+impl StringOptionDef {
+    fn is_valid(&self, value: &str) -> bool {
+        self.values.iter().any(|&v| {
+            if let Some(prefix) = v.strip_suffix(':') {
+                value.starts_with(prefix)
+            } else {
+                value == v
+            }
+        })
+    }
+}
+
+static STRING_OPTIONS: &[StringOptionDef] = &[
+    StringOptionDef {
+        name: "background",
+        values: &["light", "dark"],
+    },
+    StringOptionDef {
+        name: "fileformat",
+        values: &["unix", "dos", "mac"],
+    },
+    StringOptionDef {
+        name: "clipboard",
+        values: &[
+            "unnamed",
+            "unnamedplus",
+            "autoselect",
+            "autoselectplus",
+            "autoselectml",
+            "html",
+            "exclude:",
+        ],
+    },
+];
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct Opt {
     name: String,
@@ -33,7 +74,7 @@ fn parse_option(s: &str) -> Option<Opt> {
 
 static OPTIONS: OnceLock<Mutex<HashMap<String, String>>> = OnceLock::new();
 
-static OPTION_DEFS: [rs_opt_t; 2] = [
+static OPTION_DEFS: [rs_opt_t; 5] = [
     rs_opt_t {
         name: b"shell\0".as_ptr() as *const c_char,
         default_value: b"/bin/sh\0".as_ptr() as *const c_char,
@@ -41,6 +82,18 @@ static OPTION_DEFS: [rs_opt_t; 2] = [
     rs_opt_t {
         name: b"compatible\0".as_ptr() as *const c_char,
         default_value: b"true\0".as_ptr() as *const c_char,
+    },
+    rs_opt_t {
+        name: b"background\0".as_ptr() as *const c_char,
+        default_value: b"light\0".as_ptr() as *const c_char,
+    },
+    rs_opt_t {
+        name: b"fileformat\0".as_ptr() as *const c_char,
+        default_value: b"unix\0".as_ptr() as *const c_char,
+    },
+    rs_opt_t {
+        name: b"clipboard\0".as_ptr() as *const c_char,
+        default_value: b"\0".as_ptr() as *const c_char,
     },
 ];
 
@@ -56,6 +109,9 @@ pub extern "C" fn rs_options_init() {
         let shell = std::env::var("SHELL").unwrap_or_else(|_| String::from("/bin/sh"));
         opts.insert("shell".into(), shell);
         opts.insert("compatible".into(), "true".into());
+        opts.insert("background".into(), "light".into());
+        opts.insert("fileformat".into(), "unix".into());
+        opts.insert("clipboard".into(), String::new());
     }
 }
 
@@ -65,6 +121,11 @@ fn apply_option(name: &str, value: &str) -> bool {
         return false;
     }
     let value = value.trim();
+    if let Some(def) = STRING_OPTIONS.iter().find(|o| o.name == name) {
+        if !def.is_valid(value) {
+            return false;
+        }
+    }
     options()
         .lock()
         .unwrap()
@@ -277,6 +338,16 @@ mod tests {
     fn parse_option_invalid() {
         let assign = CString::new("=bad").unwrap();
         assert!(!rs_parse_option(assign.as_ptr()));
+    }
+
+    #[test]
+    fn validate_string_option() {
+        rs_options_init();
+        let name = CString::new("background").unwrap();
+        let good = CString::new("dark").unwrap();
+        assert!(rs_set_option(name.as_ptr(), good.as_ptr()));
+        let bad = CString::new("blue").unwrap();
+        assert!(!rs_set_option(name.as_ptr(), bad.as_ptr()));
     }
 }
 
