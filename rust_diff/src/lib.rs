@@ -1,9 +1,9 @@
 use std::ffi::{CStr, CString};
-use std::os::raw::{c_char, c_int, c_void, c_long};
+use std::os::raw::{c_char, c_int, c_long, c_void};
 use std::process::Command;
 use std::ptr;
 
-use diff::{mmfile_t, mmbuffer_t, xdemitcb_t, xdl_diff};
+use diff::{mmbuffer_t, mmfile_t, xdemitcb_t, xdl_diff};
 
 #[repr(C)]
 pub enum DiffMode {
@@ -24,48 +24,70 @@ unsafe extern "C" fn collect(priv_: *mut c_void, mb: *mut mmbuffer_t, nbuf: c_in
     0
 }
 
+fn read_file(path: &str) -> Result<Vec<u8>, ()> {
+    std::fs::read(path).map_err(|_| ())
+}
+
+fn diff_files_internal(file1: &str, file2: &str, mode: DiffMode) -> Result<CString, ()> {
+    match mode {
+        DiffMode::External => {
+            let out = Command::new("diff")
+                .arg("-u")
+                .arg(file1)
+                .arg(file2)
+                .output()
+                .map_err(|_| ())?;
+            Ok(CString::new(String::from_utf8_lossy(&out.stdout).to_string()).unwrap())
+        }
+        DiffMode::Xdiff => {
+            let a = read_file(file1)?;
+            let b = read_file(file2)?;
+            let mf1 = mmfile_t {
+                ptr: a.as_ptr() as *const c_char,
+                size: a.len() as c_long,
+            };
+            let mf2 = mmfile_t {
+                ptr: b.as_ptr() as *const c_char,
+                size: b.len() as c_long,
+            };
+            let mut output = String::new();
+            let mut ecb = xdemitcb_t {
+                priv_: &mut output as *mut _ as *mut c_void,
+                out_hunk: None,
+                out_line: Some(collect),
+            };
+            let res = unsafe { xdl_diff(&mf1, &mf2, ptr::null(), ptr::null(), &mut ecb) };
+            if res != 0 {
+                return Err(());
+            }
+            Ok(CString::new(output).unwrap())
+        }
+    }
+}
+
 #[no_mangle]
-pub extern "C" fn rs_diff_files(f1: *const c_char, f2: *const c_char, mode: DiffMode) -> *mut c_char {
+pub extern "C" fn rs_diff_files(
+    f1: *const c_char,
+    f2: *const c_char,
+    mode: DiffMode,
+) -> *mut c_char {
     if f1.is_null() || f2.is_null() {
         return ptr::null_mut();
     }
     let file1 = unsafe { CStr::from_ptr(f1) }.to_string_lossy().into_owned();
     let file2 = unsafe { CStr::from_ptr(f2) }.to_string_lossy().into_owned();
-
-    match mode {
-        DiffMode::External => {
-            let output = Command::new("diff").arg("-u").arg(&file1).arg(&file2).output();
-            match output {
-                Ok(out) => CString::new(String::from_utf8_lossy(&out.stdout).to_string()).unwrap().into_raw(),
-                Err(_) => ptr::null_mut(),
-            }
-        }
-        DiffMode::Xdiff => {
-            let a = match std::fs::read(&file1) {
-                Ok(v) => v,
-                Err(_) => return ptr::null_mut(),
-            };
-            let b = match std::fs::read(&file2) {
-                Ok(v) => v,
-                Err(_) => return ptr::null_mut(),
-            };
-            let mf1 = mmfile_t { ptr: a.as_ptr() as *const c_char, size: a.len() as c_long };
-            let mf2 = mmfile_t { ptr: b.as_ptr() as *const c_char, size: b.len() as c_long };
-            let mut output = String::new();
-            let mut ecb = xdemitcb_t { priv_: &mut output as *mut _ as *mut c_void, out_hunk: None, out_line: Some(collect) };
-            let res = unsafe { xdl_diff(&mf1, &mf2, ptr::null(), ptr::null(), &mut ecb) };
-            if res != 0 {
-                return ptr::null_mut();
-            }
-            CString::new(output).unwrap().into_raw()
-        }
+    match diff_files_internal(&file1, &file2, mode) {
+        Ok(s) => s.into_raw(),
+        Err(_) => ptr::null_mut(),
     }
 }
 
 #[no_mangle]
 pub extern "C" fn rs_diff_free(ptr: *mut c_char) {
     if !ptr.is_null() {
-        unsafe { drop(CString::from_raw(ptr)); }
+        unsafe {
+            drop(CString::from_raw(ptr));
+        }
     }
 }
 
@@ -78,9 +100,9 @@ pub extern "C" fn rs_diff_update_screen() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs::write;
-    use std::ffi::{CStr, CString};
     use std::env::temp_dir;
+    use std::ffi::{CStr, CString};
+    use std::fs::write;
 
     #[test]
     fn external_diff() {
