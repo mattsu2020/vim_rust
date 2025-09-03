@@ -11,13 +11,12 @@
  * diff.c: code for diff'ing two, three or four buffers.
  *
  * There are three ways to diff:
- * - Shell out to an external diff program, using files.
- * - Use the compiled-in xdiff library.
- * - Let 'diffexpr' do the work, using files.
+* - Shell out to an external diff program, using files.
+* - Use the compiled-in Rust diff algorithm.
+* - Let 'diffexpr' do the work, using files.
  */
 
 #include "vim.h"
-#include "xdiff/xdiff.h"
 #include "rust_diff.h"
 
 #if defined(FEAT_DIFF) || defined(PROTO)
@@ -35,7 +34,7 @@ static int diff_need_update = FALSE; // ex_diffupdate needs to be called
 #define DIFF_HORIZONTAL	0x040	// horizontal splits
 #define DIFF_VERTICAL	0x080	// vertical splits
 #define DIFF_HIDDEN_OFF	0x100	// diffoff when hidden
-#define DIFF_INTERNAL	0x200	// use internal xdiff algorithm
+#define DIFF_INTERNAL   0x200   // use internal diff algorithm
 #define DIFF_CLOSE_OFF	0x400	// diffoff when closing window
 #define DIFF_FOLLOWWRAP	0x800	// follow the wrap option
 #define DIFF_LINEMATCH  0x1000  // match most similar lines within diff
@@ -75,7 +74,7 @@ typedef struct {
     garray_T	dout_ga;      // used for internal diff
 } diffout_T;
 
-// used for recording hunks from xdiff
+// used for recording hunks from the diff engine
 typedef struct {
     linenr_T lnum_orig;
     long     count_orig;
@@ -115,8 +114,6 @@ static void diff_copy_entry(diff_T *dprev, diff_T *dp, int idx_orig, int idx_new
 static diff_T *diff_alloc_new(tabpage_T *tp, diff_T *dprev, diff_T *dp);
 static int parse_diff_ed(char_u *line, diffhunk_T *hunk);
 static int parse_diff_unified(char_u *line, diffhunk_T *hunk);
-extern int xdiff_out_indices(long start_a, long count_a, long start_b, long count_b, void *priv);
-extern int xdiff_out_unified(void *priv, mmbuffer_t *mb, int nbuf);
 static int parse_diffanchors(int check_only, buf_T *buf, linenr_T *anchors, int *num_anchors);
 
 #define FOR_ALL_DIFFBLOCKS_IN_TAB(tp, dp) \
@@ -811,7 +808,7 @@ diff_write_buffer(buf_T *buf, diffin_T *din, linenr_T start, linenr_T end)
 	return OK;
     }
 
-    // xdiff requires one big block of memory with all the text.
+    // The diff engine requires one big block of memory with all the text.
     for (lnum = start; lnum <= end; ++lnum)
 	len += ml_get_buf_len(buf, lnum) + 1;
     ptr = alloc(len);
@@ -849,7 +846,7 @@ diff_write_buffer(buf_T *buf, diffin_T *din, linenr_T start, linenr_T end)
 		    c = NUL;
 		else
 		{
-		    // xdiff doesn't support ignoring case, fold-case the text.
+		    // diff engine doesn't support ignoring case, fold-case the text.
 		    c = PTR2CHAR(s);
 		    c_len = MB_CHAR2LEN(c);
 		    c = MB_CASEFOLD(c);
@@ -1292,7 +1289,7 @@ check_external_diff(diffio_T *diffio)
 }
 
 /*
- * Invoke the xdiff function.
+ * Invoke the Rust diff function.
  */
     static int
 diff_file_internal(diffio_T *diffio)
@@ -1354,7 +1351,7 @@ diff_file(diffio_T *dio)
     }
     else
 #endif
-    // Use xdiff for generating the diff.
+    // Use Rust diff for generating the diff.
     if (dio->dio_internal)
 	return diff_file_internal(dio);
 
@@ -3378,7 +3375,7 @@ diff_refine_inline_char_highlight(diff_T *dp_orig, garray_T *linemap, int idx1)
 /*
  * Find the inline difference within a diff block among different buffers.  Do
  * this by splitting each block's content into characters or words, and then
- * use internal xdiff to calculate the per-character/word diff.  The result is
+ * use internal diff to calculate the per-character/word diff.  The result is
  * stored in dp instead of returned by the function.
  */
     static void
@@ -3412,7 +3409,7 @@ diff_find_change_inline_diff(
     buf_T	*(orig_diffbuf[DB_COUNT]);
     memcpy(orig_diffbuf, curtab->tp_diffbuf, sizeof(orig_diffbuf));
 
-    // Buffers to populate mmfile 1/2 that would be passed to xdiff as memory
+    // Buffers to populate mmfile 1/2 that would be passed to the diff engine as memory
     // files. Use a grow array as it is not obvious how much exact space we
     // need.
     ga_init2(&file1_str, 1, 1024);
@@ -3449,7 +3446,7 @@ diff_find_change_inline_diff(
 	curstr->ga_len = 0;
 
 	// Split each line into chars/words and populate fake file buffer as
-	// newline-delimited tokens as that's what xdiff requires.
+	// newline-delimited tokens as that's what the diff engine requires.
 	for (int off = 0; off < dp->df_count[i]; off++)
 	{
 	    char_u *curline = ml_get_buf(curtab->tp_diffbuf[i],
@@ -3529,7 +3526,7 @@ diff_find_change_inline_diff(
 		    {
 			int c;
 			char_u cbuf[MB_MAXBYTES + 1];
-			// xdiff doesn't support ignoring case, fold-case the text manually.
+			// diff engine doesn't support ignoring case, fold-case the text manually.
 			c = PTR2CHAR(s);
 			int c_len = MB_CHAR2LEN(c);
 			c = MB_CASEFOLD(c);
@@ -3554,7 +3551,7 @@ diff_find_change_inline_diff(
 
 		if (!new_in_keyword || (new_in_keyword && !in_keyword))
 		{
-		    // create a new mapping entry from the xdiff mmfile back to
+		    // create a new mapping entry from the diff mmfile back to
 		    // original line/col.
 		    linemap_entry_T linemap_entry;
 		    linemap_entry.lineoff = off;
