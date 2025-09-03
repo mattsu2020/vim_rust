@@ -4,7 +4,7 @@ use std::slice;
 
 use blowfish::cipher::{generic_array::GenericArray, BlockEncrypt, NewBlockCipher};
 use blowfish::Blowfish;
-use once_cell::sync::Lazy;
+use crc32fast::Hasher;
 use ring::digest::{Context, SHA256};
 
 #[repr(C)]
@@ -214,32 +214,22 @@ struct ZipState {
     keys: [u32; 3],
 }
 
-static CRC_TABLE: Lazy<Vec<u32>> = Lazy::new(|| {
-    let mut table = vec![0u32; 256];
-    for t in 0..256u32 {
-        let mut v = t;
-        for _ in 0..8 {
-            v = (v >> 1) ^ ((v & 1) * 0xedb88320u32);
-        }
-        table[t as usize] = v;
-    }
-    table
-});
-
-fn crc32(c: u32, b: u8) -> u32 {
-    CRC_TABLE[((c as u8) ^ b) as usize] ^ (c >> 8)
-}
-
 fn decrypt_byte_zip(keys: &[u32; 3]) -> u8 {
     let temp = (keys[2] as u16 | 2) as u32;
     (((temp.wrapping_mul(temp ^ 1)) >> 8) & 0xff) as u8
 }
 
 fn update_keys_zip(keys: &mut [u32; 3], c: u8) {
-    keys[0] = crc32(keys[0], c);
+    let mut hasher = Hasher::new_with_initial(keys[0]);
+    hasher.update(&[c]);
+    keys[0] = hasher.finalize();
+
     keys[1] = keys[1].wrapping_add(keys[0] & 0xff);
     keys[1] = keys[1].wrapping_mul(134775813).wrapping_add(1);
-    keys[2] = crc32(keys[2], (keys[1] >> 24) as u8);
+
+    let mut hasher = Hasher::new_with_initial(keys[2]);
+    hasher.update(&[(keys[1] >> 24) as u8]);
+    keys[2] = hasher.finalize();
 }
 
 #[no_mangle]
@@ -504,5 +494,14 @@ mod tests {
         let mut dec = vec![0u8; data.len()];
         crypt_zip_decode(&mut state_dec, enc.as_ptr(), enc.len(), dec.as_mut_ptr(), 1);
         assert_eq!(data.to_vec(), dec);
+    }
+
+    #[test]
+    fn zip_crc32_unchanged() {
+        let mut keys = [0x12345678, 0x23456789, 0x34567890];
+        for &b in b"hello world" {
+            update_keys_zip(&mut keys, b);
+        }
+        assert_eq!(keys, [0xb0e2f3b4, 0xccd6e85d, 0xb5224c24]);
     }
 }
