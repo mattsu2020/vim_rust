@@ -1,6 +1,50 @@
+use once_cell::sync::Lazy;
 use std::ffi::{CStr, CString};
-use std::os::raw::{c_char, c_int};
 use std::io::{BufRead, BufReader};
+use std::os::raw::{c_char, c_int};
+use std::sync::Mutex;
+
+// ---------------------------------------------------------------------------
+// Tag stack handling
+// ---------------------------------------------------------------------------
+
+static TAG_STACK: Lazy<Mutex<Vec<CString>>> = Lazy::new(|| Mutex::new(Vec::new()));
+
+/// Push a tag name onto the stack. The string is copied and owned by the stack.
+#[no_mangle]
+pub extern "C" fn rust_tagstack_push(tag: *const c_char) {
+    if tag.is_null() {
+        return;
+    }
+    let s = unsafe { CStr::from_ptr(tag) }.to_owned();
+    TAG_STACK.lock().unwrap().push(s);
+}
+
+/// Pop a tag name from the stack. The returned pointer should be freed by the
+/// caller using `free()`.
+#[no_mangle]
+pub extern "C" fn rust_tagstack_pop() -> *mut c_char {
+    match TAG_STACK.lock().unwrap().pop() {
+        Some(s) => {
+            let len = s.as_bytes_with_nul().len();
+            unsafe {
+                let mem = libc::malloc(len) as *mut c_char;
+                if mem.is_null() {
+                    return std::ptr::null_mut();
+                }
+                std::ptr::copy_nonoverlapping(s.as_ptr(), mem, len);
+                mem
+            }
+        }
+        None => std::ptr::null_mut(),
+    }
+}
+
+/// Return the current size of the tag stack.
+#[no_mangle]
+pub extern "C" fn rust_tagstack_len() -> c_int {
+    TAG_STACK.lock().unwrap().len() as c_int
+}
 
 /// Search the file named "tags" in the current directory for entries whose
 /// tag name matches `pat`. Each matching line is returned to C as an allocated
@@ -80,6 +124,7 @@ pub extern "C" fn rust_find_tags(
     1
 }
 
+#[cfg(test)]
 fn search_tag(path: &std::path::Path, pat: &str) -> Vec<String> {
     let mut matches = Vec::new();
     if let Ok(file) = std::fs::File::open(path) {
@@ -109,5 +154,33 @@ mod tests {
         let matches = search_tag(&tags_path, "foo");
         assert_eq!(matches.len(), 1);
         assert!(matches[0].starts_with("foo"));
+    }
+
+    #[test]
+    fn parses_ctags_style_lines() {
+        let dir = tempfile::tempdir().unwrap();
+        let tags_path = dir.path().join("tags");
+        {
+            let mut f = std::fs::File::create(&tags_path).unwrap();
+            writeln!(f, "main\tmain.c\t/^int main()$/;\"\tf").unwrap();
+            writeln!(f, "helper\thelper.c\t/^void helper()$/;\"\tf").unwrap();
+        }
+        let matches = search_tag(&tags_path, "main");
+        assert_eq!(matches.len(), 1);
+        assert!(matches[0].contains("main.c"));
+    }
+
+    #[test]
+    fn tagstack_push_and_pop() {
+        let s = CString::new("foo").unwrap();
+        rust_tagstack_push(s.as_ptr());
+        assert_eq!(rust_tagstack_len(), 1);
+        let ptr = rust_tagstack_pop();
+        assert!(!ptr.is_null());
+        unsafe {
+            assert_eq!(CStr::from_ptr(ptr).to_str().unwrap(), "foo");
+            libc::free(ptr as *mut libc::c_void);
+        }
+        assert_eq!(rust_tagstack_len(), 0);
     }
 }

@@ -85,6 +85,9 @@
 // Enable the Rust implementation of quickfix by default.
 #define USE_RUST_QUICKFIX
 
+// Use the Rust implementation for tag searching and tag stack handling.
+#define USE_RUST_TAG
+
 // Syntax highlighting helpers are always provided by the Rust implementation.
 
 // Minimal build: disable terminal feature to avoid pulling terminal/job deps

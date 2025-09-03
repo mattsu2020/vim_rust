@@ -1659,6 +1659,7 @@ version = "0.1.0"
 name = "rust_spellsuggest"
 version = "0.1.0"
 dependencies = [
+ "criterion",
  "rust_spellfile",
 ]
 
@@ -1671,6 +1672,7 @@ name = "rust_tag"
 version = "0.1.0"
 dependencies = [
  "libc",
+ "once_cell",
  "tempfile",
 ]
 

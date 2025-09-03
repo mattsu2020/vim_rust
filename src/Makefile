@@ -1416,6 +1416,8 @@ RUST_AUTOCMD_DIR = ../rust_autocmd
 RUST_AUTOCMD_LIB = $(RUST_AUTOCMD_DIR)/target/release/librust_autocmd.a
 RUST_SEARCH_DIR = ../rust_search
 RUST_SEARCH_LIB = $(RUST_SEARCH_DIR)/target/release/librust_search.a
+RUST_TAG_DIR = ../rust_tag
+RUST_TAG_LIB = $(RUST_TAG_DIR)/target/release/librust_tag.a
 RUST_USERFUNC_DIR = ../rust_userfunc
 RUST_USERFUNC_LIB = $(RUST_USERFUNC_DIR)/target/release/librust_userfunc.a
 RUST_ALLOC_DIR = ../rust_alloc
@@ -1451,6 +1453,7 @@ RUST_CMDHIST_LIB = $(RUST_CMDHIST_DIR)/target/release/librust_cmdhist.a
 EXTRA_IPATHS += -I$(RUST_ARABIC_DIR)/include
 EXTRA_IPATHS += -I$(RUST_BEVAL_DIR)/include
 EXTRA_IPATHS += -I$(RUST_VIM9_DIR)/include
+EXTRA_IPATHS += -I$(RUST_TAG_DIR)/include
 
 # Note: MZSCHEME_LIBS must come before LIBS, because LIBS adds -lm which is
 # needed by racket.
@@ -1483,8 +1486,9 @@ ALL_LIBS = \
            $(RUST_MBYTE_LIB) \
            $(RUST_AUTOCMD_LIB) \
            $(RUST_SEARCH_LIB) \
+           $(RUST_TAG_LIB) \
            $(RUST_USERFUNC_LIB) \
-           $(RUST_ALLOC_LIB) \
+            $(RUST_ALLOC_LIB) \
            $(RUST_WINDOW_LIB) \
            $(RUST_UNDO_LIB) \
            $(RUST_DRAWSCREEN_LIB) \
@@ -1601,10 +1605,13 @@ $(RUST_AUTOCMD_LIB):
 	cd $(RUST_AUTOCMD_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_SEARCH_LIB):
-	cd $(RUST_SEARCH_DIR) && CARGO_TARGET_DIR=target cargo build --release
+       cd $(RUST_SEARCH_DIR) && CARGO_TARGET_DIR=target cargo build --release
+
+$(RUST_TAG_LIB):
+       cd $(RUST_TAG_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_USERFUNC_LIB):
-	cd $(RUST_USERFUNC_DIR) && CARGO_TARGET_DIR=target cargo build --release
+       cd $(RUST_USERFUNC_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_ALLOC_LIB):
 	cd $(RUST_ALLOC_DIR) && CARGO_TARGET_DIR=target cargo build --release
@@ -2307,7 +2314,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(SRC_RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_BUFWRITE_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_EVAL_LIB) $(RUST_VIM9_LIB) $(RUST_EXCMD_LIB) $(RUST_CMDHIST_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB) $(RUST_ALLOC_LIB) $(RUST_BLOB_LIB) $(RUST_SHA256_LIB) $(RUST_BLOWFISH_LIB)
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(SRC_RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_BUFWRITE_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_EVAL_LIB) $(RUST_VIM9_LIB) $(RUST_EXCMD_LIB) $(RUST_CMDHIST_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB) $(RUST_TAG_LIB) $(RUST_ALLOC_LIB) $(RUST_BLOB_LIB) $(RUST_SHA256_LIB) $(RUST_BLOWFISH_LIB)
 	@$(BUILD_DATE_MSG)
     @LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) objects/*.o $(ALL_LIBS)" \
