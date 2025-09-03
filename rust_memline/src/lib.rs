@@ -1,6 +1,11 @@
 use std::collections::{BTreeMap, HashMap};
-use std::ffi::{CStr};
+use std::ffi::CStr;
 use std::os::raw::c_char;
+
+// Maximum length of a single line allowed in the memline buffer.  This keeps
+// the C side from accidentally passing an unbounded string and exhausting
+// memory or overflowing internal calculations.
+const MAX_LINE_LEN: usize = 1 << 20; // 1MB per line
 
 /// Simple in-memory representation of lines in a buffer.
 #[derive(Default)]
@@ -78,8 +83,8 @@ pub extern "C" fn rs_ml_append(buf: *mut MemBuffer, lnum: usize, line: *const c_
     let buffer = unsafe { &mut *buf };
     let c_str = unsafe { CStr::from_ptr(line) };
     match c_str.to_str() {
-        Ok(s) => buffer.ml_append(lnum, s),
-        Err(_) => false,
+        Ok(s) if s.len() <= MAX_LINE_LEN => buffer.ml_append(lnum, s),
+        _ => false,
     }
 }
 
@@ -100,8 +105,11 @@ pub extern "C" fn rs_ml_replace(buf: *mut MemBuffer, lnum: usize, line: *const c
     let buffer = unsafe { &mut *buf };
     let c_str = unsafe { CStr::from_ptr(line) };
     match c_str.to_str() {
-        Ok(s) => { buffer.ml_replace(lnum, s); true },
-        Err(_) => false,
+        Ok(s) if s.len() <= MAX_LINE_LEN => {
+            buffer.ml_replace(lnum, s);
+            true
+        }
+        _ => false,
     }
 }
 
@@ -120,6 +128,12 @@ pub extern "C" fn rs_ml_get_line(
         return b"\0".as_ptr() as *mut u8;
     }
     let b = unsafe { &mut *buf };
+    if lnum == 0 || lnum > b.lines.len() {
+        if !out_len.is_null() {
+            unsafe { *out_len = 0 };
+        }
+        return b"\0".as_ptr() as *mut u8;
+    }
     let content = b.lines.get(&lnum).map(|s| s.as_str()).unwrap_or("");
     let entry = b.workspace.entry(lnum).or_insert_with(|| {
         let mut v = Vec::with_capacity(content.len() + 1);
@@ -148,6 +162,15 @@ pub extern "C" fn rs_ml_get_line(
         unsafe { *out_len = entry.len().saturating_sub(1) };
     }
     entry.as_mut_ptr()
+}
+
+#[no_mangle]
+pub extern "C" fn rs_ml_line_count(buf: *const MemBuffer) -> usize {
+    if buf.is_null() {
+        return 0;
+    }
+    let b = unsafe { &*buf };
+    b.lines.len()
 }
 
 /// Representation of the initial swap file block.
@@ -193,5 +216,21 @@ mod tests {
         assert!(buf.ml_append(1, "world"));
         assert_eq!(buf.ml_replace(2, "vim"), Some("world".into()));
         assert_eq!(buf.ml_delete(1), Some("hello".into()));
+    }
+
+    #[test]
+    fn line_too_long() {
+        let mut buf = MemBuffer::new();
+        let long = vec![b'a'; MAX_LINE_LEN + 1];
+        let c = std::ffi::CString::new(long).unwrap();
+        assert!(!rs_ml_append(&mut buf as *mut _, 0, c.as_ptr()));
+    }
+
+    #[test]
+    fn count_lines() {
+        let mut buf = MemBuffer::new();
+        assert_eq!(rs_ml_line_count(&buf as *const _), 0);
+        assert!(rs_ml_append(&mut buf as *mut _, 0, b"one\0".as_ptr() as *const c_char));
+        assert_eq!(rs_ml_line_count(&buf as *const _), 1);
     }
 }
