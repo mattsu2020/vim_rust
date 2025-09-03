@@ -7207,11 +7207,6 @@ nv_object(
 		flag = current_quote(cap->oap, cap->count1, include,
 								  cap->nchar);
 		break;
-#if 0	// TODO
-	case 'S': // "aS" = a section
-	case 'f': // "af" = a filename
-	case 'u': // "au" = a URL
-#endif
 	default:
 		flag = FAIL;
 		break;
