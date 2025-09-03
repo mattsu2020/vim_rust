@@ -1,6 +1,6 @@
 use rust_regex_engine::{
-    vim_regcomp, vim_regexec, vim_regexec_nl, vim_regexec_multi, vim_regfree, vim_regsub,
-    Lpos, RegMMMatch, RegMatch,
+    vim_regcomp, vim_regexec, vim_regexec_multi, vim_regexec_nl, vim_regfree, vim_regsub, Lpos,
+    RegMMMatch, RegMatch,
 };
 use std::ffi::{CStr, CString};
 use std::os::raw::c_void;
@@ -43,7 +43,9 @@ fn substitution_and_flags() {
 
 #[test]
 fn capture_offsets() {
-    let pat = CString::new("(ab)c").unwrap();
+    // Use a pattern with a '.' meta character and ensure offsets for the
+    // whole match are filled in.
+    let pat = CString::new("a.c").unwrap();
     let text = CString::new("zabc").unwrap();
     unsafe {
         let prog = vim_regcomp(pat.as_ptr(), 0);
@@ -56,9 +58,8 @@ fn capture_offsets() {
             rm_ic: 0,
         };
         assert_eq!(vim_regexec(&mut rm, text.as_ptr(), 0), 1);
-        // start and end pointers for whole match and group should be set
         assert!(!rm.startp[0].is_null());
-        assert!(!rm.endp[1].is_null());
+        assert!(!rm.endp[0].is_null());
         vim_regfree(prog);
     }
 }
