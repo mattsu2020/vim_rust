@@ -40,6 +40,9 @@ rust_message = { path = "rust_message" }
 rust_blob = { path = "rust_blob" }
 rust_sha256 = { path = "rust_sha256" }
 rust_blowfish = { path = "rust_blowfish" }
+pbkdf2 = "0.12"
+hmac = "0.12"
+sha2 = "0.10"
 
 [features]
 default = []

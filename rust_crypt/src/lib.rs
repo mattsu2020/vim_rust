@@ -5,7 +5,11 @@ use std::sync::Once;
 
 use blowfish::cipher::{generic_array::GenericArray, BlockEncrypt, NewBlockCipher};
 use blowfish::Blowfish;
-use ring::digest::{Context, SHA256};
+use hmac::Hmac;
+use pbkdf2::pbkdf2;
+use sha2::Sha256;
+
+type HmacSha256 = Hmac<Sha256>;
 
 #[repr(C)]
 pub struct cryptstate_T {
@@ -61,35 +65,10 @@ impl BlowfishState {
     }
 }
 
-fn sha256_hex(data: &[u8], salt: &[u8]) -> String {
-    let mut ctx = Context::new(&SHA256);
-    ctx.update(data);
-    if !salt.is_empty() {
-        ctx.update(salt);
-    }
-    let digest = ctx.finish();
-    let mut s = String::with_capacity(64);
-    for b in digest.as_ref() {
-        s.push_str(&format!("{:02x}", b));
-    }
-    s
-}
-
-fn hex_to_bytes(s: &str) -> Vec<u8> {
-    let mut out = Vec::with_capacity(s.len() / 2);
-    for i in (0..s.len()).step_by(2) {
-        let byte = u8::from_str_radix(&s[i..i + 2], 16).unwrap();
-        out.push(byte);
-    }
-    out
-}
-
-fn derive_key(password: &[u8], salt: &[u8]) -> Vec<u8> {
-    let mut key = sha256_hex(password, salt);
-    for _ in 0..1000 {
-        key = sha256_hex(key.as_bytes(), salt);
-    }
-    hex_to_bytes(&key)
+fn derive_key(password: &[u8], salt: &[u8], iterations: u32) -> Vec<u8> {
+    let mut out = [0u8; 32];
+    pbkdf2::<HmacSha256>(password, salt, iterations, &mut out).expect("pbkdf2");
+    out.to_vec()
 }
 
 fn cfb_init(state: &mut BlowfishState, seed: &[u8]) {
@@ -120,7 +99,7 @@ pub extern "C" fn crypt_blowfish_init(
     let salt = unsafe { slice::from_raw_parts(arg.cat_salt, arg.cat_salt_len as usize) };
     let seed = unsafe { slice::from_raw_parts(arg.cat_seed, arg.cat_seed_len as usize) };
 
-    let key_bytes = derive_key(key_slice, salt);
+    let key_bytes = derive_key(key_slice, salt, 1000);
     let cipher = match Blowfish::new_from_slice(&key_bytes) {
         Ok(c) => c,
         Err(_) => return 0,
