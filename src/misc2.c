@@ -11,6 +11,9 @@
  * misc2.c: Various functions.
  */
 #include "vim.h"
+#ifdef MSWIN
+# include "rust_os_mswin.h"
+#endif
 
 static char_u	*username = NULL; // cached result of mch_get_user_name()
 
@@ -2984,7 +2987,7 @@ elapsed(struct timeval *start_tv)
     long
 elapsed(DWORD start_tick)
 {
-    DWORD	now = GetTickCount();
+    DWORD	now = os_mswin_get_tick_count();
 
     return (long)now - (long)start_tick;
 }

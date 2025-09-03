@@ -14,6 +14,7 @@
  */
 
 #include "vim.h"
+#include "rust_os_mswin.h"
 
 #include <sys/types.h>
 #include <signal.h>
@@ -190,8 +191,8 @@ mch_input_isatty(void)
 	return TRUE;	    // GUI always has a tty
 #endif
 #if !defined(FEAT_GUI_MSWIN) || defined(VIMDLL)
-    if (isatty(read_cmd_fd))
-	return TRUE;
+    if (os_mswin_isatty(read_cmd_fd))
+        return TRUE;
     return FALSE;
 #endif
 }
