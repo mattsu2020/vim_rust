@@ -24,7 +24,7 @@ Most code can be found in a file with an obvious name (incomplete list):
 File name       | Description
 --------------- | -----------
 alloc.c		| memory management
-arglist.c	| handling argument list
+rust_arglist/	| handling argument list
 autocmd.c	| autocommands
 buffer.c	| manipulating buffers (loaded files)
 bufwrite.c	| writing a buffer to file

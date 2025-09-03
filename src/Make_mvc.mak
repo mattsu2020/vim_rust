@@ -1470,8 +1470,6 @@ test_vim9:
 	$(CC) $(CFLAGS_OUTDIR) $<
 
 
-$(OUTDIR)/arglist.obj: $(OUTDIR) arglist.c $(INCL)
-
 $(OUTDIR)/autocmd.obj: $(OUTDIR) autocmd.c $(INCL)
 
 $(OUTDIR)/beval.obj: $(OUTDIR) beval.c $(INCL)
@@ -1857,7 +1855,6 @@ $(PATHDEF_SRC): Make_mvc.mak
 # End Custom Build
 proto.h: \
 	proto/alloc.pro \
-	proto/arglist.pro \
         proto/autocmd.pro \
         proto/buffer.pro \
 	proto/bufwrite.pro \
