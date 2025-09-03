@@ -2,7 +2,7 @@ use std::ffi::CStr;
 use std::os::raw::c_char;
 
 use rust_eval::{typval_T, ValUnion, Vartype};
-use rust_vim9compile::{eval_bool_expr, eval_expr};
+use rust_vim9::{eval_bool_expr, eval_expr};
 
 pub mod cmds {
     use super::*;
