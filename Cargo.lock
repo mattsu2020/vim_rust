@@ -1683,6 +1683,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_cmdexpand"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rust_cmdhist"
 version = "0.1.0"
 dependencies = [
@@ -2279,6 +2286,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_vim9class"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rust_vim9cmds"
 version = "0.1.0"
 dependencies = [
@@ -2808,6 +2822,7 @@ dependencies = [
  "rust_python",
  "rust_sha256",
  "rust_spell",
+ "rust_vim9class",
  "rust_wayland",
  "serde",
  "serde_json",

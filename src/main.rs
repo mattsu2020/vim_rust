@@ -33,5 +33,10 @@ fn main() {
     common_init_1();
     common_init_2();
 
+    // Demonstrate calling into the Vim9 class implementation in Rust.
+    let class_src = CString::new("class Demo").expect("CString::new failed");
+    let len = rust_vim9class::rs_vim9class_eval(class_src.as_ptr());
+    println!("Class name length: {}", len);
+
     println!("Initialization complete");
 }
