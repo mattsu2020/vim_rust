@@ -15,6 +15,15 @@ struct QfEntry {
 
 static LIST: Lazy<Mutex<Vec<QfEntry>>> = Lazy::new(|| Mutex::new(Vec::new()));
 
+fn parse_error_line(line: &str) -> Option<QfEntry> {
+    let mut parts = line.splitn(4, ':');
+    let _file = parts.next()?;
+    let lnum = parts.next()?.trim().parse().ok()?;
+    let col = parts.next()?.trim().parse().ok()?;
+    let text = parts.next()?.trim().to_string();
+    Some(QfEntry { text, lnum, col })
+}
+
 #[no_mangle]
 pub extern "C" fn rs_qf_add_entry(
     _qfl: *mut c_void,
@@ -65,5 +74,19 @@ mod tests {
         let msg = CString::new("test").unwrap();
         assert_eq!(rs_qf_add_entry(std::ptr::null_mut(), std::ptr::null(), std::ptr::null(), std::ptr::null(), 0, msg.as_ptr(), 1, 0, 0, 0, 0, std::ptr::null(), 0, 0, std::ptr::null_mut(), 1), 1);
         rs_qf_list(std::ptr::null_mut());
+    }
+
+    #[test]
+    fn parse_error() {
+        let line = "main.rs:10:5: undefined variable";
+        let e = parse_error_line(line).expect("parsed");
+        assert_eq!(e.lnum, 10);
+        assert_eq!(e.col, 5);
+        assert_eq!(e.text, "undefined variable");
+    }
+
+    #[test]
+    fn parse_error_invalid() {
+        assert!(parse_error_line("nonsense").is_none());
     }
 }
