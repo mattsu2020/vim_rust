@@ -27,11 +27,11 @@ pub extern "C" fn rust_autocmd_clear() {
     AUTOCMDS.lock().unwrap().clear();
 }
 
-unsafe fn to_str(ptr: *const c_char) -> Option<&'static str> {
+fn ptr_to_str<'a>(ptr: *const c_char) -> Option<&'a str> {
     if ptr.is_null() {
         return None;
     }
-    CStr::from_ptr(ptr).to_str().ok()
+    unsafe { CStr::from_ptr(ptr).to_str().ok() }
 }
 
 #[no_mangle]
@@ -42,11 +42,11 @@ pub extern "C" fn rust_autocmd_add(
     once: c_int,
     nested: c_int,
 ) -> c_int {
-    let pat_str = match unsafe { to_str(pat) } {
+    let pat_str = match ptr_to_str(pat) {
         Some(s) => s.to_owned(),
         None => return 0,
     };
-    let cmd_str = match unsafe { to_str(cmd) } {
+    let cmd_str = match ptr_to_str(cmd) {
         Some(s) => s,
         None => return 0,
     };
@@ -55,8 +55,12 @@ pub extern "C" fn rust_autocmd_add(
         Err(_) => return 0,
     };
 
+    let cmd_cstring = match CString::new(cmd_str) {
+        Ok(c) => c,
+        Err(_) => return 0,
+    };
     let acmd = AutoCmd {
-        cmd: CString::new(cmd_str).unwrap(),
+        cmd: cmd_cstring,
         once: once != 0,
         nested: nested != 0,
     };
@@ -77,7 +81,7 @@ pub extern "C" fn rust_autocmd_add(
 
 #[no_mangle]
 pub extern "C" fn rust_autocmd_do(event: c_int, name: *const c_char) -> c_int {
-    let name = match unsafe { to_str(name) } {
+    let name = match ptr_to_str(name) {
         Some(s) => s,
         None => return 0,
     };
