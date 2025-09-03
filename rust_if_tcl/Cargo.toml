@@ -1,12 +1,12 @@
 [package]
-name = "rust_ruby"
+name = "rust_if_tcl"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-magnus = { version = "0.6", features = ["embed"] }
+tcl-sys = "0.2"
 rust_ffi = { path = "../rust_ffi" }
 
 [lib]
-name = "rust_ruby"
+name = "rust_if_tcl"
 crate-type = ["staticlib", "rlib"]

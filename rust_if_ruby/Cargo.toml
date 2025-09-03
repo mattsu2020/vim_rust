@@ -1,12 +1,12 @@
 [package]
-name = "rust_lua"
+name = "rust_if_ruby"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-mlua = { version = "0.9", features = ["lua54"] }
+magnus = { version = "0.6", features = ["embed"] }
 rust_ffi = { path = "../rust_ffi" }
 
 [lib]
-name = "rust_lua"
+name = "rust_if_ruby"
 crate-type = ["staticlib", "rlib"]

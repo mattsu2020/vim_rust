@@ -1,12 +1,12 @@
 [package]
-name = "rust_tcl"
+name = "rust_if_python"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tcl-sys = "0.2"
+pyo3 = { version = "0.21", features = ["auto-initialize"] }
 rust_ffi = { path = "../rust_ffi" }
 
 [lib]
-name = "rust_tcl"
+name = "rust_if_python"
 crate-type = ["staticlib", "rlib"]
