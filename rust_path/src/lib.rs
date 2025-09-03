@@ -1,27 +1,19 @@
 use std::env;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub fn normalize_path(path: &str) -> Option<String> {
     let pb = Path::new(path);
-    let norm = std::fs::canonicalize(pb).unwrap_or_else(|_| pb.to_path_buf());
-    Some(norm.to_string_lossy().into_owned())
+    let norm = dunce::canonicalize(pb).ok()?;
+    norm.to_str().map(|s| s.to_owned())
 }
 
 pub fn find_in_path(name: &str, paths: &str) -> Option<String> {
-    for dir in env::split_paths(paths) {
-        if dir.as_os_str().is_empty() {
-            continue;
-        }
-        let candidate: PathBuf = dir.join(name);
-        if candidate.exists() {
-            if let Some(s) = candidate.to_str() {
-                return Some(s.to_string());
-            }
-        }
-    }
-    None
+    let cwd = env::current_dir().ok()?;
+    which::which_in(name, Some(paths), &cwd)
+        .ok()
+        .and_then(|p| p.to_str().map(|s| s.to_owned()))
 }
 
 #[no_mangle]
@@ -85,11 +77,20 @@ mod tests {
     #[test]
     fn find_in_paths() {
         let dir = tempfile::tempdir().unwrap();
-        let file_path = dir.path().join("foo.txt");
+        #[cfg(unix)]
+        let (file_name, search_name) = ("foo", "foo");
+        #[cfg(windows)]
+        let (file_name, search_name) = ("foo.exe", "foo");
+        let file_path = dir.path().join(file_name);
         let mut f = File::create(&file_path).unwrap();
         writeln!(f, "hello").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&file_path, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
 
-        let name = CString::new("foo.txt").unwrap();
+        let name = CString::new(search_name).unwrap();
         let paths_os = env::join_paths([dir.path()]).unwrap();
         let paths = CString::new(paths_os.to_str().unwrap()).unwrap();
         let res_ptr = rs_find_in_path(name.as_ptr(), paths.as_ptr());
@@ -114,7 +115,9 @@ mod tests {
         let ptr = rs_normalize_path(c_path.as_ptr());
         assert!(!ptr.is_null());
         let norm = unsafe { CStr::from_ptr(ptr) }.to_str().unwrap().to_string();
-        unsafe { let _ = CString::from_raw(ptr); }
+        unsafe {
+            let _ = CString::from_raw(ptr);
+        }
         assert_eq!(norm, dir.path().canonicalize().unwrap().to_string_lossy());
     }
 
