@@ -142,21 +142,6 @@ hasFolding(linenr_T lnum, linenr_T *firstp, linenr_T *lastp)
     return rs_fold_find(get_global_fold_state(), lnum, firstp, lastp);
 }
 
-// Wrappers to manipulate folds through Rust implementation.  These are
-// currently unused in the C code but allow external callers to manage the
-// fold tree.
-void
-fold_add_rust(linenr_T top, linenr_T len, unsigned char flags, unsigned char small)
-{
-    rs_fold_add(get_global_fold_state(), top, len, flags, small);
-}
-
-void
-fold_update_rust(long idx, linenr_T top, linenr_T len, unsigned char flags, unsigned char small)
-{
-    rs_fold_update(get_global_fold_state(), idx, top, len, flags, small);
-}
-
 // hasFoldingWin() {{{2
     int
 hasFoldingWin(
