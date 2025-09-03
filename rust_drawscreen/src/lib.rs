@@ -9,10 +9,10 @@ static SCREEN_SIZE: OnceLock<(c_int, c_int)> = OnceLock::new();
 static GUI: OnceLock<Mutex<GuiCore<Backend>>> = OnceLock::new();
 static SCREEN: OnceLock<usize> = OnceLock::new();
 
-#[cfg(feature = "x11")]
-use rust_gui_x11::X11Backend as Backend;
 #[cfg(feature = "w32")]
 use rust_gui_w32::W32Backend as Backend;
+#[cfg(feature = "x11")]
+use rust_gui_x11::X11Backend as Backend;
 
 #[no_mangle]
 pub extern "C" fn rs_drawscreen_init(screen: *mut ScreenBuffer, width: c_int, height: c_int) {
