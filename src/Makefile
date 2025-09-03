@@ -1400,8 +1400,8 @@ RUST_EVALFUNC_LIB = $(RUST_EVALFUNC_DIR)/target/release/librust_evalfunc.a
 # Rust eval crate exposing eval_expr_rs used by C side
 RUST_EVAL_DIR = ../rust_eval
 RUST_EVAL_LIB = $(RUST_EVAL_DIR)/target/release/librust_eval.a
-RUST_VIM9_DIR = ../rust_vim9
-RUST_VIM9_LIB = $(RUST_VIM9_DIR)/target/release/librust_vim9.a
+RUST_VIM9_DIR = ../rust_vim9cmds
+RUST_VIM9_LIB = $(RUST_VIM9_DIR)/target/release/librust_vim9cmds.a
 RUST_ARABIC_DIR = ../rust_arabic
 RUST_ARABIC_LIB = $(RUST_ARABIC_DIR)/target/release/librust_arabic.a
 RUST_BEVAL_DIR = ../rust_beval

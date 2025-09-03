@@ -1,11 +1,12 @@
 [package]
-name = "rust_vim9"
+name = "rust_vim9cmds"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "rust_vim9"
+name = "rust_vim9cmds"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [dependencies]
 rust_eval = { path = "../rust_eval" }
+rust_vim9compile = { path = "../rust_vim9compile" }

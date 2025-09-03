@@ -13,7 +13,7 @@
 
 #define USING_FLOAT_STUFF
 #include "vim.h"
-#include "../rust_vim9/include/rust_vim9.h"
+#include "../rust_vim9cmds/include/rust_vim9cmds.h"
 
 #if defined(FEAT_EVAL) || defined(PROTO)
 
