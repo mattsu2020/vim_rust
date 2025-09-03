@@ -2340,24 +2340,6 @@ mch_print_init(
     struct prt_ps_encoding_S *p_mbenc_first;
     struct prt_ps_charset_S  *p_mbchar = NULL;
 
-#if 0
-    /*
-     * TODO:
-     * If "forceit" is false: pop up a dialog to select:
-     *	- printer name
-     *	- copies
-     *	- collated/uncollated
-     *	- duplex off/long side/short side
-     *	- paper size
-     *	- portrait/landscape
-     *	- font size
-     *
-     * If "forceit" is true: use the default printer and settings
-     */
-    if (forceit)
-	s_pd.Flags |= PD_RETURNDEFAULT;
-#endif
-
     /*
      * Set up font and encoding.
      */
