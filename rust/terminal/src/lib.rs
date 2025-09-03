@@ -1,114 +1,32 @@
-mod vterm {
-    use libc::{c_char, c_int, size_t};
-
-    #[repr(C)]
-    pub struct VTerm {
-        _private: [u8; 0],
-    }
-
-    extern "C" {
-        pub fn vterm_new(cols: c_int, rows: c_int) -> *mut VTerm;
-        pub fn vterm_free(vt: *mut VTerm);
-        pub fn vterm_input_write(vt: *mut VTerm, data: *const c_char, len: size_t) -> size_t;
-    }
-}
-
 use libc::{c_char, c_int, size_t};
 use std::ffi::{CStr, CString};
-use vterm::{vterm_free, vterm_input_write, vterm_new, VTerm};
+use std::io;
 
-#[cfg(unix)]
-mod pty {
-    use std::fs::File;
-    use std::io;
-    use std::os::unix::io::{FromRawFd, IntoRawFd};
-
-    use nix::pty::openpty;
-    use nix::pty::OpenptyResult;
-
-    pub struct Pty {
-        pub master: File,
-        pub slave: File,
-    }
-
-    impl Pty {
-        pub fn new() -> io::Result<Self> {
-            let OpenptyResult { master, slave } = openpty(None, None)
-                .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
-            let master_fd = master.into_raw_fd();
-            let slave_fd = slave.into_raw_fd();
-            unsafe {
-                Ok(Self {
-                    master: File::from_raw_fd(master_fd),
-                    slave: File::from_raw_fd(slave_fd),
-                })
-            }
-        }
-    }
-}
-
-#[cfg(windows)]
-mod pty {
-    use std::io;
-
-    pub struct Pty;
-
-    impl Pty {
-        pub fn new() -> io::Result<Self> {
-            Err(io::Error::new(io::ErrorKind::Other, "PTY not supported"))
-        }
-    }
-}
-
-use pty::Pty;
+use crossterm::{
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+};
+use ratatui::{backend::CrosstermBackend, widgets::*, Terminal as RatatuiTerminal};
 
 pub struct Terminal {
-    vterm: *mut VTerm,
-    buffer: Vec<u8>,
     scrollback: Vec<CString>,
-    pty: Pty,
 }
 
 impl Terminal {
-    pub fn new(width: i32, height: i32) -> std::io::Result<Self> {
-        let pty = Pty::new()?;
-        let vterm = unsafe { vterm_new(width, height) };
-        Ok(Self { vterm, buffer: Vec::new(), scrollback: Vec::new(), pty })
+    pub fn new(_width: i32, _height: i32) -> io::Result<Self> {
+        Ok(Self {
+            scrollback: Vec::new(),
+        })
     }
 
-    pub fn write_input(&mut self, data: &[u8]) -> std::io::Result<()> {
-        #[cfg(unix)]
-        {
-            use nix::unistd::write;
-            use std::os::unix::io::AsRawFd;
-            write(self.pty.master.as_raw_fd(), data)
-                .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
-        }
-        #[cfg(windows)]
-        {
-            let _ = data;
-        }
+    pub fn write_input(&mut self, data: &[u8]) -> io::Result<()> {
+        let line = String::from_utf8_lossy(data);
+        self.record_line(&line);
         Ok(())
     }
 
-    pub fn read_output(&mut self) -> std::io::Result<usize> {
-        let mut buf = [0u8; 1024];
-        #[cfg(unix)]
-        {
-            use nix::unistd::read;
-            use std::os::unix::io::AsRawFd;
-            let size = read(self.pty.master.as_raw_fd(), &mut buf)
-                .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
-            self.buffer.extend_from_slice(&buf[..size]);
-            unsafe {
-                vterm_input_write(self.vterm, buf.as_ptr() as *const i8, size as usize);
-            }
-            Ok(size as usize)
-        }
-        #[cfg(windows)]
-        {
-            Ok(0)
-        }
+    pub fn read_output(&mut self) -> io::Result<usize> {
+        Ok(0)
     }
 
     pub fn record_line(&mut self, line: &str) {
@@ -120,11 +38,32 @@ impl Terminal {
     pub fn scrollback(&self) -> Vec<&CStr> {
         self.scrollback.iter().map(|s| s.as_c_str()).collect()
     }
-}
 
-impl Drop for Terminal {
-    fn drop(&mut self) {
-        unsafe { vterm_free(self.vterm) };
+    pub fn render(&self) -> io::Result<()> {
+        enable_raw_mode()?;
+        let mut stdout = std::io::stdout();
+        execute!(stdout, EnterAlternateScreen)
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+        let backend = CrosstermBackend::new(stdout);
+        let mut terminal =
+            RatatuiTerminal::new(backend).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+        terminal
+            .draw(|frame| {
+                let block = Block::default().title("Scrollback").borders(Borders::ALL);
+                let text = self
+                    .scrollback
+                    .iter()
+                    .map(|s| s.to_string_lossy())
+                    .collect::<Vec<_>>()
+                    .join("\n");
+                let paragraph = Paragraph::new(text).block(block);
+                frame.render_widget(paragraph, frame.size());
+            })
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+        execute!(terminal.backend_mut(), LeaveAlternateScreen)
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+        disable_raw_mode()?;
+        Ok(())
     }
 }
 
@@ -139,12 +78,18 @@ pub extern "C" fn terminal_new(width: c_int, height: c_int) -> *mut Terminal {
 #[no_mangle]
 pub extern "C" fn terminal_free(term: *mut Terminal) {
     if !term.is_null() {
-        unsafe { drop(Box::from_raw(term)); }
+        unsafe {
+            drop(Box::from_raw(term));
+        }
     }
 }
 
 #[no_mangle]
-pub extern "C" fn terminal_write_input(term: *mut Terminal, data: *const c_char, len: size_t) -> c_int {
+pub extern "C" fn terminal_write_input(
+    term: *mut Terminal,
+    data: *const c_char,
+    len: size_t,
+) -> c_int {
     if term.is_null() || data.is_null() {
         return -1;
     }
