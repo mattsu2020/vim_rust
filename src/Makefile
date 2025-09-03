@@ -1807,11 +1807,8 @@ BASIC_SRC = \
         ex_eval.c \
         ex_getln.c \
         fileio.c \
-        filepath.c \
-        findfile.c \
         float.c \
         fold.c \
-        fuzzy.c \
         getchar.c \
         gc.c \
         gui_xim.c \
@@ -2099,14 +2096,11 @@ PRO_AUTO = \
 	ex_docmd.pro \
 	ex_eval.pro \
 	ex_getln.pro \
-	fileio.pro \
-	filepath.pro \
-	findfile.pro \
-	float.pro \
-	fold.pro \
-	fuzzy.pro \
-	getchar.pro \
-	gc.pro \
+        fileio.pro \
+        float.pro \
+        fold.pro \
+        getchar.pro \
+        gc.pro \
 	gui_xim.pro \
 	gui_beval.pro \
 	hardcopy.pro \
@@ -3377,20 +3371,11 @@ objects/ex_getln.o: ex_getln.c
 objects/fileio.o: fileio.c
 	$(CCC) -o $@ fileio.c
 
-objects/filepath.o: filepath.c
-	$(CCC) -o $@ filepath.c
-
-objects/findfile.o: findfile.c
-	$(CCC) -o $@ findfile.c
-
 objects/float.o: float.c
 	$(CCC) -o $@ float.c
 
 objects/fold.o: fold.c
 	$(CCC) -o $@ fold.c
-
-objects/fuzzy.o: fuzzy.c
-	$(CCC) -o $@ fuzzy.c
 
 objects/getchar.o: getchar.c
 	$(CCC) -o $@ getchar.c
@@ -3937,27 +3922,12 @@ objects/fileio.o: fileio.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/filepath.o: filepath.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
-objects/findfile.o: findfile.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
 objects/float.o: float.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
 objects/fold.o: fold.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
-objects/fuzzy.o: fuzzy.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \

@@ -98,8 +98,6 @@ extern int _stricoll(char *a, char *b);
 # include "ex_eval.pro"
 # include "ex_getln.pro"
 # include "fileio.pro"
-# include "filepath.pro"
-# include "findfile.pro"
 # include "float.pro"
 # include "fold.pro"
 # include "getchar.pro"
@@ -191,7 +189,6 @@ void mbyte_im_set_active(int active_arg);
 # if defined(FEAT_CRYPT) || defined(FEAT_PERSISTENT_UNDO)
 #  include "sha256.pro"
 # endif
-# include "fuzzy.pro"
 # include "search.pro"
 # include "sound.pro"
 # include "spell.pro"

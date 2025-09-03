@@ -1805,6 +1805,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_filepath"
+version = "0.1.0"
+dependencies = [
+ "tempfile",
+ "walkdir",
+]
+
+[[package]]
 name = "rust_fold"
 version = "0.1.0"
 dependencies = [
@@ -2759,6 +2767,7 @@ dependencies = [
  "rust_debugger",
  "rust_evalfunc_stubs",
  "rust_excmds",
+ "rust_filepath",
  "rust_fold",
  "rust_job",
  "rust_message",
