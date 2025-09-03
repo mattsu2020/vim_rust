@@ -1,7 +1,8 @@
+use std::ffi::CStr;
 use std::os::raw::{c_char, c_int, c_void};
 use std::sync::{Mutex, OnceLock};
 
-use rust_hashtab::{rust_hashtab_free, rust_hashtab_get, rust_hashtab_new, rust_hashtab_set};
+use hashbrown::HashMap;
 
 #[repr(C)]
 pub struct rust_funccall_S {
@@ -11,7 +12,7 @@ pub struct rust_funccall_S {
 
 #[repr(C)]
 struct FuncState {
-    table: *mut c_void,
+    table: HashMap<String, *mut c_void>,
     current: *mut rust_funccall_S,
 }
 
@@ -23,7 +24,7 @@ static FUNC_STATE: OnceLock<Mutex<FuncState>> = OnceLock::new();
 pub extern "C" fn rust_func_init() {
     FUNC_STATE.get_or_init(|| {
         Mutex::new(FuncState {
-            table: rust_hashtab_new(),
+            table: HashMap::new(),
             current: std::ptr::null_mut(),
         })
     });
@@ -33,8 +34,7 @@ pub extern "C" fn rust_func_init() {
 pub extern "C" fn rust_func_deinit() {
     if let Some(state) = FUNC_STATE.get() {
         if let Ok(mut guard) = state.lock() {
-            rust_hashtab_free(guard.table);
-            guard.table = std::ptr::null_mut();
+            guard.table.clear();
             guard.current = std::ptr::null_mut();
         }
     }
@@ -74,7 +74,14 @@ pub extern "C" fn rust_func_hashtab_set(name: *const c_char, func: *mut c_void) 
     if name.is_null() {
         return 0;
     }
-    with_state(|st| rust_hashtab_set(st.table, name, func)).unwrap_or(0)
+    with_state(|st| {
+        let key = unsafe { CStr::from_ptr(name) }
+            .to_string_lossy()
+            .into_owned();
+        st.table.insert(key, func);
+        1
+    })
+    .unwrap_or(0)
 }
 
 #[no_mangle]
@@ -82,7 +89,14 @@ pub extern "C" fn rust_func_hashtab_get(name: *const c_char) -> *mut c_void {
     if name.is_null() {
         return std::ptr::null_mut();
     }
-    with_state(|st| rust_hashtab_get(st.table, name)).unwrap_or(std::ptr::null_mut())
+    with_state(|st| {
+        let key = unsafe { CStr::from_ptr(name) }.to_string_lossy();
+        st.table
+            .get(key.as_ref())
+            .copied()
+            .unwrap_or(std::ptr::null_mut())
+    })
+    .unwrap_or(std::ptr::null_mut())
 }
 
 #[cfg(test)]
