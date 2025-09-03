@@ -1,5 +1,8 @@
-use std::os::raw::{c_int, c_void};
-use std::sync::{Mutex, OnceLock};
+use std::os::raw::{c_int, c_long, c_void};
+use std::sync::{
+    atomic::{AtomicI32, Ordering},
+    Mutex, OnceLock,
+};
 
 // Maintain a list of all allocated buffers so that they can be released safely
 // from Rust.  The buffers are allocated using libc and can therefore be freed
@@ -13,6 +16,9 @@ pub struct FileBuffer {
 // Global storage of allocated buffer pointers.  A simple Vec is sufficient
 // because we only ever store raw pointers and occasionally remove them.
 static BUFFERS: OnceLock<Mutex<Vec<usize>>> = OnceLock::new();
+
+// Counter similar to Vim's 'top_file_num', used by get_highest_fnum().
+static TOP_FILE_NUM: AtomicI32 = AtomicI32::new(1);
 
 #[no_mangle]
 pub extern "C" fn buf_alloc(size: usize) -> *mut FileBuffer {
@@ -54,6 +60,29 @@ pub extern "C" fn buf_freeall(_buf: *mut FileBuffer, _flags: c_int) {
     }
 }
 
+#[no_mangle]
+pub extern "C" fn calc_percentage(part: c_long, whole: c_long) -> c_int {
+    if whole == 0 {
+        return 0;
+    }
+    if part > 1_000_000 {
+        (part / (whole / 100)) as c_int
+    } else {
+        ((part * 100) / whole) as c_int
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn get_highest_fnum() -> c_int {
+    TOP_FILE_NUM.load(Ordering::SeqCst) - 1
+}
+
+// Helper for tests to set the top file number.
+#[cfg(test)]
+fn set_top_file_num(num: i32) {
+    TOP_FILE_NUM.store(num, Ordering::SeqCst);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -82,5 +111,17 @@ mod tests {
         }
         buf_freeall(std::ptr::null_mut(), 0);
         assert!(list.lock().unwrap().is_empty());
+    }
+
+    #[test]
+    fn percentage_calculation() {
+        assert_eq!(calc_percentage(50, 200), 25);
+        assert_eq!(calc_percentage(1_000_001, 2_000_000), 50);
+    }
+
+    #[test]
+    fn highest_fnum() {
+        set_top_file_num(10);
+        assert_eq!(get_highest_fnum(), 9);
     }
 }

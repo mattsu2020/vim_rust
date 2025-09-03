@@ -26,9 +26,17 @@ pub extern "C" fn rs_add_text_prop(id: c_int, name: *const c_char) -> bool {
         return false;
     }
     let cstr = unsafe { CStr::from_ptr(name) };
-    let Ok(name) = cstr.to_str() else { return false }; 
+    let Ok(name) = cstr.to_str() else {
+        return false;
+    };
     let mut st = store().lock().unwrap();
-    st.props.insert(id, TextProp { id, name: name.to_string() });
+    st.props.insert(
+        id,
+        TextProp {
+            id,
+            name: name.to_string(),
+        },
+    );
     true
 }
 
@@ -44,11 +52,23 @@ pub extern "C" fn rs_get_text_prop_name(id: c_int) -> *mut c_char {
 }
 
 #[no_mangle]
-pub extern "C" fn rs_format_text(
-    input: *const c_char,
-    uppercase: bool,
-    trim: bool,
-) -> *mut c_char {
+pub extern "C" fn rs_find_text_prop_id(name: *const c_char) -> c_int {
+    if name.is_null() {
+        return 0;
+    }
+    let cstr = unsafe { CStr::from_ptr(name) };
+    let Ok(name) = cstr.to_str() else { return 0 };
+    let st = store().lock().unwrap();
+    for (id, tp) in st.props.iter() {
+        if tp.name == name {
+            return *id;
+        }
+    }
+    0
+}
+
+#[no_mangle]
+pub extern "C" fn rs_format_text(input: *const c_char, uppercase: bool, trim: bool) -> *mut c_char {
     if input.is_null() {
         return std::ptr::null_mut();
     }
@@ -62,13 +82,17 @@ pub extern "C" fn rs_format_text(
     if uppercase {
         s = s.to_uppercase();
     }
-    CString::new(s).ok().map_or(std::ptr::null_mut(), |cs| cs.into_raw())
+    CString::new(s)
+        .ok()
+        .map_or(std::ptr::null_mut(), |cs| cs.into_raw())
 }
 
 #[no_mangle]
 pub extern "C" fn rs_free_cstring(s: *mut c_char) {
     if !s.is_null() {
-        unsafe { drop(CString::from_raw(s)); }
+        unsafe {
+            drop(CString::from_raw(s));
+        }
     }
 }
 
@@ -95,5 +119,13 @@ mod tests {
         let out = unsafe { CString::from_raw(out_ptr) };
         assert_eq!(out.to_str().unwrap(), "HELLO WORLD");
     }
-}
 
+    #[test]
+    fn find_text_prop_id() {
+        let name = CString::new("note").unwrap();
+        assert!(rs_add_text_prop(42, name.as_ptr()));
+        assert_eq!(rs_find_text_prop_id(name.as_ptr()), 42);
+        let unknown = CString::new("missing").unwrap();
+        assert_eq!(rs_find_text_prop_id(unknown.as_ptr()), 0);
+    }
+}
