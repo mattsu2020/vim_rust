@@ -16,6 +16,9 @@ static char_u	*username = NULL; // cached result of mch_get_user_name()
 
 static int coladvance2(pos_T *pos, int addspaces, int finetune, colnr_T wcol);
 
+// FFI: implemented in rust_strings crate
+extern int copy_option_part(char_u **option, char_u *buf, int maxlen, char *sep_chars);
+
 /*
  * Return TRUE if in the current mode we need to use virtual.
  */
@@ -728,47 +731,6 @@ set_leftcol(colnr_T leftcol)
 	curwin->w_set_curswant = TRUE;
     redraw_later(UPD_NOT_VALID);
     return retval;
-}
-
-/*
- * Isolate one part of a string option where parts are separated with
- * "sep_chars".
- * The part is copied into "buf[maxlen]".
- * "*option" is advanced to the next part.
- * The length is returned.
- */
-    int
-copy_option_part(
-    char_u	**option,
-    char_u	*buf,
-    int		maxlen,
-    char	*sep_chars)
-{
-    int	    len = 0;
-    char_u  *p = *option;
-
-    // skip '.' at start of option part, for 'suffixes'
-    if (*p == '.')
-	buf[len++] = *p++;
-    while (*p != NUL && vim_strchr((char_u *)sep_chars, *p) == NULL)
-    {
-	/*
-	 * Skip backslash before a separator character and space.
-	 */
-	if (p[0] == '\\' && vim_strchr((char_u *)sep_chars, p[1]) != NULL)
-	    ++p;
-	if (len < maxlen - 1)
-	    buf[len++] = *p;
-	++p;
-    }
-    buf[len] = NUL;
-
-    if (*p != NUL && *p != ',')	// skip non-standard separator
-	++p;
-    p = skip_to_option_part(p);	// p points to next file name
-
-    *option = p;
-    return len;
 }
 
 #if !defined(HAVE_MEMSET) && !defined(PROTO)

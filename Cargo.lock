@@ -1683,6 +1683,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_cmdexpand"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rust_cmdhist"
 version = "0.1.0"
 dependencies = [
@@ -2192,6 +2199,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_strings"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rust_syntax"
 version = "0.1.0"
 
@@ -2244,6 +2258,20 @@ dependencies = [
 
 [[package]]
 name = "rust_time"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
+name = "rust_tuple"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
+name = "rust_typval"
 version = "0.1.0"
 dependencies = [
  "libc",
