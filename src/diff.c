@@ -114,8 +114,8 @@ static void diff_copy_entry(diff_T *dprev, diff_T *dp, int idx_orig, int idx_new
 static diff_T *diff_alloc_new(tabpage_T *tp, diff_T *dprev, diff_T *dp);
 static int parse_diff_ed(char_u *line, diffhunk_T *hunk);
 static int parse_diff_unified(char_u *line, diffhunk_T *hunk);
-static int xdiff_out_indices(long start_a, long count_a, long start_b, long count_b, void *priv);
-static int xdiff_out_unified(void *priv, mmbuffer_t *mb, int nbuf);
+extern int xdiff_out_indices(long start_a, long count_a, long start_b, long count_b, void *priv);
+extern int xdiff_out_unified(void *priv, mmbuffer_t *mb, int nbuf);
 static int parse_diffanchors(int check_only, buf_T *buf, linenr_T *anchors, int *num_anchors);
 
 #define FOR_ALL_DIFFBLOCKS_IN_TAB(tp, dp) \
@@ -4611,56 +4611,6 @@ parse_diff_unified(
     return FAIL;
 }
 
-/*
- * Callback function for the xdl_diff() function.
- * Stores the diff output (indices) in a grow array.
- */
-    static int
-xdiff_out_indices(
-	long start_a,
-	long count_a,
-	long start_b,
-	long count_b,
-	void *priv)
-{
-    diffout_T	*dout = (diffout_T *)priv;
-    diffhunk_T *p = ALLOC_ONE(diffhunk_T);
-
-    if (p == NULL)
-	return -1;
-
-    if (ga_grow(&dout->dout_ga, 1) == FAIL)
-    {
-	vim_free(p);
-	return -1;
-    }
-
-    p->lnum_orig  = start_a + 1;
-    p->count_orig = count_a;
-    p->lnum_new   = start_b + 1;
-    p->count_new  = count_b;
-    ((diffhunk_T **)dout->dout_ga.ga_data)[dout->dout_ga.ga_len++] = p;
-    return 0;
-}
-
-/*
- * Callback function for the xdl_diff() function.
- * Stores the unified diff output in a grow array.
- */
-    static int
-xdiff_out_unified(
-	void *priv,
-	mmbuffer_t *mb,
-	int nbuf)
-{
-    diffout_T	*dout = (diffout_T *)priv;
-    int		i;
-
-    for (i = 0; i < nbuf; i++)
-	ga_concat_len(&dout->dout_ga, (char_u *)mb[i].ptr, mb[i].size);
-
-    return 0;
-}
 
 #endif	// FEAT_DIFF
 

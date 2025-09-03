@@ -1,4 +1,4 @@
-use core::ffi::{c_char, c_int, c_long, c_void};
+use core::ffi::{c_char, c_int, c_long, c_void, c_uchar};
 
 #[repr(C)]
 pub struct mmfile_t {
@@ -34,6 +34,36 @@ pub struct xdemitconf_t {
     pub find_func: Option<unsafe extern "C" fn(*const c_char, c_long, *mut c_char, c_long, *mut c_void) -> c_long>,
     pub find_func_priv: *mut c_void,
     pub hunk_func: Option<unsafe extern "C" fn(c_long, c_long, c_long, c_long, *mut c_void) -> c_int>,
+}
+
+#[repr(C)]
+pub struct garray_T {
+    pub ga_len: c_int,
+    pub ga_maxlen: c_int,
+    pub ga_itemsize: c_int,
+    pub ga_growsize: c_int,
+    pub ga_data: *mut c_void,
+}
+
+#[repr(C)]
+pub struct diffout_T {
+    pub dout_fname: *mut c_char,
+    pub dout_ga: garray_T,
+}
+
+#[repr(C)]
+pub struct diffhunk_T {
+    pub lnum_orig: c_long,
+    pub count_orig: c_long,
+    pub lnum_new: c_long,
+    pub count_new: c_long,
+}
+
+extern "C" {
+    fn ga_concat_len(gap: *mut garray_T, s: *const c_uchar, len: usize);
+    fn ga_grow(gap: *mut garray_T, n: c_int) -> c_int;
+    fn alloc(size: usize) -> *mut c_void;
+    fn vim_free(ptr: *mut c_void);
 }
 
 #[derive(Clone, Copy)]
@@ -124,6 +154,53 @@ pub unsafe extern "C" fn xdl_diff(
         Ok(v) => v,
         Err(_) => -1,
     }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn xdiff_out_unified(
+    priv_: *mut c_void,
+    mb: *mut mmbuffer_t,
+    nbuf: c_int,
+) -> c_int {
+    if priv_.is_null() || mb.is_null() {
+        return -1;
+    }
+    let dout = &mut *(priv_ as *mut diffout_T);
+    let bufs = std::slice::from_raw_parts(mb, nbuf as usize);
+    for b in bufs {
+        ga_concat_len(&mut dout.dout_ga, b.ptr as *const c_uchar, b.size as usize);
+    }
+    0
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn xdiff_out_indices(
+    start_a: c_long,
+    count_a: c_long,
+    start_b: c_long,
+    count_b: c_long,
+    priv_: *mut c_void,
+) -> c_int {
+    if priv_.is_null() {
+        return -1;
+    }
+    let dout = &mut *(priv_ as *mut diffout_T);
+    let p = alloc(std::mem::size_of::<diffhunk_T>()) as *mut diffhunk_T;
+    if p.is_null() {
+        return -1;
+    }
+    if ga_grow(&mut dout.dout_ga, 1) == 0 {
+        vim_free(p as *mut c_void);
+        return -1;
+    }
+    (*p).lnum_orig = start_a + 1;
+    (*p).count_orig = count_a;
+    (*p).lnum_new = start_b + 1;
+    (*p).count_new = count_b;
+    let data = dout.dout_ga.ga_data as *mut *mut diffhunk_T;
+    *data.add(dout.dout_ga.ga_len as usize) = p;
+    dout.dout_ga.ga_len += 1;
+    0
 }
 
 #[cfg(test)]
