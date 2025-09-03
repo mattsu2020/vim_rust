@@ -12,6 +12,7 @@
 
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int, c_long, c_void};
+use regex::bytes::{NoExpand, Regex, RegexBuilder};
 
 mod fuzzy;
 mod linematch;
@@ -19,92 +20,22 @@ mod linematch;
 pub use fuzzy::fuzzy_match;
 pub use linematch::line_match;
 
-// A very small regular expression engine.  It only understands a few meta
-// characters and is intended as a placeholder for the full Vim engine.
-// Supported syntax:
-//  - Literals
-//  - '.'      : matches any single character
-//  - '*'      : zero or more of the previous item
-//  - '^'      : anchor at start of the string
-//  - '$'      : anchor at end of the string
-// No capturing groups or character classes are implemented.
-// Flag bit 1 enables case-insensitive matching.
+/// Search for a match of `pat` anywhere in `text`.
+///
+/// This helper mirrors the functionality provided by the old miniature
+/// regex engine but is now backed by the `regex` crate.  It is primarily
+/// exposed for benchmarks and tests.
+pub fn search(pat: &[u8], text: &[u8], ic: bool) -> Option<(usize, usize)> {
+    let pat_str = std::str::from_utf8(pat).ok()?;
+    let mut builder = RegexBuilder::new(pat_str);
+    builder.case_insensitive(ic);
+    let re = builder.build().ok()?;
+    re.find(text).map(|m| (m.start(), m.end()))
+}
 
 #[repr(C)]
 pub struct RegProg {
-    pattern: Vec<u8>,
-    ic: bool,
-}
-
-fn eq_byte(a: u8, b: u8, ic: bool) -> bool {
-    if ic {
-        a.to_ascii_lowercase() == b.to_ascii_lowercase()
-    } else {
-        a == b
-    }
-}
-
-// Try to match `pat` against `text` starting at the first character.  Returns
-// the length of the match when successful.
-fn match_here(pat: &[u8], text: &[u8], ic: bool) -> Option<usize> {
-    if pat.is_empty() {
-        return Some(0);
-    }
-    if pat.len() >= 2 && pat[1] == b'*' {
-        return match_star(pat[0], &pat[2..], text, ic);
-    }
-    match pat[0] {
-        b'$' if pat.len() == 1 => {
-            if text.is_empty() {
-                Some(0)
-            } else {
-                None
-            }
-        }
-        c if !text.is_empty() && (c == b'.' || eq_byte(c, text[0], ic)) => {
-            match_here(&pat[1..], &text[1..], ic).map(|l| l + 1)
-        }
-        _ => None,
-    }
-}
-
-fn match_star(c: u8, pat: &[u8], text: &[u8], ic: bool) -> Option<usize> {
-    let mut i = 0;
-    while i <= text.len() {
-        if let Some(l) = match_here(pat, &text[i..], ic) {
-            return Some(i + l);
-        }
-        if i == text.len() {
-            break;
-        }
-        if c != b'.' && !eq_byte(c, text[i], ic) {
-            break;
-        }
-        i += 1;
-    }
-    None
-}
-
-// Search for a match of `pat` anywhere in `text`.
-/// Search for a match of `pat` anywhere in `text`.
-///
-/// This function is public so it can be used by benchmarks without having to
-/// go through the `vim_reg*` FFI wrappers.
-pub fn search(pat: &[u8], text: &[u8], ic: bool) -> Option<(usize, usize)> {
-    if pat.first() == Some(&b'^') {
-        return match_here(&pat[1..], text, ic).map(|l| (0, l));
-    }
-    let mut i = 0;
-    while i <= text.len() {
-        if let Some(l) = match_here(pat, &text[i..], ic) {
-            return Some((i, i + l));
-        }
-        if i == text.len() {
-            break;
-        }
-        i += 1;
-    }
-    None
+    regex: Regex,
 }
 
 #[no_mangle]
@@ -117,28 +48,14 @@ pub extern "C" fn vim_regcomp(pattern: *const c_char, flags: c_int) -> *mut RegP
         Ok(s) => s,
         Err(_) => return std::ptr::null_mut(),
     };
-    // Reject patterns containing constructs we do not understand.
-    let bytes = pattern_str.as_bytes();
-    let mut prev_was_atom = false;
-    for &b in bytes {
-        match b {
-            b'.' | b'^' | b'$' => prev_was_atom = true,
-            b'*' => {
-                if !prev_was_atom {
-                    return std::ptr::null_mut();
-                }
-                prev_was_atom = false;
-            }
-            b'[' | b']' | b'(' | b')' | b'+' | b'?' | b'{' | b'}' | b'|' | b'\\' => {
-                return std::ptr::null_mut();
-            }
-            _ => prev_was_atom = true,
-        }
+    let mut builder = RegexBuilder::new(pattern_str);
+    if (flags & 1) != 0 {
+        builder.case_insensitive(true);
     }
-    Box::into_raw(Box::new(RegProg {
-        pattern: bytes.to_vec(),
-        ic: (flags & 1) != 0,
-    }))
+    match builder.build() {
+        Ok(regex) => Box::into_raw(Box::new(RegProg { regex })),
+        Err(_) => std::ptr::null_mut(),
+    }
 }
 
 #[no_mangle]
@@ -188,15 +105,15 @@ fn regexec_internal(rmp: *mut RegMatch, line: *const c_char, col: c_int) -> c_in
         return 0;
     }
     let slice = &line_bytes[(col as usize)..];
-    if let Some((s, e)) = search(&prog.pattern, slice, prog.ic) {
-        let m = unsafe { &mut *rmp };
+    if let Some(mat) = prog.regex.find(slice) {
+        let rm = unsafe { &mut *rmp };
         for i in 0..10 {
-            m.startp[i] = std::ptr::null();
-            m.endp[i] = std::ptr::null();
+            rm.startp[i] = std::ptr::null();
+            rm.endp[i] = std::ptr::null();
         }
         unsafe {
-            m.startp[0] = line.add(col as usize + s);
-            m.endp[0] = line.add(col as usize + e);
+            rm.startp[0] = line.add(col as usize + mat.start());
+            rm.endp[0] = line.add(col as usize + mat.end());
         }
         return 1;
     }
@@ -272,16 +189,11 @@ pub extern "C" fn vim_regsub(
         return std::ptr::null_mut();
     }
     let prog = unsafe { &*prog };
-    let text_str = unsafe { CStr::from_ptr(text).to_bytes() };
-    let sub_str = unsafe { CStr::from_ptr(sub).to_bytes() };
-    if let Some((s, e)) = search(&prog.pattern, text_str, prog.ic) {
-        let mut result = Vec::new();
-        result.extend_from_slice(&text_str[..s]);
-        result.extend_from_slice(sub_str);
-        result.extend_from_slice(&text_str[e..]);
-        CString::new(result).unwrap().into_raw()
-    } else {
-        // No match -> return original text
-        CString::new(text_str).unwrap().into_raw()
-    }
+    let text_bytes = unsafe { CStr::from_ptr(text).to_bytes() };
+    let sub_bytes = unsafe { CStr::from_ptr(sub).to_bytes() };
+    let replaced = prog
+        .regex
+        .replace(text_bytes, NoExpand(sub_bytes))
+        .into_owned();
+    CString::new(replaced).unwrap().into_raw()
 }
