@@ -17,6 +17,7 @@ RegProg* vim_regcomp(const char *pattern, int flags);
 void vim_regfree(RegProg *prog);
 int vim_regexec(struct regmatch_T *rmp, const char *line, int col);
 int vim_regexec_nl(struct regmatch_T *rmp, const char *line, int col);
+int vim_regexec_prog(RegProg **prog, int ignore_case, const char *line, int col);
 long vim_regexec_multi(struct regmmatch_T *rmp, struct win_T *win,
                        struct buf_T *buf, long lnum, int col,
                        int *timed_out);

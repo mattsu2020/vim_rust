@@ -1847,7 +1847,6 @@ BASIC_SRC = \
         profiler.c \
         pty.c \
         quickfix.c \
-        regexp.c \
         register.c \
         screen.c \
         scriptfile.c \
@@ -3580,11 +3579,8 @@ objects/pty.o: pty.c
 objects/quickfix.o: quickfix.c
 	$(CCC) -o $@ quickfix.c
 
-objects/regexp.o: regexp.c
-	$(CCC) -o $@ regexp.c
-
 objects/register.o: register.c
-	$(CCC) -o $@ register.c
+$(CCC) -o $@ register.c
 
 objects/scriptfile.o: scriptfile.c
 	$(CCC) -o $@ scriptfile.c
@@ -4130,11 +4126,6 @@ objects/pty.o: pty.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
 objects/quickfix.o: quickfix.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
-objects/regexp.o: regexp.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \

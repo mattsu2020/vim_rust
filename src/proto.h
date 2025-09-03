@@ -183,7 +183,6 @@ void mbyte_im_set_active(int active_arg);
 #ifdef FEAT_WAYLAND
 # include "wayland.pro"
 #endif
-# include "regexp.pro"
 # include "register.pro"
 # include "scriptfile.pro"
 # include "screen.pro"
