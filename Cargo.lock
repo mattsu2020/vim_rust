@@ -1216,6 +1216,7 @@ name = "rust_diff"
 version = "0.1.0"
 dependencies = [
  "diff",
+ "similar",
 ]
 
 [[package]]
@@ -1307,6 +1308,20 @@ version = "0.1.0"
 
 [[package]]
 name = "rust_gui_gtk"
+version = "0.1.0"
+dependencies = [
+ "rust_gui_core",
+]
+
+[[package]]
+name = "rust_gui_gtk_x11"
+version = "0.1.0"
+dependencies = [
+ "rust_gui_core",
+]
+
+[[package]]
+name = "rust_gui_motif"
 version = "0.1.0"
 dependencies = [
  "rust_gui_core",

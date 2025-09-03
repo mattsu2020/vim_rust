@@ -1,7 +1,8 @@
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int, c_void, c_long};
-use std::process::Command;
 use std::ptr;
+
+use similar::TextDiff;
 
 use diff::{mmfile_t, mmbuffer_t, xdemitcb_t, xdl_diff};
 
@@ -34,11 +35,17 @@ pub extern "C" fn rs_diff_files(f1: *const c_char, f2: *const c_char, mode: Diff
 
     match mode {
         DiffMode::External => {
-            let output = Command::new("diff").arg("-u").arg(&file1).arg(&file2).output();
-            match output {
-                Ok(out) => CString::new(String::from_utf8_lossy(&out.stdout).to_string()).unwrap().into_raw(),
-                Err(_) => ptr::null_mut(),
-            }
+            let a = match std::fs::read_to_string(&file1) {
+                Ok(v) => v,
+                Err(_) => return ptr::null_mut(),
+            };
+            let b = match std::fs::read_to_string(&file2) {
+                Ok(v) => v,
+                Err(_) => return ptr::null_mut(),
+            };
+            let diff = TextDiff::from_lines(&a, &b);
+            let output = diff.unified_diff().header(&file1, &file2).to_string();
+            CString::new(output).unwrap().into_raw()
         }
         DiffMode::Xdiff => {
             let a = match std::fs::read(&file1) {
@@ -95,6 +102,8 @@ mod tests {
         assert!(!ptr.is_null());
         let diff = unsafe { CStr::from_ptr(ptr).to_string_lossy().into_owned() };
         rs_diff_free(ptr);
+        assert!(diff.contains(&format!("--- {}", f1.to_str().unwrap())));
+        assert!(diff.contains(&format!("+++ {}", f2.to_str().unwrap())));
         assert!(diff.contains("-b"));
         assert!(diff.contains("+c"));
     }

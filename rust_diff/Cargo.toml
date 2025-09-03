@@ -8,4 +8,5 @@ crate-type = ["staticlib"]
 
 [dependencies]
 diff = { path = "../rust/diff" }
+similar = "2.7"
 
