@@ -1785,6 +1785,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_evalwindow"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "rust_evalvars",
+]
+
+[[package]]
 name = "rust_excmds"
 version = "0.1.0"
 dependencies = [
@@ -2758,6 +2766,7 @@ dependencies = [
  "rust_cmdhist",
  "rust_debugger",
  "rust_evalfunc_stubs",
+ "rust_evalwindow",
  "rust_excmds",
  "rust_fold",
  "rust_job",
