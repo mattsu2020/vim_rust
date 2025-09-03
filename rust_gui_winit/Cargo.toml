@@ -1,0 +1,15 @@
+[package]
+name = "rust_gui_winit"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rust_gui_core = { path = "../rust_gui_core" }
+winit = "0.28"
+
+[features]
+default = []
+# Forward platform selection to winit so builds can opt-in to a specific
+# windowing system on Unix platforms.
+x11 = ["winit/x11"]
+wayland = ["winit/wayland"]
