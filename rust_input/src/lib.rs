@@ -26,7 +26,9 @@ pub extern "C" fn rs_input_context_new() -> *mut InputContext {
 #[no_mangle]
 pub extern "C" fn rs_input_context_free(ptr: *mut InputContext) {
     if !ptr.is_null() {
-        unsafe { drop(Box::from_raw(ptr)); }
+        unsafe {
+            drop(Box::from_raw(ptr));
+        }
     }
 }
 
@@ -91,13 +93,8 @@ pub extern "C" fn rs_redo_get(ptr: *mut InputContext) -> c_int {
     }
 }
 
-#[no_mangle]
-pub extern "C" fn rs_redo_get_all(ptr: *mut InputContext, buf: *mut c_char, len: usize) -> usize {
-    if ptr.is_null() {
-        return 0;
-    }
-    let ctx = unsafe { &mut *ptr };
-    let s: String = ctx.redo.iter().filter_map(|&c| std::char::from_u32(c)).collect();
+fn vec_to_cstr(src: &mut Vec<u32>, buf: *mut c_char, len: usize) -> usize {
+    let s: String = src.iter().filter_map(|&c| std::char::from_u32(c)).collect();
     let c_str = match CString::new(s) {
         Ok(s) => s,
         Err(_) => return 0,
@@ -112,8 +109,22 @@ pub extern "C" fn rs_redo_get_all(ptr: *mut InputContext, buf: *mut c_char, len:
     unsafe {
         std::ptr::copy_nonoverlapping(bytes.as_ptr(), buf as *mut u8, bytes.len());
     }
-    ctx.redo.clear();
+    src.clear();
     bytes.len()
+}
+
+#[no_mangle]
+pub extern "C" fn rs_redo_get_all(ptr: *mut InputContext, buf: *mut c_char, len: usize) -> usize {
+    if ptr.is_null() {
+        return 0;
+    }
+    let ctx = unsafe { &mut *ptr };
+    let mut redo_vec: Vec<u32> = ctx.redo.iter().copied().collect();
+    let ret = vec_to_cstr(&mut redo_vec, buf, len);
+    if !buf.is_null() && len != 0 && ret != 0 {
+        ctx.redo.clear();
+    }
+    ret
 }
 
 #[no_mangle]
@@ -122,23 +133,7 @@ pub extern "C" fn rs_record_get(ptr: *mut InputContext, buf: *mut c_char, len: u
         return 0;
     }
     let ctx = unsafe { &mut *ptr };
-    let s: String = ctx.record.iter().filter_map(|&c| std::char::from_u32(c)).collect();
-    let c_str = match CString::new(s) {
-        Ok(s) => s,
-        Err(_) => return 0,
-    };
-    let bytes = c_str.as_bytes_with_nul();
-    if buf.is_null() || len == 0 {
-        return bytes.len();
-    }
-    if bytes.len() > len {
-        return 0;
-    }
-    unsafe {
-        std::ptr::copy_nonoverlapping(bytes.as_ptr(), buf as *mut u8, bytes.len());
-    }
-    ctx.record.clear();
-    bytes.len()
+    vec_to_cstr(&mut ctx.record, buf, len)
 }
 
 #[cfg(test)]
@@ -155,7 +150,9 @@ mod tests {
         assert_eq!(rs_input_get(ctx), 'a' as i32);
         assert_eq!(rs_input_get(ctx), 'あ' as i32);
         assert_eq!(rs_input_get(ctx), -1);
-        unsafe { rs_input_context_free(ctx); }
+        unsafe {
+            rs_input_context_free(ctx);
+        }
     }
 
     #[test]
@@ -166,7 +163,9 @@ mod tests {
         assert_eq!(rs_redo_get(ctx), 'x' as i32);
         assert_eq!(rs_redo_get(ctx), 'y' as i32);
         assert_eq!(rs_redo_get(ctx), -1);
-        unsafe { rs_input_context_free(ctx); }
+        unsafe {
+            rs_input_context_free(ctx);
+        }
     }
 
     #[test]
@@ -179,6 +178,8 @@ mod tests {
         assert_eq!(needed, got);
         let s = unsafe { CStr::from_ptr(buf.as_ptr()) }.to_str().unwrap();
         assert_eq!(s, "a");
-        unsafe { rs_input_context_free(ctx); }
+        unsafe {
+            rs_input_context_free(ctx);
+        }
     }
 }
