@@ -13,6 +13,30 @@ pub struct FileBuffer {
     _data: [u8; 0],
 }
 
+#[repr(transparent)]
+pub struct OwnedFileBuffer(*mut FileBuffer);
+
+impl OwnedFileBuffer {
+    pub fn as_ptr(&self) -> *mut FileBuffer {
+        self.0
+    }
+}
+
+impl Drop for OwnedFileBuffer {
+    fn drop(&mut self) {
+        if self.0.is_null() {
+            return;
+        }
+        if let Some(m) = BUFFERS.get() {
+            let mut buffers = m.lock().unwrap();
+            if let Some(pos) = buffers.iter().position(|&p| p == self.0 as usize) {
+                buffers.remove(pos);
+            }
+        }
+        unsafe { libc::free(self.0 as *mut c_void) };
+    }
+}
+
 // Global storage of allocated buffer pointers.  A simple Vec is sufficient
 // because we only ever store raw pointers and occasionally remove them.
 static BUFFERS: OnceLock<Mutex<Vec<usize>>> = OnceLock::new();
@@ -20,8 +44,7 @@ static BUFFERS: OnceLock<Mutex<Vec<usize>>> = OnceLock::new();
 // Counter similar to Vim's 'top_file_num', used by get_highest_fnum().
 static TOP_FILE_NUM: AtomicI32 = AtomicI32::new(1);
 
-#[no_mangle]
-pub extern "C" fn buf_alloc(size: usize) -> *mut FileBuffer {
+fn allocate(size: usize) -> *mut FileBuffer {
     let ptr = unsafe { libc::calloc(1, size) } as *mut FileBuffer;
     if !ptr.is_null() {
         BUFFERS
@@ -31,6 +54,17 @@ pub extern "C" fn buf_alloc(size: usize) -> *mut FileBuffer {
             .push(ptr as *mut c_void as usize);
     }
     ptr
+}
+
+#[deprecated(note = "use buf_alloc_owned instead")]
+#[no_mangle]
+pub extern "C" fn buf_alloc(size: usize) -> *mut FileBuffer {
+    allocate(size)
+}
+
+#[no_mangle]
+pub extern "C" fn buf_alloc_owned(size: usize) -> OwnedFileBuffer {
+    OwnedFileBuffer(allocate(size))
 }
 
 #[no_mangle]
@@ -111,6 +145,23 @@ mod tests {
         }
         buf_freeall(std::ptr::null_mut(), 0);
         assert!(list.lock().unwrap().is_empty());
+    }
+
+    #[test]
+    fn owned_alloc_and_drop() {
+        let buf = buf_alloc_owned(16);
+        let ptr = buf.as_ptr();
+        assert!(!ptr.is_null());
+        let list = BUFFERS.get().unwrap();
+        assert!(list
+            .lock()
+            .unwrap()
+            .contains(&(ptr as *mut c_void as usize)));
+        drop(buf);
+        assert!(!list
+            .lock()
+            .unwrap()
+            .contains(&(ptr as *mut c_void as usize)));
     }
 
     #[test]
