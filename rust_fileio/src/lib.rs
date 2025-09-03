@@ -22,7 +22,7 @@ fn c_path_to_normalized(ptr: *const c_char) -> Option<PathBuf> {
 /// Read the file at `fname`.
 /// Unused parameters mirror the original C API.
 #[no_mangle]
-pub extern "C" fn rs_readfile(
+pub extern "C" fn readfile(
     fname: *const c_char,
     _sfname: *const c_char,
     _from: isize,
@@ -49,7 +49,7 @@ pub extern "C" fn rs_readfile(
 
 /// Write `len` bytes from `data` to the file at `fname`.
 #[no_mangle]
-pub extern "C" fn rs_writefile(
+pub extern "C" fn writefile(
     fname: *const c_char,
     data: *const c_char,
     len: usize,
@@ -84,11 +84,11 @@ mod tests {
         fs::File::create("tmp_rust_fileio.txt").unwrap();
         let data = b"hello rust";
         assert_eq!(
-            rs_writefile(name.as_ptr(), data.as_ptr() as *const c_char, data.len(), 0),
+            writefile(name.as_ptr(), data.as_ptr() as *const c_char, data.len(), 0),
             0
         );
         assert_eq!(
-            rs_readfile(
+            readfile(
                 name.as_ptr(),
                 std::ptr::null(),
                 0,
@@ -114,7 +114,7 @@ mod tests {
         let cpath = CString::new(file_path.to_str().unwrap()).unwrap();
         let data = vec![b'a'; 5 * 1024 * 1024]; // 5MB
         assert_eq!(
-            rs_writefile(
+            writefile(
                 cpath.as_ptr(),
                 data.as_ptr() as *const c_char,
                 data.len(),
@@ -123,7 +123,7 @@ mod tests {
             0
         );
         assert_eq!(
-            rs_readfile(
+            readfile(
                 cpath.as_ptr(),
                 std::ptr::null(),
                 0,
@@ -147,7 +147,7 @@ mod tests {
         // should reject this without attempting the write.
         let data = [0u8; 1];
         assert_eq!(
-            rs_writefile(
+            writefile(
                 name.as_ptr(),
                 data.as_ptr() as *const c_char,
                 MAX_IO_SIZE + 1,
@@ -170,7 +170,7 @@ mod tests {
         }
         let cpath = CString::new(file_path.to_str().unwrap()).unwrap();
         assert_eq!(
-            rs_readfile(
+            readfile(
                 cpath.as_ptr(),
                 std::ptr::null(),
                 0,
@@ -184,12 +184,12 @@ mod tests {
     }
 
     unsafe fn call_read(path: *const c_char) -> c_int {
-        rs_readfile(path, std::ptr::null(), 0, 0, 0, std::ptr::null_mut(), 0)
+        readfile(path, std::ptr::null(), 0, 0, 0, std::ptr::null_mut(), 0)
     }
 
     unsafe fn call_write(path: *const c_char) -> c_int {
         let buf = [0u8; 1];
-        rs_writefile(path, buf.as_ptr() as *const c_char, buf.len(), 0)
+        writefile(path, buf.as_ptr() as *const c_char, buf.len(), 0)
     }
 
     unsafe fn check_validation(f: unsafe fn(*const c_char) -> c_int) {
