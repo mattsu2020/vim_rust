@@ -7,5 +7,7 @@ edition = "2021"
 name = "rust_regex_engine"
 crate-type = ["staticlib", "rlib"]
 
+# This crate implements a very small regular expression engine that
+# supports only literal matches and a few meta characters.  Therefore we
+# do not depend on an external regex crate.
 [dependencies]
-regex = "1"
