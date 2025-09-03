@@ -15,6 +15,8 @@
 
 // Functions implemented in Rust for key mappings.
 extern const char *rs_map_lookup(const char *lhs);
+// Comparator implemented in Rust for sorting completion matches.
+extern int rs_sort_func_compare(const void *s1, const void *s2);
 
 static int	cmd_showtail;	// Only show path tail in lists ?
 static int	may_expand_pattern = FALSE;
@@ -91,21 +93,6 @@ cmdline_fuzzy_completion_supported(expand_T *xp)
 cmdline_fuzzy_complete(char_u *fuzzystr)
 {
     return vim_strchr(p_wop, WOP_FUZZY) != NULL && *fuzzystr != NUL;
-}
-
-/*
- * sort function for the completion matches.
- * <SNR> functions should be sorted to the end.
- */
-    static int
-sort_func_compare(const void *s1, const void *s2)
-{
-    char_u *p1 = *(char_u **)s1;
-    char_u *p2 = *(char_u **)s2;
-
-    if (*p1 != '<' && *p2 == '<') return -1;
-    if (*p1 == '<' && *p2 != '<') return 1;
-    return STRCMP(p1, p2);
 }
 
 /*
@@ -3713,8 +3700,8 @@ ExpandGenericExt(
     {
 	if (funcsort)
 	    // <SNR> functions should be sorted to the end.
-	    qsort((void *)ga.ga_data, (size_t)ga.ga_len, sizeof(char_u *),
-							   sort_func_compare);
+            qsort((void *)ga.ga_data, (size_t)ga.ga_len, sizeof(char_u *),
+                                                           rs_sort_func_compare);
 	else
 	    sort_strings((char_u **)ga.ga_data + sortStartMatchIdx, ga.ga_len - sortStartMatchIdx);
     }
