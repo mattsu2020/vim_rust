@@ -81,15 +81,9 @@ typedef struct s_mmbuffer {
 typedef struct s_xpparam {
 	unsigned long flags;
 
-	/* -I<regex> */
- #if 0  // unused by Vim
-	regex_t **ignore_regex;
-	size_t ignore_regex_nr;
-#endif
-
-	/* See Documentation/diff-options.txt. */
-	char **anchors;
-	size_t anchors_nr;
+        /* See Documentation/diff-options.txt. */
+        char **anchors;
+        size_t anchors_nr;
 } xpparam_t;
 
 typedef struct s_xdemitcb {
