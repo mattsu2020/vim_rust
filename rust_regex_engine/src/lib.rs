@@ -1,88 +1,18 @@
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int, c_long, c_void};
 
-// A very small regular expression engine.  It only understands a few meta
-// characters and is intended as a placeholder for the full Vim engine.
-// Supported syntax:
-//  - Literals
-//  - '.'      : matches any single character
-//  - '*'      : zero or more of the previous item
-//  - '^'      : anchor at start of the string
-//  - '$'      : anchor at end of the string
-// No capturing groups or character classes are implemented.
-// Flag bit 1 enables case-insensitive matching.
+mod class;
+mod backtrack;
+mod nfa;
 
-#[repr(C)]
+enum Engine {
+    Backtrack(Vec<u8>),
+    NFA(nfa::Prog),
+}
+
 pub struct RegProg {
-    pattern: Vec<u8>,
+    engine: Engine,
     ic: bool,
-}
-
-fn eq_byte(a: u8, b: u8, ic: bool) -> bool {
-    if ic {
-        a.to_ascii_lowercase() == b.to_ascii_lowercase()
-    } else {
-        a == b
-    }
-}
-
-// Try to match `pat` against `text` starting at the first character.  Returns
-// the length of the match when successful.
-fn match_here(pat: &[u8], text: &[u8], ic: bool) -> Option<usize> {
-    if pat.is_empty() {
-        return Some(0);
-    }
-    if pat.len() >= 2 && pat[1] == b'*' {
-        return match_star(pat[0], &pat[2..], text, ic);
-    }
-    match pat[0] {
-        b'$' if pat.len() == 1 => {
-            if text.is_empty() {
-                Some(0)
-            } else {
-                None
-            }
-        }
-        c if !text.is_empty() && (c == b'.' || eq_byte(c, text[0], ic)) => {
-            match_here(&pat[1..], &text[1..], ic).map(|l| l + 1)
-        }
-        _ => None,
-    }
-}
-
-fn match_star(c: u8, pat: &[u8], text: &[u8], ic: bool) -> Option<usize> {
-    let mut i = 0;
-    while i <= text.len() {
-        if let Some(l) = match_here(pat, &text[i..], ic) {
-            return Some(i + l);
-        }
-        if i == text.len() {
-            break;
-        }
-        if c != b'.' && !eq_byte(c, text[i], ic) {
-            break;
-        }
-        i += 1;
-    }
-    None
-}
-
-// Search for a match of `pat` anywhere in `text`.
-fn search(pat: &[u8], text: &[u8], ic: bool) -> Option<(usize, usize)> {
-    if pat.first() == Some(&b'^') {
-        return match_here(&pat[1..], text, ic).map(|l| (0, l));
-    }
-    let mut i = 0;
-    while i <= text.len() {
-        if let Some(l) = match_here(pat, &text[i..], ic) {
-            return Some((i, i + l));
-        }
-        if i == text.len() {
-            break;
-        }
-        i += 1;
-    }
-    None
 }
 
 #[no_mangle]
@@ -95,28 +25,17 @@ pub extern "C" fn vim_regcomp(pattern: *const c_char, flags: c_int) -> *mut RegP
         Ok(s) => s,
         Err(_) => return std::ptr::null_mut(),
     };
-    // Reject patterns containing constructs we do not understand.
-    let bytes = pattern_str.as_bytes();
-    let mut prev_was_atom = false;
-    for &b in bytes {
-        match b {
-            b'.' | b'^' | b'$' => prev_was_atom = true,
-            b'*' => {
-                if !prev_was_atom {
-                    return std::ptr::null_mut();
-                }
-                prev_was_atom = false;
-            }
-            b'[' | b']' | b'(' | b')' | b'+' | b'?' | b'{' | b'}' | b'|' | b'\\' => {
-                return std::ptr::null_mut();
-            }
-            _ => prev_was_atom = true,
+    let ic = (flags & 1) != 0;
+    let use_nfa = (flags & 2) != 0;
+    let prog = if use_nfa {
+        match nfa::compile(pattern_str) {
+            Some(p) => RegProg { engine: Engine::NFA(p), ic },
+            None => return std::ptr::null_mut(),
         }
-    }
-    Box::into_raw(Box::new(RegProg {
-        pattern: bytes.to_vec(),
-        ic: (flags & 1) != 0,
-    }))
+    } else {
+        RegProg { engine: Engine::Backtrack(pattern_str.as_bytes().to_vec()), ic }
+    };
+    Box::into_raw(Box::new(prog))
 }
 
 #[no_mangle]
@@ -152,6 +71,13 @@ pub struct RegMMMatch {
     pub rmm_maxcol: c_int,
 }
 
+fn run_search(prog: &RegProg, text: &[u8]) -> Option<(usize, usize)> {
+    match &prog.engine {
+        Engine::Backtrack(pat) => backtrack::search(pat, text, prog.ic),
+        Engine::NFA(p) => nfa::search(p, text, prog.ic),
+    }
+}
+
 fn regexec_internal(rmp: *mut RegMatch, line: *const c_char, col: c_int) -> c_int {
     if rmp.is_null() || line.is_null() {
         return 0;
@@ -166,7 +92,7 @@ fn regexec_internal(rmp: *mut RegMatch, line: *const c_char, col: c_int) -> c_in
         return 0;
     }
     let slice = &line_bytes[(col as usize)..];
-    if let Some((s, e)) = search(&prog.pattern, slice, prog.ic) {
+    if let Some((s, e)) = run_search(prog, slice) {
         let m = unsafe { &mut *rmp };
         for i in 0..10 {
             m.startp[i] = std::ptr::null();
@@ -252,14 +178,13 @@ pub extern "C" fn vim_regsub(
     let prog = unsafe { &*prog };
     let text_str = unsafe { CStr::from_ptr(text).to_bytes() };
     let sub_str = unsafe { CStr::from_ptr(sub).to_bytes() };
-    if let Some((s, e)) = search(&prog.pattern, text_str, prog.ic) {
+    if let Some((s, e)) = run_search(prog, text_str) {
         let mut result = Vec::new();
         result.extend_from_slice(&text_str[..s]);
         result.extend_from_slice(sub_str);
         result.extend_from_slice(&text_str[e..]);
         CString::new(result).unwrap().into_raw()
     } else {
-        // No match -> return original text
         CString::new(text_str).unwrap().into_raw()
     }
 }
