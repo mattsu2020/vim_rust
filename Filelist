@@ -495,7 +495,6 @@ SRC_UNIX =	\
 		src/wayland.c \
 		src/which.sh \
 		src/gen-wayland-protocols.sh \
-		src/xxd/Makefile \
 
 # Source files for both MS Windows and Unix-like.
 SRC_DOS_UNIX =	\
@@ -566,8 +565,6 @@ SRC_DOS =	\
 		src/tee/Make_mvc.mak \
 		src/tee/Makefile \
 		src/tee/tee.c \
-		src/xxd/Make_ming.mak \
-		src/xxd/Make_mvc.mak \
 		nsis/gvim.nsi \
 		nsis/gvim_version.nsh \
 		nsis/Makefile \
@@ -604,7 +601,6 @@ SRC_AMI =	\
 		src/proto/os_amiga.pro \
 		src/testdir/Make_amiga.mak \
 		src/testdir/util/amiga.vim \
-		src/xxd/Make_amiga.mak \
 
 # Source files for Haiku (also in the extra archive).
 SRC_HAIKU =	\
