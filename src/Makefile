@@ -1440,6 +1440,8 @@ RUST_BLOB_DIR = ../rust_blob
 RUST_BLOB_LIB = $(RUST_BLOB_DIR)/target/release/librust_blob.a
 RUST_SHA256_DIR = ../rust_sha256
 RUST_SHA256_LIB = $(RUST_SHA256_DIR)/target/release/librust_sha256.a
+RUST_XCMDSRV_DIR = ../rust_xcmdsrv
+RUST_XCMDSRV_LIB = $(RUST_XCMDSRV_DIR)/target/release/librust_xcmdsrv.a
 
 # Additional Rust crates used by this configuration
 RUST_CHANGE_DIR = ../rust_change
@@ -1496,6 +1498,7 @@ ALL_LIBS = \
            $(RUST_SIGN_LIB) \
            $(RUST_BLOB_LIB) \
            $(RUST_SHA256_LIB) \
+           $(RUST_XCMDSRV_LIB) \
            $(LUA_LIBS) \
            $(PERL_LIBS) \
            $(PYTHON_LIBS) \
@@ -1638,7 +1641,10 @@ $(RUST_BLOB_LIB):
 	cd $(RUST_BLOB_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_SHA256_LIB):
-	cd $(RUST_SHA256_DIR) && CARGO_TARGET_DIR=target cargo build --release
+       cd $(RUST_SHA256_DIR) && CARGO_TARGET_DIR=target cargo build --release
+
+$(RUST_XCMDSRV_LIB):
+       cd $(RUST_XCMDSRV_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 # Additional Rust libraries providing rs_* APIs used across the C codebase
 RUST_ARGLIST_DIR = ../rust_arglist
@@ -1812,7 +1818,6 @@ BASIC_SRC = \
 	\
 	highlight.c \
         if_cscope.c \
-        if_xcmdsrv.c \
         indent.c \
         insexpand.c \
         linematch.c \
@@ -1970,7 +1975,6 @@ OBJ_COMMON = \
 	objects/help.o \
 	objects/highlight.o \
 	objects/if_cscope.o \
-	objects/if_xcmdsrv.o \
 	objects/indent.o \
 	objects/insexpand.o \
 	objects/linematch.o \
@@ -2116,7 +2120,6 @@ PRO_AUTO = \
 	if_lua.pro \
         if_mzsch.pro \
         if_ruby.pro \
-        if_xcmdsrv.pro \
 	indent.pro \
         insexpand.pro \
         job.pro \
@@ -3464,8 +3467,6 @@ objects/highlight.o: highlight.c
 objects/if_cscope.o: if_cscope.c
 	$(CCC) -o $@ if_cscope.c
 
-objects/if_xcmdsrv.o: if_xcmdsrv.c
-	$(CCC) -o $@ if_xcmdsrv.c
 
 objects/if_lua.o: if_lua.c
 	$(CCC_NF) $(LUA_CFLAGS) $(ALL_CFLAGS) $(LUA_CFLAGS_EXTRA) -o $@ if_lua.c
@@ -4031,11 +4032,6 @@ objects/if_cscope.o: if_cscope.c vim.h protodef.h auto/config.h feature.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h errors.h
-objects/if_xcmdsrv.o: if_xcmdsrv.c vim.h protodef.h auto/config.h feature.h \
- os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
- beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h errors.h version.h
 objects/indent.o: indent.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
