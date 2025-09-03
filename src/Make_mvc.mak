@@ -1700,7 +1700,7 @@ $(OUTDIR)/profiler.obj: $(OUTDIR) profiler.c $(INCL)
 
 $(OUTDIR)/quickfix.obj: $(OUTDIR) quickfix.c $(INCL)
 
-$(OUTDIR)/regexp.obj: $(OUTDIR) regexp.c regexp_bt.c regexp_nfa.c $(INCL)
+$(OUTDIR)/regexp.obj: $(OUTDIR) regexp.c $(INCL)
 
 $(OUTDIR)/register.obj: $(OUTDIR) register.c $(INCL)
 

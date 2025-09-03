@@ -3606,7 +3606,7 @@ objects/pty.o: pty.c
 objects/quickfix.o: quickfix.c
 	$(CCC) -o $@ quickfix.c
 
-objects/regexp.o: regexp.c regexp_bt.c regexp_nfa.c
+objects/regexp.o: regexp.c
 	$(CCC) -o $@ regexp.c
 
 objects/register.o: register.c
@@ -4191,7 +4191,7 @@ objects/regexp.o: regexp.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h regexp_bt.c regexp_nfa.c
+ globals.h errors.h
 objects/register.o: register.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
