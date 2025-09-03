@@ -94,6 +94,33 @@ fn regexec_multi_single_line() {
 }
 
 #[test]
+fn regexec_multi_no_match() {
+    let pat = CString::new("qux").unwrap();
+    let line = CString::new("foo").unwrap();
+    let lines = [line.as_ptr()];
+    let prog = vim_regcomp(pat.as_ptr(), 0);
+    assert!(!prog.is_null());
+    let mut rmm = RegMMMatch {
+        regprog: prog,
+        startpos: [Lpos { lnum: 0, col: 0 }; 10],
+        endpos: [Lpos { lnum: 0, col: 0 }; 10],
+        rmm_matchcol: 0,
+        rmm_ic: 0,
+        rmm_maxcol: 0,
+    };
+    let matched = vim_regexec_multi(
+        &mut rmm,
+        std::ptr::null_mut(),
+        lines.as_ptr() as *mut c_void,
+        1,
+        0,
+        std::ptr::null_mut(),
+    );
+    assert_eq!(matched, 0);
+    vim_regfree(prog);
+}
+
+#[test]
 fn invalid_pattern_returns_null() {
     let pat = CString::new("[a-").unwrap();
     let prog = vim_regcomp(pat.as_ptr(), 0);

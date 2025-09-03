@@ -13,6 +13,13 @@
 #ifndef _REGEXP_H
 #define _REGEXP_H
 
+// Default to using the Rust-based regular expression engine unless the caller
+// explicitly disables it.  This mirrors the previous build-system default but
+// makes the preference visible in the headers as well.
+#ifndef USE_RUST_REGEX
+# define USE_RUST_REGEX
+#endif
+
 /*
  * The number of sub-matches is limited to 10.
  * The first one (index 0) is the whole match, referenced with "\0".
