@@ -6,7 +6,6 @@ exclude = [
     "rust_perl",
     "rust_tcl",
     "rust_mzsch",
-    "rust_xcmdsrv",
     "rust_ole",
     "rust_cscope",
     "rust/terminal",

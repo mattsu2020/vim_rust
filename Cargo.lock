@@ -1822,6 +1822,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_xcmdsrv"
+version = "0.1.0"
+
+[[package]]
 name = "rust_xdiff"
 version = "0.1.0"
 dependencies = [
