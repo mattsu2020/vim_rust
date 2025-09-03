@@ -1,4 +1,5 @@
-use std::ffi::CStr;
+use std::env;
+use std::ffi::{CStr, CString};
 use std::fs;
 use std::os::raw::{c_char, c_int, c_void};
 use std::path::PathBuf;
@@ -16,7 +17,9 @@ fn c_path_to_normalized(ptr: *const c_char) -> Option<PathBuf> {
     }
     let c_path = unsafe { CStr::from_ptr(ptr) };
     let path_str = c_path.to_str().ok()?;
-    normalize_path(path_str).map(PathBuf::from)
+    normalize_path(path_str)
+        .map(PathBuf::from)
+        .or_else(|| Some(PathBuf::from(path_str)))
 }
 
 /// Read the file at `fname`.
@@ -72,10 +75,71 @@ pub extern "C" fn writefile(
     }
 }
 
+#[no_mangle]
+pub extern "C" fn rs_findfile(name: *const c_char, path: *const c_char) -> *mut c_char {
+    if name.is_null() || path.is_null() {
+        return std::ptr::null_mut();
+    }
+    let cname = unsafe { CStr::from_ptr(name) };
+    let cpath = unsafe { CStr::from_ptr(path) };
+    let (name_str, path_str) = match (cname.to_str(), cpath.to_str()) {
+        (Ok(n), Ok(p)) => (n, p),
+        _ => return std::ptr::null_mut(),
+    };
+    for dir in env::split_paths(path_str) {
+        let candidate = dir.join(name_str);
+        if candidate.is_file() {
+            if let Some(s) = candidate.to_str() {
+                return CString::new(s).unwrap().into_raw();
+            }
+        }
+    }
+    std::ptr::null_mut()
+}
+
+#[no_mangle]
+pub extern "C" fn rs_read_viminfo(path: *const c_char) -> *mut c_char {
+    let norm = match c_path_to_normalized(path) {
+        Some(p) => p,
+        None => return std::ptr::null_mut(),
+    };
+    match fs::metadata(&norm) {
+        Ok(meta) if meta.len() as usize <= MAX_IO_SIZE => (),
+        _ => return std::ptr::null_mut(),
+    }
+    match fs::read_to_string(&norm) {
+        Ok(s) => CString::new(s).unwrap().into_raw(),
+        Err(_) => std::ptr::null_mut(),
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn rs_write_viminfo(path: *const c_char, data: *const c_char) -> c_int {
+    if data.is_null() {
+        return -1;
+    }
+    let norm = match c_path_to_normalized(path) {
+        Some(p) => p,
+        None => return -1,
+    };
+    let content = unsafe { CStr::from_ptr(data) };
+    let slice = match content.to_str() {
+        Ok(s) => s.as_bytes(),
+        Err(_) => return -1,
+    };
+    if slice.len() > MAX_IO_SIZE {
+        return -1;
+    }
+    match fs::write(&norm, slice) {
+        Ok(_) => 0,
+        Err(_) => -1,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::ffi::CString;
+    use std::ffi::{CStr, CString};
     use std::fs;
 
     #[test]
@@ -197,8 +261,12 @@ mod tests {
 
         let invalid = CString::new(vec![0x80, 0x81]).unwrap();
         assert_eq!(f(invalid.as_ptr()), -1);
+    }
 
-        let missing = CString::new("./no_such_file").unwrap();
+    unsafe fn check_missing(f: unsafe fn(*const c_char) -> c_int) {
+        let dir = tempfile::tempdir().unwrap();
+        let missing_path = dir.path().join("no_such_file");
+        let missing = CString::new(missing_path.to_str().unwrap()).unwrap();
         assert_eq!(f(missing.as_ptr()), -1);
     }
 
@@ -213,9 +281,50 @@ mod tests {
         unsafe {
             check_success(call_read);
             check_validation(call_read);
+            check_missing(call_read);
 
             check_success(call_write);
             check_validation(call_write);
         }
+    }
+
+    #[test]
+    fn findfile_finds_file() {
+        use tempfile::tempdir;
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("foo.txt");
+        fs::write(&file_path, "").unwrap();
+        let name = CString::new("foo.txt").unwrap();
+        let paths = CString::new(dir.path().to_str().unwrap()).unwrap();
+        let res_ptr = rs_findfile(name.as_ptr(), paths.as_ptr());
+        assert!(!res_ptr.is_null());
+        let res = unsafe { CStr::from_ptr(res_ptr) }
+            .to_str()
+            .unwrap()
+            .to_string();
+        unsafe {
+            let _ = CString::from_raw(res_ptr);
+        }
+        assert_eq!(res, file_path.to_str().unwrap());
+    }
+
+    #[test]
+    fn viminfo_roundtrip() {
+        use tempfile::tempdir;
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("viminfo");
+        let path = CString::new(file_path.to_str().unwrap()).unwrap();
+        let data = CString::new("hello viminfo").unwrap();
+        assert_eq!(rs_write_viminfo(path.as_ptr(), data.as_ptr()), 0);
+        let read_ptr = rs_read_viminfo(path.as_ptr());
+        assert!(!read_ptr.is_null());
+        let read = unsafe { CStr::from_ptr(read_ptr) }
+            .to_str()
+            .unwrap()
+            .to_string();
+        unsafe {
+            let _ = CString::from_raw(read_ptr);
+        }
+        assert_eq!(read, "hello viminfo");
     }
 }
