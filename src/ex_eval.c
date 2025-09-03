@@ -216,18 +216,6 @@ cause_errthrow(
 	discard_current_exception();
     }
 
-#ifdef THROW_TEST
-    if (!THROW_ON_ERROR)
-    {
-	/*
-	 * Print error message immediately without searching for a matching
-	 * catch clause; just finally clauses are executed before the script
-	 * is terminated.
-	 */
-	return FALSE;
-    }
-    else
-#endif
     {
 	/*
 	 * Prepare the throw of an error exception, so that everything will
@@ -374,19 +362,6 @@ do_intthrow(cstack_T *cstack)
     if (!got_int || (trylevel == 0 && !did_throw))
 	return FALSE;
 
-#ifdef THROW_TEST	// avoid warning for condition always true
-    if (!THROW_ON_INTERRUPT)
-    {
-	/*
-	 * The interrupt aborts everything except for executing finally clauses.
-	 * Discard any user or error or interrupt exception currently being
-	 * thrown.
-	 */
-	if (did_throw)
-	    discard_current_exception();
-    }
-    else
-#endif
     {
 	/*
 	 * Throw an interrupt exception, so that everything will be aborted
