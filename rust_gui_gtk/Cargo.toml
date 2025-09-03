@@ -6,4 +6,8 @@ edition = "2021"
 [dependencies]
 rust_gui_core = { path = "../rust_gui_core" }
 rust_clipboard = { path = "../rust_clipboard" }
+gtk = { version = "0.18", optional = true }
+
+[features]
+default = []
 

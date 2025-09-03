@@ -6,6 +6,9 @@ use x11rb::protocol::xproto::{
 };
 use x11rb::rust_connection::RustConnection;
 
+#[cfg(feature = "x11")]
+use x11::xlib;
+
 /// Backend implementation using the X11 protocol via x11rb.
 pub struct X11Backend {
     conn: RustConnection,
@@ -36,6 +39,17 @@ impl X11Backend {
         conn.map_window(window).unwrap();
         conn.flush().unwrap();
         Self { conn, window }
+    }
+}
+
+pub fn x11_available() -> bool {
+    #[cfg(feature = "x11")]
+    {
+        true
+    }
+    #[cfg(not(feature = "x11"))]
+    {
+        false
     }
 }
 
@@ -73,5 +87,15 @@ impl GuiBackend for X11Backend {
         } else {
             None
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn feature_flag_off_by_default() {
+        assert!(!x11_available());
     }
 }
