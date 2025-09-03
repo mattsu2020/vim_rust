@@ -25,7 +25,7 @@ fn parse_error_line(line: &str) -> Option<QfEntry> {
 }
 
 #[no_mangle]
-pub extern "C" fn rs_qf_add_entry(
+pub extern "C" fn qf_add_entry(
     _qfl: *mut c_void,
     _dir: *const c_char,
     _fname: *const c_char,
@@ -57,7 +57,7 @@ pub extern "C" fn rs_qf_add_entry(
 }
 
 #[no_mangle]
-pub extern "C" fn rs_qf_list(_eap: *mut c_void) {
+pub extern "C" fn qf_list(_eap: *mut c_void) {
     let list = LIST.lock().unwrap();
     for (i, item) in list.iter().enumerate() {
         println!("{}: {}:{} {}", i + 1, item.lnum, item.col, item.text);
@@ -72,8 +72,8 @@ mod tests {
     #[test]
     fn add_and_list() {
         let msg = CString::new("test").unwrap();
-        assert_eq!(rs_qf_add_entry(std::ptr::null_mut(), std::ptr::null(), std::ptr::null(), std::ptr::null(), 0, msg.as_ptr(), 1, 0, 0, 0, 0, std::ptr::null(), 0, 0, std::ptr::null_mut(), 1), 1);
-        rs_qf_list(std::ptr::null_mut());
+        assert_eq!(qf_add_entry(std::ptr::null_mut(), std::ptr::null(), std::ptr::null(), std::ptr::null(), 0, msg.as_ptr(), 1, 0, 0, 0, 0, std::ptr::null(), 0, 0, std::ptr::null_mut(), 1), 1);
+        qf_list(std::ptr::null_mut());
     }
 
     #[test]

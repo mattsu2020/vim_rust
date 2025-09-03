@@ -69,7 +69,7 @@ optionstr.c	| handling string options
 popupmenu.c	| popup menu
 popupwin.c	| popup window
 profiler.c	| Vim script profiler
-quickfix.c	| quickfix commands (":make", ":cn")
+rust_quickfix   | quickfix commands (":make", ":cn")
 regexp.c	| pattern matching
 register.c	| handling registers
 scriptfile.c	| runtime directory handling and sourcing scripts

@@ -136,7 +136,6 @@ SRC += \
 	os_amiga.c \
         popupmenu.c \
         popupwin.c \
-        quickfix.c \
         register.c \
         screen.c \
         scriptfile.c \

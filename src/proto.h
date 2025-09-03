@@ -64,6 +64,9 @@ extern int _stricoll(char *a, char *b);
 #   include "../rust_change/include/rust_change.h"
 #   define HAVE_RUST_CHANGE_HDR 1
 #  endif
+#  if __has_include("../rust_quickfix/include/rust_quickfix.h")
+#   include "../rust_quickfix/include/rust_quickfix.h"
+#  endif
 # endif
 # include "alloc.pro"
 # include "autocmd.pro"
@@ -178,7 +181,6 @@ void mbyte_im_set_active(int active_arg);
 # if defined(FEAT_PROFILE) || defined(FEAT_RELTIME)
 #  include "profiler.pro"
 # endif
-# include "quickfix.pro"
 #ifdef FEAT_WAYLAND
 # include "wayland.pro"
 #endif
