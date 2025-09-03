@@ -1798,12 +1798,11 @@ BASIC_SRC = \
 	hashtab.c \
 	\
 	highlight.c \
-	if_cscope.c \
-	if_xcmdsrv.c \
-	indent.c \
-	insexpand.c \
-	json.c \
-	linematch.c \
+        if_cscope.c \
+        if_xcmdsrv.c \
+        indent.c \
+        insexpand.c \
+        linematch.c \
 	list.c \
 	locale.c \
 	main.c \
@@ -2110,10 +2109,9 @@ PRO_AUTO = \
         if_ruby.pro \
         if_xcmdsrv.pro \
 	indent.pro \
-	insexpand.pro \
-	job.pro \
-	json.pro \
-	list.pro \
+        insexpand.pro \
+        job.pro \
+        list.pro \
 	locale.pro \
 	logfile.pro \
 	main.pro \
@@ -3565,11 +3563,8 @@ objects/insexpand.o: insexpand.c
 objects/job.o: job.c
 	$(CCC) -o $@ job.c
 
-objects/json.o: json.c
-	$(CCC) -o $@ json.c
-
 objects/linematch.o: linematch.c
-	$(CCC) -o $@ linematch.c
+$(CCC) -o $@ linematch.c
 
 objects/list.o: list.c
 	$(CCC) -o $@ list.c
@@ -4160,11 +4155,6 @@ objects/insexpand.o: insexpand.c vim.h protodef.h auto/config.h feature.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h errors.h
-objects/json.o: json.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
 objects/list.o: list.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
