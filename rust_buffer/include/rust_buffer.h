@@ -9,6 +9,8 @@ void buf_freeall(void *buf, int flags);
 
 int calc_percentage(long part, long whole);
 int get_highest_fnum(void);
+int get_buf_free_count(void);
+void inc_buf_free_count(void);
 
 int get_top_file_num(void);
 void set_top_file_num(int num);

@@ -66,8 +66,7 @@ static char *msg_loclist = N_("[Location List]");
 static char *msg_qflist = N_("[Quickfix List]");
 #endif
 
-// Number of times free_buffer() was called.
-static int      buf_free_count = 0;
+// buf_free_count is tracked in the rust_buffer crate.
 static garray_T buf_reuse = GA_EMPTY;	// file numbers to recycle
 
     static void
@@ -418,7 +417,7 @@ set_bufref(bufref_T *bufref, buf_T *buf)
 {
     bufref->br_buf = buf;
     bufref->br_fnum = buf == NULL ? 0 : buf->b_fnum;
-    bufref->br_buf_free_count = buf_free_count;
+    bufref->br_buf_free_count = get_buf_free_count();
 }
 
 /*
@@ -431,9 +430,9 @@ set_bufref(bufref_T *bufref, buf_T *buf)
     int
 bufref_valid(bufref_T *bufref)
 {
-    return bufref->br_buf_free_count == buf_free_count
-	? TRUE : buf_valid(bufref->br_buf)
-				  && bufref->br_fnum == bufref->br_buf->b_fnum;
+    return bufref->br_buf_free_count == get_buf_free_count()
+        ? TRUE : buf_valid(bufref->br_buf)
+                                  && bufref->br_fnum == bufref->br_buf->b_fnum;
 }
 
 /*
@@ -954,7 +953,7 @@ buf_freeall(buf_T *buf, int flags)
     static void
 free_buffer(buf_T *buf)
 {
-    ++buf_free_count;
+    inc_buf_free_count();
     free_buffer_stuff(buf, TRUE);
 #ifdef FEAT_EVAL
     // b:changedtick uses an item in buf_T, remove it now

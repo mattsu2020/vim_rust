@@ -39,6 +39,7 @@ static BUFFERS: OnceLock<BufferList> = OnceLock::new();
 
 // Counter similar to Vim's 'top_file_num', used by get_highest_fnum().
 static TOP_FILE_NUM: AtomicI32 = AtomicI32::new(1);
+static BUF_FREE_COUNT: AtomicI32 = AtomicI32::new(0);
 
 // Safe wrappers around libc allocation routines using NonNull for safety.
 fn calloc_file_buffer(size: usize) -> Option<NonNull<FileBuffer>> {
@@ -132,10 +133,20 @@ pub extern "C" fn dec_top_file_num() {
     TOP_FILE_NUM.fetch_sub(1, Ordering::SeqCst);
 }
 
+#[no_mangle]
+pub extern "C" fn get_buf_free_count() -> c_int {
+    BUF_FREE_COUNT.load(Ordering::SeqCst)
+}
+
+#[no_mangle]
+pub extern "C" fn inc_buf_free_count() {
+    BUF_FREE_COUNT.fetch_add(1, Ordering::SeqCst);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::ptr::NonNull;
+    use std::{ptr::NonNull, sync::atomic::Ordering};
 
     #[test]
     fn alloc_and_free() {
@@ -172,5 +183,13 @@ mod tests {
     fn highest_fnum() {
         set_top_file_num(10);
         assert_eq!(get_highest_fnum(), 9);
+    }
+
+    #[test]
+    fn buf_free_count_tracking() {
+        super::BUF_FREE_COUNT.store(0, Ordering::SeqCst);
+        assert_eq!(get_buf_free_count(), 0);
+        inc_buf_free_count();
+        assert_eq!(get_buf_free_count(), 1);
     }
 }
