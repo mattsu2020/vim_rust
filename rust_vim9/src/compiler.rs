@@ -9,21 +9,32 @@ pub struct Vim9Program {
 
 pub fn compile(ast: &Ast) -> Vim9Program {
     let mut instrs = Vec::new();
-    compile_node(ast, &mut instrs);
-    Vim9Program { instrs, result_type: Vim9Type::Number }
+    let result_type = compile_node(ast, &mut instrs);
+    Vim9Program { instrs, result_type }
 }
 
-fn compile_node(ast: &Ast, instrs: &mut Vec<Vim9Instr>) {
+fn compile_node(ast: &Ast, instrs: &mut Vec<Vim9Instr>) -> Vim9Type {
     match ast {
-        Ast::Number(n) => instrs.push(Vim9Instr::Const(*n)),
+        Ast::Number(n) => {
+            instrs.push(Vim9Instr::Const(*n));
+            Vim9Type::Number
+        }
         Ast::Add(a, b) => {
             compile_node(a, instrs);
             compile_node(b, instrs);
             instrs.push(Vim9Instr::Add);
+            Vim9Type::Number
+        }
+        Ast::LessThan(a, b) => {
+            compile_node(a, instrs);
+            compile_node(b, instrs);
+            instrs.push(Vim9Instr::LessThan);
+            Vim9Type::Bool
         }
         Ast::Echo(expr) => {
-            compile_node(expr, instrs);
+            let t = compile_node(expr, instrs);
             instrs.push(Vim9Instr::Echo);
+            t
         }
     }
 }
