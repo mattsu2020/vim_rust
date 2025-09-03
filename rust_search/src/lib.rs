@@ -4,6 +4,9 @@ use std::ffi::{CStr, CString};
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
 
+mod marker;
+pub use marker::{rust_get_marker, rust_set_marker};
+
 extern "C" {
     fn ml_get_buf(buf: *mut buf_T, lnum: c_long, will_change: c_int) -> *const c_uchar;
     fn ml_get_buf_len(buf: *mut buf_T, lnum: c_long) -> c_int;
@@ -318,6 +321,40 @@ pub extern "C" fn rust_last_search_pattern_len() -> size_t {
         .unwrap_or(0) as size_t
 }
 
+pub fn find_next(haystack: &str, needle: &str, start: usize) -> Option<usize> {
+    if start > haystack.len() {
+        return None;
+    }
+    haystack[start..].find(needle).map(|i| start + i)
+}
+
+#[no_mangle]
+pub extern "C" fn rust_find_next(
+    haystack: *const c_uchar,
+    haystack_len: size_t,
+    needle: *const c_uchar,
+    needle_len: size_t,
+    start: size_t,
+) -> c_long {
+    if haystack.is_null() || needle.is_null() {
+        return -1;
+    }
+    let hay = unsafe { std::slice::from_raw_parts(haystack, haystack_len as usize) };
+    let need = unsafe { std::slice::from_raw_parts(needle, needle_len as usize) };
+    let hay_str = match std::str::from_utf8(hay) {
+        Ok(s) => s,
+        Err(_) => return -1,
+    };
+    let needle_str = match std::str::from_utf8(need) {
+        Ok(s) => s,
+        Err(_) => return -1,
+    };
+    match find_next(hay_str, needle_str, start as usize) {
+        Some(pos) => pos as c_long,
+        None => -1,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -442,5 +479,12 @@ mod tests {
         let results = PATH_RESULTS.with(|r| r.borrow().clone());
         assert!(results.iter().any(|s| s.ends_with("foo.txt")));
         std::env::set_current_dir(old).unwrap();
+    }
+
+    #[test]
+    fn simple_find_next() {
+        assert_eq!(find_next("abcdef", "cd", 0), Some(2));
+        assert_eq!(find_next("abcdef", "gh", 0), None);
+        assert_eq!(find_next("aaaa", "aa", 1), Some(1));
     }
 }
