@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::os::raw::{c_int, c_void};
+use std::os::raw::c_void;
 use std::sync::{Mutex, OnceLock};
 
 // Lazily initialized global map of allocations so that memory obtained in
@@ -82,17 +82,17 @@ mod tests {
 
     #[test]
     fn alloc_and_free() {
-        let p = unsafe { alloc(10) };
+        let p = unsafe { rust_alloc(10) };
         assert!(!p.is_null());
-        unsafe { vim_free(p) };
+        unsafe { rust_free(p) };
     }
 
     #[test]
     fn realloc_grows() {
-        let p = unsafe { alloc(4) };
+        let p = unsafe { rust_alloc(4) };
         assert!(!p.is_null());
-        let p2 = unsafe { mem_realloc(p, 8) };
+        let p2 = unsafe { rust_mem_realloc(p, 8) };
         assert!(!p2.is_null());
-        unsafe { vim_free(p2) };
+        unsafe { rust_free(p2) };
     }
 }
