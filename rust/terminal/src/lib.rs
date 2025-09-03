@@ -4,9 +4,11 @@ use std::io;
 
 use crossterm::{
     execute,
+    event::{self, Event, KeyCode},
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::{backend::CrosstermBackend, widgets::*, Terminal as RatatuiTerminal};
+use std::time::Duration;
 
 pub struct Terminal {
     scrollback: Vec<CString>,
@@ -39,7 +41,7 @@ impl Terminal {
         self.scrollback.iter().map(|s| s.as_c_str()).collect()
     }
 
-    pub fn render(&self) -> io::Result<()> {
+    pub fn render(&mut self) -> io::Result<()> {
         enable_raw_mode()?;
         let mut stdout = std::io::stdout();
         execute!(stdout, EnterAlternateScreen)
@@ -47,19 +49,34 @@ impl Terminal {
         let backend = CrosstermBackend::new(stdout);
         let mut terminal =
             RatatuiTerminal::new(backend).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
-        terminal
-            .draw(|frame| {
-                let block = Block::default().title("Scrollback").borders(Borders::ALL);
-                let text = self
-                    .scrollback
-                    .iter()
-                    .map(|s| s.to_string_lossy())
-                    .collect::<Vec<_>>()
-                    .join("\n");
-                let paragraph = Paragraph::new(text).block(block);
-                frame.render_widget(paragraph, frame.size());
-            })
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+        loop {
+            terminal
+                .draw(|frame| {
+                    let block = Block::default().title("Scrollback").borders(Borders::ALL);
+                    let text = self
+                        .scrollback
+                        .iter()
+                        .map(|s| s.to_string_lossy())
+                        .collect::<Vec<_>>()
+                        .join("\n");
+                    let paragraph = Paragraph::new(text).block(block);
+                    frame.render_widget(paragraph, frame.size());
+                })
+                .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+            if event::poll(Duration::from_millis(50))? {
+                match event::read()? {
+                    Event::Key(key) => match key.code {
+                        KeyCode::Char('q') | KeyCode::Esc => break,
+                        KeyCode::Char(c) => {
+                            self.record_line(&c.to_string());
+                        }
+                        KeyCode::Enter => self.record_line(""),
+                        _ => {}
+                    },
+                    _ => {}
+                }
+            }
+        }
         execute!(terminal.backend_mut(), LeaveAlternateScreen)
             .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
         disable_raw_mode()?;
