@@ -24,7 +24,7 @@ impl MemBuffer {
         }
 
         let insert_at = lnum + 1;
-        let mut tail: BTreeMap<usize, String> = self.lines.split_off(&insert_at);
+        let tail: BTreeMap<usize, String> = self.lines.split_off(&insert_at);
         self.lines.insert(insert_at, line.to_string());
         for (i, (_, l)) in tail.into_iter().enumerate() {
             self.lines.insert(insert_at + 1 + i, l);
