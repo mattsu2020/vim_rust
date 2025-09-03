@@ -77,8 +77,7 @@ SRC += \
         autocmd.c \
         beval.c \
         buffer.c \
-	bufwrite.c \
-	change.c \
+        bufwrite.c \
 	charset.c \
 	cindent.c \
 	clientserver.c \
@@ -98,8 +97,7 @@ SRC += \
 	evalbuffer.c \
 	evalfunc.c \
 	evalvars.c \
-	evalwindow.c \
-	ex_cmds.c \
+        evalwindow.c \
 	ex_cmds2.c \
 	ex_docmd.c \
 	ex_eval.c \

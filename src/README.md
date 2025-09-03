@@ -28,7 +28,7 @@ arglist.c	| handling argument list
 autocmd.c	| autocommands
 buffer.c	| manipulating buffers (loaded files)
 bufwrite.c	| writing a buffer to file
-change.c	| handling changes to text
+rust_change/	| handling changes to text
 cindent.c	| C and Lisp indentation
 clientserver.c	| client server functionality
 clipboard.c	| handling the clipboard

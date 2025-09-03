@@ -1268,8 +1268,6 @@ $(OUTDIR)/evalfunc.o: evalfunc.c $(INCL) version.h
 
 $(OUTDIR)/evalvars.o: evalvars.c $(INCL) version.h
 
-$(OUTDIR)/ex_cmds.o: ex_cmds.c $(INCL) version.h
-
 $(OUTDIR)/ex_cmds2.o: ex_cmds2.c $(INCL) version.h
 
 $(OUTDIR)/ex_docmd.o: ex_docmd.c $(INCL) ex_cmdidxs.h

@@ -1479,8 +1479,6 @@ $(OUTDIR)/buffer.obj: $(OUTDIR) buffer.c $(INCL) version.h
 
 $(OUTDIR)/bufwrite.obj: $(OUTDIR) bufwrite.c $(INCL)
 
-$(OUTDIR)/change.obj: $(OUTDIR) change.c $(INCL)
-
 $(OUTDIR)/charset.obj: $(OUTDIR) charset.c $(INCL)
 
 $(OUTDIR)/cindent.obj: $(OUTDIR) cindent.c $(INCL)
@@ -1526,8 +1524,6 @@ $(OUTDIR)/evalfunc.obj: $(OUTDIR) evalfunc.c $(INCL) version.h
 $(OUTDIR)/evalvars.obj: $(OUTDIR) evalvars.c $(INCL) version.h
 
 $(OUTDIR)/evalwindow.obj: $(OUTDIR) evalwindow.c $(INCL)
-
-$(OUTDIR)/ex_cmds.obj: $(OUTDIR) ex_cmds.c $(INCL) version.h
 
 $(OUTDIR)/ex_eval.obj: $(OUTDIR) ex_eval.c $(INCL)
 
