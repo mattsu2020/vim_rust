@@ -628,12 +628,6 @@ im_preedit_end_cb(GtkIMContext *context UNUSED, gpointer data UNUSED)
 	preedit_start_col = MAXCOL;
     xim_has_preediting = FALSE;
 
-#if 0
-    // Removal of this line suggested by Takuhiro Nishioka.  Fixes that IM was
-    // switched off unintentionally.  We now use preedit_is_active (added by
-    // SungHyun Nam).
-    im_is_active = FALSE;
-#endif
     preedit_is_active = FALSE;
     gui_update_cursor(TRUE, FALSE);
     im_show_info();
