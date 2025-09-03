@@ -202,6 +202,11 @@ pub extern "C" fn rs_screen_flush(buf: *mut ScreenBuffer, cb: Option<FlushCallba
     }
 }
 
+// The screen buffer is manipulated from C and Rust code but not shared across
+// threads, mark it as Send and Sync so it can be stored in static globals.
+unsafe impl Send for ScreenBuffer {}
+unsafe impl Sync for ScreenBuffer {}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -288,3 +293,4 @@ mod tests {
         assert_eq!(idxs, vec![8, 9]);
     }
 }
+

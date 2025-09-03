@@ -8,6 +8,7 @@ libc = "0.2"
 rust_gui_core = { path = "../rust_gui_core" }
 rust_gui_x11 = { path = "../rust_gui_x11", optional = true }
 rust_gui_w32 = { path = "../rust_gui_w32", optional = true }
+rust_screen = { path = "../rust_screen" }
 
 [features]
 # Select which backend implementation to use.  Windows is the default so
