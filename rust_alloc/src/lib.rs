@@ -85,59 +85,59 @@ unsafe fn vim_strsave(p: *const c_uchar) -> *mut c_uchar {
 
 // -- exported functions ----------------------------------------------------
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn vim_mem_profile_dump() {}
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn alloc_does_fail(_size: usize) -> c_int { FAIL }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn alloc(size: usize) -> *mut c_void {
     alloc_impl(size)
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn alloc_id(size: usize, _id: alloc_id_T) -> *mut c_void {
     alloc_impl(size)
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn alloc_clear(size: usize) -> *mut c_void {
     alloc_clear_impl(size)
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn alloc_clear_id(size: usize, _id: alloc_id_T) -> *mut c_void {
     alloc_clear_impl(size)
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn lalloc_clear(size: usize, _message: c_int) -> *mut c_void {
     alloc_clear_impl(size)
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn lalloc(size: usize, _message: c_int) -> *mut c_void {
     alloc_impl(size)
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn lalloc_id(size: usize, message: c_int, _id: alloc_id_T) -> *mut c_void {
     lalloc(size, message)
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn mem_realloc(ptr: *mut c_void, size: usize) -> *mut c_void {
     mem_realloc_impl(ptr, size)
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn do_outofmem_msg(_size: usize) {}
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn free_all_mem() {}
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn vim_memsave(p: *const c_uchar, len: usize) -> *mut c_uchar {
     let ret = alloc_impl(len) as *mut c_uchar;
     if !ret.is_null() {
@@ -146,18 +146,18 @@ pub unsafe extern "C" fn vim_memsave(p: *const c_uchar, len: usize) -> *mut c_uc
     ret
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn vim_free(x: *mut c_void) {
     free_impl(x);
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn ga_clear(gap: *mut garray_T) {
     vim_free((*gap).ga_data);
     ga_init(gap);
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn ga_clear_strings(gap: *mut garray_T) {
     if !(*gap).ga_data.is_null() {
         let data = (*gap).ga_data as *mut *mut c_uchar;
@@ -169,7 +169,7 @@ pub unsafe extern "C" fn ga_clear_strings(gap: *mut garray_T) {
     ga_clear(gap);
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn ga_copy_strings(from: *mut garray_T, to: *mut garray_T) -> c_int {
     ga_init2(to, std::mem::size_of::<*mut c_uchar>(), 1);
     if ga_grow(to, (*from).ga_len) == FAIL {
@@ -198,21 +198,21 @@ pub unsafe extern "C" fn ga_copy_strings(from: *mut garray_T, to: *mut garray_T)
     OK
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn ga_init(gap: *mut garray_T) {
     (*gap).ga_data = std::ptr::null_mut();
     (*gap).ga_maxlen = 0;
     (*gap).ga_len = 0;
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn ga_init2(gap: *mut garray_T, itemsize: usize, growsize: c_int) {
     ga_init(gap);
     (*gap).ga_itemsize = itemsize as c_int;
     (*gap).ga_growsize = growsize;
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn ga_grow(gap: *mut garray_T, n: c_int) -> c_int {
     if (*gap).ga_maxlen - (*gap).ga_len < n {
         return ga_grow_inner(gap, n);
@@ -220,12 +220,12 @@ pub unsafe extern "C" fn ga_grow(gap: *mut garray_T, n: c_int) -> c_int {
     OK
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn ga_grow_id(gap: *mut garray_T, n: c_int, _id: alloc_id_T) -> c_int {
     ga_grow_inner(gap, n)
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn ga_grow_inner(gap: *mut garray_T, mut n: c_int) -> c_int {
     if n < (*gap).ga_growsize {
         n = (*gap).ga_growsize;
@@ -248,7 +248,7 @@ pub unsafe extern "C" fn ga_grow_inner(gap: *mut garray_T, mut n: c_int) -> c_in
     OK
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn ga_concat_strings(gap: *mut garray_T, sep: *const c_char) -> *mut c_uchar {
     let sep_len = strlen(sep) as usize;
     let data = (*gap).ga_data as *mut *mut c_uchar;
@@ -278,7 +278,7 @@ pub unsafe extern "C" fn ga_concat_strings(gap: *mut garray_T, sep: *const c_cha
     s
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn ga_copy_string(gap: *mut garray_T, p: *const c_uchar) -> c_int {
     let cp = vim_strsave(p);
     if cp.is_null() {
@@ -294,7 +294,7 @@ pub unsafe extern "C" fn ga_copy_string(gap: *mut garray_T, p: *const c_uchar) -
     OK
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn ga_add_string(gap: *mut garray_T, p: *mut c_uchar) -> c_int {
     if ga_grow(gap, 1) == FAIL {
         return FAIL;
@@ -305,7 +305,7 @@ pub unsafe extern "C" fn ga_add_string(gap: *mut garray_T, p: *mut c_uchar) -> c
     OK
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn ga_concat(gap: *mut garray_T, s: *const c_uchar) {
     if s.is_null() || *s == 0 {
         return;
@@ -318,7 +318,7 @@ pub unsafe extern "C" fn ga_concat(gap: *mut garray_T, s: *const c_uchar) {
     }
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn ga_concat_len(gap: *mut garray_T, s: *const c_uchar, len: usize) {
     if s.is_null() || *s == 0 || len == 0 {
         return;
@@ -330,7 +330,7 @@ pub unsafe extern "C" fn ga_concat_len(gap: *mut garray_T, s: *const c_uchar, le
     }
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn ga_append(gap: *mut garray_T, c: c_int) -> c_int {
     if ga_grow(gap, 1) == FAIL {
         return FAIL;
@@ -341,7 +341,7 @@ pub unsafe extern "C" fn ga_append(gap: *mut garray_T, c: c_int) -> c_int {
     OK
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn append_ga_line(gap: *mut garray_T) {
     if ga_grow(gap, (*gap).ga_len + 1) == OK {
         let dest = ((*gap).ga_data as *mut c_uchar).add((*gap).ga_len as usize);
@@ -372,4 +372,3 @@ mod tests {
         unsafe { vim_free(p2) };
     }
 }
-

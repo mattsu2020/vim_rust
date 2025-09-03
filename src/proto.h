@@ -109,7 +109,8 @@ extern int _stricoll(char *a, char *b);
 # include "json.pro"
 # include "list.pro"
 # include "locale.pro"
-# include "logfile.pro"
+/* logfile.c をビルド対象から外しているため、対応するプロトタイプも除外 */
+/* # include "logfile.pro" */
 # include "blob.pro"
 # include "main.pro"
 # include "map.pro"
@@ -218,7 +219,8 @@ void mbyte_im_set_active(int active_arg);
 #  include "popupwin.pro"
 #  include "textprop.pro"
 # endif
-# include "testing.pro"
+/* testing.c もビルド対象外のため除外 */
+/* # include "testing.pro" */
 # include "textobject.pro"
 # include "textformat.pro"
 # include "time.pro"

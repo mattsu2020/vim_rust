@@ -87,6 +87,11 @@
 
 // Syntax highlighting helpers are always provided by the Rust implementation.
 
+// Minimal build: disable terminal feature to avoid pulling terminal/job deps
+#ifdef FEAT_TERMINAL
+# undef FEAT_TERMINAL
+#endif
+
 /*
  * Each feature implies including the "smaller" ones.
  */

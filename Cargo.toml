@@ -11,6 +11,8 @@ exclude = [
     "rust_cscope",
     "rust/terminal",
     "rust_alloc",
+    "rust_excmd",
+    "rust_clipboard",
 ]
 
 [package]

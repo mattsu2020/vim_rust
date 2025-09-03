@@ -307,7 +307,7 @@ CClink = $(CC)
 # Change this to your desire and do 'make config' afterwards
 
 # examples you can uncomment:
-#CONF_ARGS1 = --exec-prefix=/usr
+CONF_ARGS1 = --disable-terminal
 #CONF_ARGS2 = --with-vim-name=vim8 --with-ex-name=ex8 --with-view-name=view8
 #CONF_ARGS3 = --with-global-runtime=/etc/vim,/usr/share/vim
 #CONF_ARGS4 = --with-local-dir=/usr/share
@@ -480,8 +480,9 @@ CClink = $(CC)
 # Uncomment the first line when you want terminal emulator support for
 # not-huge builds.  Uncomment the second line when you don't want terminal
 # emulator support in the huge build.
+# 明示的にターミナル機能を無効化（最小構成のため）
 #CONF_OPT_TERMINAL = --enable-terminal
-#CONF_OPT_TERMINAL = --disable-terminal
+CONF_OPT_TERMINAL = --disable-terminal
 
 # MULTIBYTE - To edit multi-byte characters.
 # This is now always enabled.
@@ -1545,85 +1546,85 @@ DEST_FTP = $(DESTDIR)$(FTPLUGSUBLOC)
 
 # Build the Rust memory management library
 $(RUST_MEM_LIB):
-	cd $(RUST_MEM_DIR) && cargo build --release
+	cd $(RUST_MEM_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_REGEX_LIB):
-	cd $(RUST_REGEX_DIR) && cargo build --release
+	cd $(RUST_REGEX_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(SRC_RUST_REGEX_LIB):
-	cd $(SRC_RUST_REGEX_DIR) && cargo build --release
+	cd $(SRC_RUST_REGEX_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_BUFFER_LIB):
-	cd $(RUST_BUFFER_DIR) && cargo build --release
+	cd $(RUST_BUFFER_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_CHANNEL_LIB):
-	cd $(RUST_CHANNEL_DIR) && cargo build --release
+	cd $(RUST_CHANNEL_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_GUI_LIB):
-	cd $(RUST_GUI_DIR) && cargo build --release
+	cd $(RUST_GUI_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_EVALFUNC_LIB):
-	cd $(RUST_EVALFUNC_DIR) && cargo build --release
+	cd $(RUST_EVALFUNC_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_EVAL_LIB):
-	cd $(RUST_EVAL_DIR) && cargo build --release
+	cd $(RUST_EVAL_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_ARABIC_LIB):
-	cd $(RUST_ARABIC_DIR) && cargo build --release
+	cd $(RUST_ARABIC_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_BEVAL_LIB):
-	cd $(RUST_BEVAL_DIR) && cargo build --release
+	cd $(RUST_BEVAL_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_MBYTE_LIB):
-	cd $(RUST_MBYTE_DIR) && cargo build --release
+	cd $(RUST_MBYTE_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_EXCMD_LIB):
-        cd $(RUST_EXCMD_DIR) && cargo build --release
+	cd $(RUST_EXCMD_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_CMDHIST_LIB):
-        cd $(RUST_CMDHIST_DIR) && cargo build --release
+	cd $(RUST_CMDHIST_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_AUTOCMD_LIB):
-	cd $(RUST_AUTOCMD_DIR) && cargo build --release
+	cd $(RUST_AUTOCMD_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_SEARCH_LIB):
-	cd $(RUST_SEARCH_DIR) && cargo build --release
+	cd $(RUST_SEARCH_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_USERFUNC_LIB):
-	cd $(RUST_USERFUNC_DIR) && cargo build --release
+	cd $(RUST_USERFUNC_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_ALLOC_LIB):
-	cd $(RUST_ALLOC_DIR) && cargo build --release
+	cd $(RUST_ALLOC_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_WINDOW_LIB):
-	cd $(RUST_WINDOW_DIR) && cargo build --release
+	cd $(RUST_WINDOW_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_UNDO_LIB):
-	cd $(RUST_UNDO_DIR) && cargo build --release
+	cd $(RUST_UNDO_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_DRAWSCREEN_LIB):
-	cd $(RUST_DRAWSCREEN_DIR) && cargo build --release
+	cd $(RUST_DRAWSCREEN_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_OPTION_LIB):
-	cd $(RUST_OPTION_DIR) && cargo build --release
+	cd $(RUST_OPTION_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_EVALVARS_LIB):
-	cd $(RUST_EVALVARS_DIR) && cargo build --release
+	cd $(RUST_EVALVARS_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_SCREEN_LIB):
-	cd $(RUST_SCREEN_DIR) && cargo build --release
+	cd $(RUST_SCREEN_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_SIGN_LIB):
-       cd $(RUST_SIGN_DIR) && cargo build --release
+	cd $(RUST_SIGN_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_BLOB_LIB):
-       cd $(RUST_BLOB_DIR) && cargo build --release
+	cd $(RUST_BLOB_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_SHA256_LIB):
-       cd $(RUST_SHA256_DIR) && cargo build --release
+	cd $(RUST_SHA256_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_BLOWFISH_LIB):
-       cd $(RUST_BLOWFISH_DIR) && cargo build --release
+	cd $(RUST_BLOWFISH_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 # Additional Rust libraries providing rs_* APIs used across the C codebase
 RUST_ARGLIST_DIR = ../rust_arglist
@@ -1672,41 +1673,37 @@ ALL_LIBS += \
            $(RUST_OPS_LIB)
 
 $(RUST_ARGLIST_LIB):
-	cd $(RUST_ARGLIST_DIR) && cargo build --release
+	cd $(RUST_ARGLIST_DIR) && CARGO_TARGET_DIR=target cargo build --release
 $(RUST_MESSAGE_LIB):
-	cd $(RUST_MESSAGE_DIR) && cargo build --release
+	cd $(RUST_MESSAGE_DIR) && CARGO_TARGET_DIR=target cargo build --release
 $(RUST_DIGRAPH_LIB):
-	cd $(RUST_DIGRAPH_DIR) && cargo build --release
+	cd $(RUST_DIGRAPH_DIR) && CARGO_TARGET_DIR=target cargo build --release
 $(RUST_MOUSE_LIB):
-	cd $(RUST_MOUSE_DIR) && cargo build --release
+	cd $(RUST_MOUSE_DIR) && CARGO_TARGET_DIR=target cargo build --release
 $(RUST_INPUT_LIB):
-	cd $(RUST_INPUT_DIR) && cargo build --release
+	cd $(RUST_INPUT_DIR) && CARGO_TARGET_DIR=target cargo build --release
 $(RUST_MEMLINE_LIB):
-	cd $(RUST_MEMLINE_DIR) && cargo build --release
+	cd $(RUST_MEMLINE_DIR) && CARGO_TARGET_DIR=target cargo build --release
 $(RUST_HELP_LIB):
-	cd $(RUST_HELP_DIR) && cargo build --release
+	cd $(RUST_HELP_DIR) && CARGO_TARGET_DIR=target cargo build --release
 $(RUST_MAP_LIB):
-	cd $(RUST_MAP_DIR) && cargo build --release
+	cd $(RUST_MAP_DIR) && CARGO_TARGET_DIR=target cargo build --release
 $(RUST_PATH_LIB):
-	cd $(RUST_PATH_DIR) && cargo build --release
+	cd $(RUST_PATH_DIR) && CARGO_TARGET_DIR=target cargo build --release
 $(RUST_SESSION_LIB):
-	cd $(RUST_SESSION_DIR) && cargo build --release
+	cd $(RUST_SESSION_DIR) && CARGO_TARGET_DIR=target cargo build --release
 $(RUST_POPUPMENU_LIB):
-	cd $(RUST_POPUPMENU_DIR) && cargo build --release
+	cd $(RUST_POPUPMENU_DIR) && CARGO_TARGET_DIR=target cargo build --release
 $(RUST_POPUPWIN_LIB):
-	cd $(RUST_POPUPWIN_DIR) && cargo build --release
+	cd $(RUST_POPUPWIN_DIR) && CARGO_TARGET_DIR=target cargo build --release
 $(RUST_NORMAL_LIB):
-	cd $(RUST_NORMAL_DIR) && cargo build --release
+	cd $(RUST_NORMAL_DIR) && CARGO_TARGET_DIR=target cargo build --release
 $(RUST_OPS_LIB):
-	cd $(RUST_OPS_DIR) && cargo build --release
+	cd $(RUST_OPS_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_CHANGE_LIB):
 	cd $(RUST_CHANGE_DIR) && cargo build --release
 
-$(RUST_EXCMD_LIB):
-        cd $(RUST_EXCMD_DIR) && cargo build --release
-$(RUST_CMDHIST_LIB):
-        cd $(RUST_CMDHIST_DIR) && cargo build --release
 DEST_LANG = $(DESTDIR)$(LANGSUBLOC)
 DEST_COMP = $(DESTDIR)$(COMPSUBLOC)
 DEST_KMAP = $(DESTDIR)$(KMAPSUBLOC)
@@ -1809,7 +1806,6 @@ BASIC_SRC = \
 	linematch.c \
 	list.c \
 	locale.c \
-	logfile.c \
 	main.c \
 	map.c \
 	mark.c \
@@ -1849,7 +1845,6 @@ BASIC_SRC = \
 	tag.c \
 	term.c \
     \
-	testing.c \
 	textformat.c \
 	textobject.c \
 	textprop.c \
@@ -1924,7 +1919,6 @@ LINT_SRC = $(BASIC_SRC) $(GUI_SRC) \
 #LINT_SRC = $(BASIC_SRC)
 
 OBJ_COMMON = \
-        objects/alloc.o \
         objects/arglist.o \
         objects/autocmd.o \
         objects/buffer.o \
@@ -1949,7 +1943,7 @@ OBJ_COMMON = \
 	objects/evalfunc.o \
 	objects/evalvars.o \
 	objects/evalwindow.o \
-        objects/ex_cmds.o \
+ # objects/ex_cmds.o \
         objects/ex_eval.o \
         objects/ex_getln.o \
 	objects/fileio.o \
@@ -1972,7 +1966,6 @@ OBJ_COMMON = \
 	objects/linematch.o \
 	objects/list.o \
 	objects/locale.o \
-	objects/logfile.o \
 	objects/map.o \
 	objects/mark.o \
 	objects/match.o \
@@ -2008,7 +2001,6 @@ OBJ_COMMON = \
 	objects/tabpanel.o \
 	objects/tag.o \
 	objects/term.o \
-	objects/testing.o \
 	objects/regex_compat.o \
 	objects/mbyte_compat.o \
 	objects/memline_compat.o \
@@ -2060,7 +2052,9 @@ OBJ_MAIN = \
 	objects/json.o \
 	objects/main.o \
 	objects/memfile.o \
-	objects/message.o
+	objects/message.o \
+	objects/evalfunc_stubs.o \
+	objects/terminal_stubs.o
 
 OBJ = $(OBJ_COMMON) $(OBJ_MAIN)
 
@@ -2311,10 +2305,10 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(SRC_RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_EVAL_LIB) $(RUST_EXCMD_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB) $(RUST_ALLOC_LIB) $(RUST_BLOB_LIB) $(RUST_SHA256_LIB) $(RUST_BLOWFISH_LIB)
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(SRC_RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_EVAL_LIB) $(RUST_EXCMD_LIB) $(RUST_CMDHIST_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB) $(RUST_ALLOC_LIB) $(RUST_BLOB_LIB) $(RUST_SHA256_LIB) $(RUST_BLOWFISH_LIB)
 	@$(BUILD_DATE_MSG)
-	@LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
-		-o $(VIMTARGET) $(OBJ) $(ALL_LIBS)" \
+    @LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
+		-o $(VIMTARGET) objects/*.o $(ALL_LIBS)" \
 		MAKE="$(MAKE)" LINK_AS_NEEDED=$(LINK_AS_NEEDED) \
 		PROG="vim" \
 		sh $(srcdir)/link.sh
@@ -3480,8 +3474,8 @@ objects/evalvars.o: evalvars.c
 objects/evalwindow.o: evalwindow.c
 	$(CCC) -o $@ evalwindow.c
 
-objects/ex_cmds.o: ex_cmds.c
-	$(CCC) -o $@ ex_cmds.c
+# objects/ex_cmds.o: ex_cmds.c
+#	$(CCC) -o $@ ex_cmds.c
 
 objects/ex_eval.o: ex_eval.c
 	$(CCC) -o $@ ex_eval.c
@@ -4681,3 +4675,9 @@ objects/vterm_unicode.o: libvterm/src/unicode.c libvterm/src/vterm_internal.h \
 objects/vterm_vterm.o: libvterm/src/vterm.c libvterm/src/vterm_internal.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h \
  libvterm/src/utf8.h
+objects/message.o: message.c
+	$(CCC) -o $@ message.c
+objects/evalfunc_stubs.o: evalfunc_stubs.c
+	$(CCC) -o $@ evalfunc_stubs.c
+objects/terminal_stubs.o: terminal_stubs.c
+	$(CCC) -o $@ terminal_stubs.c
