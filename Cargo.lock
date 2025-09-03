@@ -1825,6 +1825,9 @@ version = "0.1.0"
 dependencies = [
  "rust_gui_core",
  "rust_gui_gtk",
+ "rust_gui_haiku",
+ "rust_gui_motif",
+ "rust_gui_photon",
  "rust_gui_w32",
  "rust_gui_x11",
 ]
@@ -1849,7 +1852,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_gui_haiku"
+version = "0.1.0"
+dependencies = [
+ "rust_gui_core",
+]
+
+[[package]]
 name = "rust_gui_motif"
+version = "0.1.0"
+dependencies = [
+ "rust_gui_core",
+]
+
+[[package]]
+name = "rust_gui_photon"
 version = "0.1.0"
 dependencies = [
  "rust_gui_core",
