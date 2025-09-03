@@ -193,40 +193,6 @@ static int ff_path_in_stoplist(char_u *, int, string_T *);
 
 static string_T ff_expand_buffer = {NULL, 0};	    // used for expanding filenames
 
-#if 0
-/*
- * if someone likes findfirst/findnext, here are the functions
- * NOT TESTED!!
- */
-
-static void *ff_fn_search_context = NULL;
-
-    char_u *
-vim_findfirst(char_u *path, char_u *filename, int level)
-{
-    ff_fn_search_context =
-	vim_findfile_init(path, filename, NULL, level, TRUE, FALSE,
-		ff_fn_search_context, rel_fname);
-    if (NULL == ff_fn_search_context)
-	return NULL;
-    else
-	return vim_findnext()
-}
-
-    char_u *
-vim_findnext(void)
-{
-    char_u *ret = vim_findfile(ff_fn_search_context);
-
-    if (NULL == ret)
-    {
-	vim_findfile_cleanup(ff_fn_search_context);
-	ff_fn_search_context = NULL;
-    }
-    return ret;
-}
-#endif
-
 /*
  * Initialization routine for vim_findfile().
  *
