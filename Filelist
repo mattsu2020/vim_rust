@@ -47,13 +47,11 @@ SRC_ALL =	\
 		src/clipboard.c \
 		src/cmdexpand.c \
                 src/cmdhist.c \
-                src/crypt.c \
                 src/debugger.c \
                 src/dict.c \
                 src/diff.c \
 		src/linematch.c \
 		src/digraph.c \
-		src/drawline.c \
 		src/edit.c \
 		src/errors.h \
 		src/eval.c \
@@ -71,12 +69,10 @@ SRC_ALL =	\
 		src/float.c \
 		src/fold.c \
                 src/fuzzy.c \
-                src/gc.c \
 		src/globals.h \
 		src/gui.c \
 		src/gui.h \
 		src/gui_beval.c \
-		src/hardcopy.c \
 		src/hashtab.c \
 		src/help.c \
 		src/highlight.c \
@@ -122,10 +118,8 @@ SRC_ALL =	\
 		src/scriptfile.c \
 		src/session.c \
 		src/sha256.c \
-                src/sound.c \
 		src/spell.c \
                 src/spell.h \
-                src/strings.c \
                 src/structs.h \
                 src/syntax.c \
                 src/tag.c \
@@ -140,7 +134,6 @@ SRC_ALL =	\
 		src/ui.c \
 		src/usercmd.c \
 		src/userfunc.c \
-		src/version.c \
 		src/version.h \
 		src/vim.h \
 		src/vim9.h \
@@ -153,7 +146,6 @@ SRC_ALL =	\
                 src/vim9instr.c \
                 src/vim9script.c \
                 src/vim9type.c \
-                src/viminfo.c \
                 src/winclip.c \
                 src/testdir/*.in \
                 src/testdir/*.py \
@@ -514,7 +506,6 @@ SRC_DOS =	\
                 src/testdir/util/dos.vim \
                 src/vim.rc \
                 src/vim.manifest \
-                src/vimrun.c \
 		src/xpm_w32.c \
 		src/xpm_w32.h \
 		src/tee/Make_ming.mak \

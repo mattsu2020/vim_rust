@@ -1,0 +1,10 @@
+[package]
+name = "rust_sound"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[lib]
+name = "rust_sound"
+crate-type = ["staticlib", "rlib"]
