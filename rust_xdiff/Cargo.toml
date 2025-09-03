@@ -5,7 +5,6 @@ edition = "2021"
 
 [dependencies]
 similar = "2"
-diff = { path = "../rust/diff" }
 
 [lib]
 name = "rust_xdiff"
