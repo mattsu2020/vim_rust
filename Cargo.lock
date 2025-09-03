@@ -1714,6 +1714,7 @@ name = "rust_tag"
 version = "0.1.0"
 dependencies = [
  "libc",
+ "once_cell",
  "tempfile",
 ]
 

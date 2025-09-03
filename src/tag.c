@@ -13,6 +13,10 @@
 
 #include "vim.h"
 
+#ifdef USE_RUST_TAG
+# include "rust_tag.h"
+#endif
+
 /*
  * Structure to hold pointers to various items in a tag line.
  */
@@ -3054,6 +3058,20 @@ findtags_copy_matches(findtags_state_T *st, char_u ***matchesp)
  * TAG_CSCOPE	  use cscope results for tags
  * TAG_NO_TAGFUNC do not call the 'tagfunc' function
  */
+#ifdef USE_RUST_TAG
+int find_tags(
+    char_u      *pat,
+    int         *num_matches,
+    char_u      ***matchesp,
+    int         flags,
+    int         mincount,
+    char_u      *buf_ffname)
+{
+    return rust_find_tags((const char *)pat, num_matches,
+                          (char ***)matchesp, flags, mincount,
+                          (const char *)buf_ffname);
+}
+#else
     int
 find_tags(
     char_u	*pat,			// pattern to search for
@@ -3258,6 +3276,7 @@ findtag_end:
     return retval;
 }
 
+#endif // USE_RUST_TAG
 static garray_T tag_fnames = GA_EMPTY;
 
 /*
