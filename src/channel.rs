@@ -110,10 +110,6 @@ mod tests {
         assert!(res.is_err());
     }
 
-    extern "C" {
-        fn c_add(a: std::os::raw::c_int, b: std::os::raw::c_int) -> std::os::raw::c_int;
-    }
-
     #[test]
     fn os_mkdir_works() {
         use std::ffi::CString;
@@ -127,9 +123,12 @@ mod tests {
     }
 
     #[test]
-    fn c_add_works() {
-        unsafe {
-            assert_eq!(c_add(2, 3), 5);
-        }
+    fn add_works() {
+        assert_eq!(super::add(2, 3), 5);
     }
+}
+
+/// Simple addition helper formerly implemented in C.
+pub fn add(a: i32, b: i32) -> i32 {
+    a + b
 }

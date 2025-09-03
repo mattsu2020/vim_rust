@@ -37,9 +37,6 @@ rust_message = { path = "rust_message" }
 [features]
 default = []
 
-[build-dependencies]
-cc = "1.0"
-
 [target.'cfg(windows)'.dependencies]
 rust_os_win32 = { path = "rust_os_win32" }
 
