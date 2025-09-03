@@ -1,3 +1,18 @@
+[workspace]
+members = ["rust_*", "rust/*"]
+exclude = [
+    "rust_lua",
+    "rust_ruby",
+    "rust_perl",
+    "rust_tcl",
+    "rust_mzsch",
+    "rust_xcmdsrv",
+    "rust_ole",
+    "rust_cscope",
+    "rust/terminal",
+    "rust_alloc",
+]
+
 [package]
 name = "vim_channel"
 version = "0.1.0"
@@ -16,26 +31,13 @@ rust_pty = { path = "rust_pty" }
 rust_wayland = { path = "rust_wayland" }
 rust_change = { path = "rust_change" }
 rust_excmd = { path = "rust_excmd" }
-rust_lua = { path = "rust_lua", optional = true }
-rust_ruby = { path = "rust_ruby", optional = true }
-rust_perl = { path = "rust_perl", optional = true }
-rust_tcl = { path = "rust_tcl", optional = true }
-rust_mzsch = { path = "rust_mzsch", optional = true }
-rust_xcmdsrv = { path = "rust_xcmdsrv", optional = true }
-rust_ole = { path = "rust_ole", optional = true }
-rust_cscope = { path = "rust_cscope", optional = true }
 rust_alloc = { path = "rust_alloc" }
 
 [features]
 default = []
-lua = ["rust_lua"]
-ruby = ["rust_ruby"]
-perl = ["rust_perl"]
-tcl = ["rust_tcl"]
-mzsch = ["rust_mzsch"]
-xcmdsrv = ["rust_xcmdsrv"]
-ole = ["rust_ole"]
-cscope = ["rust_cscope"]
+
+[build-dependencies]
+cc = "1.0"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 rust_os_mswin = { path = "rust_os_mswin" }

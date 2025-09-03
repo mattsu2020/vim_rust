@@ -83,8 +83,11 @@ Some popular places to get the latest Vim:
 ## Compiling
 
 If you obtained a binary distribution you don't need to compile Vim.  If you
-obtained a source distribution, all the stuff for compiling Vim is in the
-[`src`](./src/) directory.  See [`src/INSTALL`](./src/INSTALL) for instructions.
+obtained a source distribution, all the Rust crates can be built with Cargo.
+Run `cargo build --workspace` to compile everything and `cargo test --workspace`
+to run the tests.  Legacy Makefile based build scripts have been removed.
+For historical C sources see the [`src`](./src/) directory and
+[`src/INSTALL`](./src/INSTALL).
 
 ## Installation
 
