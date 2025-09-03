@@ -43,9 +43,8 @@ SRC_ALL =	\
 		src/bufwrite.c \
 		src/change.c \
 		src/channel.c \
-		src/charset.c \
-		src/cindent.c \
-		src/clientserver.c \
+                src/charset.c \
+                src/clientserver.c \
 		src/clipboard.c \
 		src/cmdexpand.c \
 		src/cmdhist.c \

@@ -40,6 +40,7 @@ rust_message = { path = "rust_message" }
 rust_blob = { path = "rust_blob" }
 rust_sha256 = { path = "rust_sha256" }
 rust_blowfish = { path = "rust_blowfish" }
+rust_cindent = { path = "rust_cindent" }
 regex = "1"
 
 [features]
@@ -64,3 +65,4 @@ path = "src/channel.rs"
 [dev-dependencies]
 serde_json = "1"
 serde = { version = "1", features = ["derive"] }
+rust_cindent = { path = "rust_cindent" }
