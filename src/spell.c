@@ -70,7 +70,7 @@
 
 #if defined(FEAT_SPELL) || defined(PROTO)
 
-#include "rust_spell.h"
+#include "../rust_spell/include/rust_spell.h"
 #include <time.h>
 
 #define REGION_ALL 0xff		// word valid in all regions
