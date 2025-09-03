@@ -59,18 +59,9 @@ vim_localtime(
 }
 
 /*
- * Return the current time in seconds.  Calls time(), unless test_settime()
- * was used.
+ * vim_time() has been moved to the Rust implementation in the rust_time
+ * crate.  The C version is no longer needed here.
  */
-    time_T
-vim_time(void)
-{
-# ifdef FEAT_EVAL
-    return time_for_testing == 0 ? time(NULL) : time_for_testing;
-# else
-    return time(NULL);
-# endif
-}
 
 /*
  * Replacement for ctime(), which is not safe to use.
