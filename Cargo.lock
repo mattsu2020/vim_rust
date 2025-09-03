@@ -1172,6 +1172,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_charset"
+version = "0.1.0"
+
+[[package]]
 name = "rust_cmdhist"
 version = "0.1.0"
 dependencies = [
@@ -1313,6 +1317,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_gui_gtk_x11"
+version = "0.1.0"
+dependencies = [
+ "rust_gui_core",
+]
+
+[[package]]
+name = "rust_gui_motif"
+version = "0.1.0"
+dependencies = [
+ "rust_gui_core",
+]
+
+[[package]]
 name = "rust_gui_w32"
 version = "0.1.0"
 dependencies = [
@@ -1358,6 +1376,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_iscygpty"
+version = "0.1.0"
+
+[[package]]
 name = "rust_job"
 version = "0.1.0"
 dependencies = [
@@ -1373,6 +1395,10 @@ version = "0.1.0"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "rust_locale"
+version = "0.1.0"
 
 [[package]]
 name = "rust_log"
@@ -1444,6 +1470,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_os_mac_conv"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
+name = "rust_os_mswin"
+version = "0.1.0"
+
+[[package]]
 name = "rust_os_qnx"
 version = "0.1.0"
 dependencies = [
@@ -1452,6 +1489,14 @@ dependencies = [
 
 [[package]]
 name = "rust_os_unix"
+version = "0.1.0"
+
+[[package]]
+name = "rust_os_w32dll"
+version = "0.1.0"
+
+[[package]]
+name = "rust_os_w32exe"
 version = "0.1.0"
 
 [[package]]
