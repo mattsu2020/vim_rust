@@ -116,7 +116,9 @@ pub extern "C" fn rs_screen_new(width: c_int, height: c_int) -> *mut ScreenBuffe
 #[no_mangle]
 pub extern "C" fn rs_screen_free(buf: *mut ScreenBuffer) {
     if !buf.is_null() {
-        unsafe { drop(Box::from_raw(buf)); }
+        unsafe {
+            drop(Box::from_raw(buf));
+        }
     }
 }
 
@@ -172,7 +174,8 @@ pub extern "C" fn rs_screen_highlight(
 }
 
 /// Callback used by [`rs_screen_flush`].
-pub type FlushCallback = extern "C" fn(row: c_int, text: *const c_char, attr: *const u8, len: c_int);
+pub type FlushCallback =
+    extern "C" fn(row: c_int, text: *const c_char, attr: *const u8, len: c_int);
 
 #[no_mangle]
 pub extern "C" fn rs_screen_flush(buf: *mut ScreenBuffer, cb: Option<FlushCallback>) {
@@ -181,15 +184,23 @@ pub extern "C" fn rs_screen_flush(buf: *mut ScreenBuffer, cb: Option<FlushCallba
     }
     if let Some(callback) = cb {
         let screen = unsafe { &mut *buf };
+        let empty = CString::new("").unwrap();
         for diff in screen.flush_diff() {
-            let c_text = CString::new(diff.text).unwrap();
-            // Callback is expected to copy the data immediately.
-            callback(
-                diff.row as c_int,
-                c_text.as_ptr(),
-                diff.attrs.as_ptr(),
-                diff.attrs.len() as c_int,
-            );
+            match CString::new(diff.text) {
+                Ok(c_text) => {
+                    // Callback is expected to copy the data immediately.
+                    callback(
+                        diff.row as c_int,
+                        c_text.as_ptr(),
+                        diff.attrs.as_ptr(),
+                        diff.attrs.len() as c_int,
+                    );
+                }
+                Err(_) => {
+                    // Text contained an interior NUL; report empty line.
+                    callback(diff.row as c_int, empty.as_ptr(), diff.attrs.as_ptr(), 0);
+                }
+            }
         }
     }
 }
@@ -197,7 +208,18 @@ pub extern "C" fn rs_screen_flush(buf: *mut ScreenBuffer, cb: Option<FlushCallba
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::ffi::CStr;
+    use std::sync::Mutex;
     use std::time::Instant;
+
+    static CALLBACK_DATA: Mutex<(i32, String)> = Mutex::new((0, String::new()));
+
+    extern "C" fn capture_cb(_row: c_int, text: *const c_char, _attr: *const u8, len: c_int) {
+        let s = unsafe { CStr::from_ptr(text).to_str().unwrap_or("") };
+        let mut data = CALLBACK_DATA.lock().unwrap();
+        data.0 = len;
+        data.1 = s.to_string();
+    }
 
     #[test]
     fn draw_and_clear() {
@@ -267,5 +289,15 @@ mod tests {
         rs_screen_clear(&mut sb as *mut ScreenBuffer, 0);
         assert_eq!(sb.line_as_string(0), "   ");
         assert_eq!(sb.line_as_string(1), "   ");
+    }
+
+    #[test]
+    fn flush_handles_null_byte() {
+        let mut sb = ScreenBuffer::new(5, 1);
+        sb.draw_text(0, 0, "a\0b", 1);
+        rs_screen_flush(&mut sb as *mut ScreenBuffer, Some(capture_cb));
+        let data = CALLBACK_DATA.lock().unwrap();
+        assert_eq!(data.0, 0);
+        assert_eq!(data.1, "");
     }
 }

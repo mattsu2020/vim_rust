@@ -1,6 +1,7 @@
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
 
+use serde::de::Deserialize;
 use serde_json::error::Category;
 use serde_json::{self, Value};
 
@@ -31,21 +32,25 @@ pub struct JsonFindEndResult {
 #[no_mangle]
 pub extern "C" fn json_encode_rs(input: *const c_char, options: c_int) -> *mut c_char {
     unsafe {
+        let empty = CString::new("\"\"").unwrap();
         if input.is_null() {
-            return CString::new("\"\"").unwrap().into_raw();
+            return empty.clone().into_raw();
         }
         match CStr::from_ptr(input).to_str() {
             Ok(s) => {
                 let mut json = match serde_json::to_string(s) {
                     Ok(json) => json,
-                    Err(_) => "\"\"".to_string(),
+                    Err(_) => return empty.clone().into_raw(),
                 };
                 if (options & JSON_NL) != 0 {
                     json.push('\n');
                 }
-                CString::new(json).unwrap().into_raw()
+                match CString::new(json) {
+                    Ok(cjson) => cjson.into_raw(),
+                    Err(_) => empty.into_raw(),
+                }
             }
-            Err(_) => CString::new("\"\"").unwrap().into_raw(),
+            Err(_) => empty.into_raw(),
         }
     }
 }
@@ -59,9 +64,10 @@ pub extern "C" fn json_encode_rs(input: *const c_char, options: c_int) -> *mut c
 #[no_mangle]
 pub extern "C" fn json_decode_rs(input: *const c_char, _options: c_int) -> JsonDecodeResult {
     unsafe {
+        let empty = CString::new("").unwrap();
         if input.is_null() {
             return JsonDecodeResult {
-                ptr: CString::new("").unwrap().into_raw(),
+                ptr: empty.clone().into_raw(),
                 used: 0,
                 error: 2,
             };
@@ -71,7 +77,7 @@ pub extern "C" fn json_decode_rs(input: *const c_char, _options: c_int) -> JsonD
             Ok(s) => s,
             Err(_) => {
                 return JsonDecodeResult {
-                    ptr: CString::new("").unwrap().into_raw(),
+                    ptr: empty.clone().into_raw(),
                     used: 0,
                     error: 2,
                 };
@@ -81,15 +87,21 @@ pub extern "C" fn json_decode_rs(input: *const c_char, _options: c_int) -> JsonD
         let mut de = serde_json::Deserializer::from_str(s);
         match Value::deserialize(&mut de) {
             Ok(v) => {
-                let used = de.byte_offset();
                 let out = match v {
                     Value::String(st) => st,
                     other => other.to_string(),
                 };
-                JsonDecodeResult {
-                    ptr: CString::new(out).unwrap().into_raw(),
-                    used,
-                    error: 0,
+                match CString::new(out) {
+                    Ok(cstr) => JsonDecodeResult {
+                        ptr: cstr.into_raw(),
+                        used: s.len(),
+                        error: 0,
+                    },
+                    Err(_) => JsonDecodeResult {
+                        ptr: empty.into_raw(),
+                        used: 0,
+                        error: 2,
+                    },
                 }
             }
             Err(e) => {
@@ -98,7 +110,7 @@ pub extern "C" fn json_decode_rs(input: *const c_char, _options: c_int) -> JsonD
                     _ => 2,
                 };
                 JsonDecodeResult {
-                    ptr: CString::new("").unwrap().into_raw(),
+                    ptr: empty.into_raw(),
                     used: 0,
                     error: err,
                 }
@@ -122,10 +134,10 @@ pub extern "C" fn json_find_end_rs(input: *const c_char, _options: c_int) -> Jso
 
         let mut de = serde_json::Deserializer::from_str(s);
         match Value::deserialize(&mut de) {
-            Ok(_) => {
-                let used = de.byte_offset();
-                JsonFindEndResult { used, status: 1 }
-            }
+            Ok(_) => JsonFindEndResult {
+                used: s.len(),
+                status: 1,
+            },
             Err(e) => {
                 let status = match e.classify() {
                     Category::Eof => 2,
@@ -133,6 +145,37 @@ pub extern "C" fn json_find_end_rs(input: *const c_char, _options: c_int) -> Jso
                 };
                 JsonFindEndResult { used: 0, status }
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::ffi::{CStr, CString};
+    use std::os::raw::c_char;
+
+    #[test]
+    fn decode_handles_null_char() {
+        let input = CString::new("\"\\u0000\"").unwrap();
+        let res = json_decode_rs(input.as_ptr(), 0);
+        let s = unsafe { CStr::from_ptr(res.ptr) }.to_str().unwrap();
+        assert_eq!(s, "");
+        assert_eq!(res.error, 2);
+        unsafe {
+            let _ = CString::from_raw(res.ptr);
+        }
+    }
+
+    #[test]
+    fn encode_handles_internal_null() {
+        let bytes = b"ab\0cd\0";
+        let ptr = bytes.as_ptr() as *const c_char;
+        let out_ptr = json_encode_rs(ptr, 0);
+        let out = unsafe { CStr::from_ptr(out_ptr) }.to_str().unwrap();
+        assert_eq!(out, "\"ab\"");
+        unsafe {
+            let _ = CString::from_raw(out_ptr);
         }
     }
 }
