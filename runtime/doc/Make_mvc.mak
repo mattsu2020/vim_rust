@@ -33,27 +33,15 @@ ICONV = "$(ICONV_PATH)\iconv.exe"
 !ENDIF
 
 .SUFFIXES :
-.SUFFIXES : .c .o .txt .html
+.SUFFIXES : .txt .html
 
 
 all : tags perlhtml $(CONVERTED)
 
-# Use "doctags" to generate the tags file.  Only works for English!
-tags : doctags $(DOCS)
-	doctags.exe $(DOCS) | sort /L C /O tags
-	$(PS) $(PSFLAGS) \
-		(Get-Content -Raw tags ^| Get-Unique ^| %%{$$_ \
-		-replace \"`r\", \"\"}) \
-		^| New-Item -Path . -Name tags -ItemType file -Force
-
-doctags : doctags.c
-	$(CC) doctags.c
-
-
 # Use Vim to generate the tags file.  Can only be used when Vim has been
 # compiled and installed.  Supports multiple languages.
-vimtags : $(DOCS)
-	@ "$(VIMPROG)" --clean -esX -V1 -u doctags.vim
+tags : $(DOCS)
+        @ "$(VIMPROG)" --clean -esX -V1 -u doctags.vim
 
 # TODO:
 #html: noerrors tags $(HTMLS)
@@ -82,15 +70,14 @@ vimtags : $(DOCS)
 # There can't be two rules to produce a .html from a .txt file.
 # Just run over all .txt files each time one changes.  It's fast anyway.
 perlhtml : tags $(DOCS)
-	vim2html.pl tags $(DOCS)
+        vim2html.pl tags $(DOCS)
 
 # Check URLs in the help with "curl" or "powershell".
 test_urls :
 	"$(VIMPROG)" --clean -S test_urls.vim
 
 clean :
-	- $(RM) doctags.exe doctags.obj
-	- $(RM) *.html vim-stylesheet.css
+        - $(RM) *.html vim-stylesheet.css
 
 
 arabic.txt :
