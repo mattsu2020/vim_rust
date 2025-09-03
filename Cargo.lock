@@ -1264,6 +1264,13 @@ name = "rust_charset"
 version = "0.1.0"
 
 [[package]]
+name = "rust_cindent"
+version = "0.1.0"
+dependencies = [
+ "criterion 0.5.1",
+]
+
+[[package]]
 name = "rust_cmdhist"
 version = "0.1.0"
 dependencies = [
