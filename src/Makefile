@@ -134,7 +134,7 @@
 #		make installtutorbin	only installs the Vim tutor program
 #		make installtutor	only installs the Vim tutor files
 #		make installspell	only installs the spell files
-#		make installtools	only installs xxd
+#		make installtools	installs runtime tools
 #	If you install Vim, not to install for real but to prepare a package
 #	or RPM, set DESTDIR to the root of the tree.
 #
@@ -955,7 +955,7 @@ EVIEWNAME	= e$(VIEWNAME)
 EVIEWTARGET	= $(EVIEWNAME)$(LNKEXT)
 
 ### Names of the tools that are also made  {{{1
-TOOLS = xxd/xxd$(EXEEXT)
+TOOLS =
 
 ### Installation directories.  The defaults come from configure. {{{1
 #
@@ -2183,7 +2183,7 @@ PRO_MANUAL = os_amiga.pro os_win32.pro \
 	os_mswin.pro winclip.pro os_vms.pro $(PERL_PRO)
 
 # Default target is making the executable and tools
-all: $(VIMTARGET) $(TOOLS) languages $(GUI_BUNDLE)
+all: $(VIMTARGET) languages $(GUI_BUNDLE)
 
 # Build the Rust channel library that exposes a minimal FFI API for Vim.
 # This is a placeholder; a full integration would link the resulting static
@@ -2194,7 +2194,7 @@ rust-channel:
 rust-spell:
 	cargo build --manifest-path=../rust/spell/Cargo.toml --release
 
-tools: $(TOOLS)
+tools:
 
 # Run configure with all the setting from above.
 #
@@ -2302,9 +2302,6 @@ $(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REG
 		PROG="vim" \
 		sh $(srcdir)/link.sh
 
-xxd/xxd$(EXEEXT):
-	cd xxd; CC="$(CC)" CFLAGS="$(CPPFLAGS) $(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
-	$(MAKE) -f Makefile
 
 # Build the language specific files if they were unpacked.
 # Generate the converted .mo files separately, it's no problem if this fails.
@@ -2702,21 +2699,9 @@ installspell: $(DEST_VIM) $(DEST_RT) $(DEST_SPELL)
 	  chmod $(HELPMOD) $(DEST_SPELL)/*.spl $(DEST_SPELL)/*.sug $(DEST_SPELL)/*.vim; \
 	fi
 
-# install helper program xxd
-installtools: $(TOOLS) $(DESTDIR)$(exec_prefix) $(DEST_BIN) \
-		$(TOOLSSOURCE) $(DEST_VIM) $(DEST_RT) $(DEST_TOOLS) \
-		$(INSTALL_TOOL_LANGS)
-	if test -f $(DEST_BIN)/xxd$(EXEEXT); then \
-	  mv -f $(DEST_BIN)/xxd$(EXEEXT) $(DEST_BIN)/xxd.rm; \
-	  rm -f $(DEST_BIN)/xxd.rm; \
-	fi
-	$(INSTALL_PROG) xxd/xxd$(EXEEXT) $(DEST_BIN)
-	$(STRIP) $(DEST_BIN)/xxd$(EXEEXT)
-	chmod $(BINMOD) $(DEST_BIN)/xxd$(EXEEXT)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN) "" $(INSTALLMANARGS)
-
-# install the runtime tools
-	$(INSTALL_DATA_R) $(TOOLSSOURCE)/* $(DEST_TOOLS)
+installtools: $(DESTDIR)$(exec_prefix) $(DEST_BIN) \
+               $(TOOLSSOURCE) $(DEST_VIM) $(DEST_RT) $(DEST_TOOLS)
+       $(INSTALL_DATA_R) $(TOOLSSOURCE)/* $(DEST_TOOLS)
 # When using CVS some CVS directories might have been copied.
 	cvs=`find $(DEST_TOOLS) \( -name CVS -o -name AAPDIR \) -print`; \
 	      if test -n "$$cvs"; then \
@@ -2729,30 +2714,6 @@ installtools: $(TOOLS) $(DESTDIR)$(exec_prefix) $(DEST_BIN) \
 		awkpath=`./which.sh gawk` && sed -e "s+/usr/bin/nawk+$$awkpath+" $(TOOLSSOURCE)/mve.awk >$(DEST_TOOLS)/mve.awk; if test -z "$$awkpath"; then \
 		awkpath=`./which.sh awk` && sed -e "s+/usr/bin/nawk+$$awkpath+" $(TOOLSSOURCE)/mve.awk >$(DEST_TOOLS)/mve.awk; fi; fi
 	-chmod $(SCRIPTMOD) `grep -l "^#!" $(DEST_TOOLS)/*`
-
-# install the language specific files for tools, if they were unpacked
-install-tool-languages:
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_DA) "-da" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_DA_I) "-da" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_DA_U) "-da.UTF-8" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_DE) "-de" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_DE_I) "-de" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_DE_U) "-de.UTF-8" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_FR) "-fr" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_FR_I) "-fr" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_FR_U) "-fr.UTF-8" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_IT) "-it" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_IT_I) "-it" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_IT_U) "-it.UTF-8" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_JA_U) "-ja.UTF-8" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_PL) "-pl" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_PL_I) "-pl" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_PL_U) "-pl.UTF-8" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_RU) "-ru" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_RU_U) "-ru.UTF-8" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_TR) "-tr" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_TR_I) "-tr" $(INSTALLMANARGS)
-	-$(SHELL) ./installman.sh xxd $(DEST_MAN_TR_U) "-tr.UTF-8" $(INSTALLMANARGS)
 
 
 # install the language specific files, if they were unpacked
@@ -3000,7 +2961,6 @@ uninstall: uninstall_runtime
 	-rm -f $(DEST_BIN)/$(RGVIMTARGET) $(DEST_BIN)/$(RGVIEWTARGET)
 	-rm -f $(DEST_BIN)/$(VIMDIFFTARGET) $(DEST_BIN)/$(GVIMDIFFTARGET)
 	-rm -f $(DEST_BIN)/$(EVIMTARGET) $(DEST_BIN)/$(EVIEWTARGET)
-	-rm -f $(DEST_BIN)/xxd$(EXEEXT)
 
 # Note: the "rmdir" will fail if any files were added after "make install"
 uninstall_runtime:
@@ -3070,14 +3030,6 @@ uninstall_runtime:
 		$(DEST_MAN_TR_I) $(INSTALLMLARGS)
 	-$(SHELL) ./installml.sh uninstall "$(GUI_MAN_TARGETS)" \
 		$(DEST_MAN_TR_U) $(INSTALLMLARGS)
-	-rm -f $(DEST_MAN)/xxd.1
-	-rm -f $(DEST_MAN_DA)/xxd.1 $(DEST_MAN_DA_I)/xxd.1 $(DEST_MAN_DA_U)/xxd.1
-	-rm -f $(DEST_MAN_DE)/xxd.1 $(DEST_MAN_DE_I)/xxd.1 $(DEST_MAN_DE_U)/xxd.1
-	-rm -f $(DEST_MAN_FR)/xxd.1 $(DEST_MAN_FR_I)/xxd.1 $(DEST_MAN_FR_U)/xxd.1
-	-rm -f $(DEST_MAN_IT)/xxd.1 $(DEST_MAN_IT_I)/xxd.1 $(DEST_MAN_IT_U)/xxd.1
-	-rm -f $(DEST_MAN_JA_U)/xxd.1
-	-rm -f $(DEST_MAN_PL)/xxd.1 $(DEST_MAN_PL_I)/xxd.1 $(DEST_MAN_PL_U)/xxd.1
-	-rm -f $(DEST_MAN_RU)/xxd.1 $(DEST_MAN_RU_U)/xxd.1
 	-rm -f $(DEST_HELP)/*.txt $(DEST_HELP)/tags $(DEST_HELP)/*.pl
 	-rm -f $(DEST_HELP)/*.??x $(DEST_HELP)/tags-??
 	-rm -f $(SYS_MENU_FILE) $(SYS_SYNMENU_FILE) $(SYS_DELMENU_FILE)
@@ -3143,7 +3095,6 @@ clean celan: testclean
 	if test -d $(PODIR); then \
 		cd $(PODIR); $(MAKE) prefix=$(DESTDIR)$(prefix) clean; \
 	fi
-	cd xxd; $(MAKE) clean
 	cd auto/wayland; $(MAKE) clean
 
 # Make a shadow directory for compilation on another system or with different
@@ -3183,8 +3134,6 @@ shadow:	runtime pixmaps
 	rm -f $(SHADOWDIR)/auto/config.mk $(SHADOWDIR)/config.mk.dist
 	cp config.mk.dist $(SHADOWDIR)/auto/config.mk
 	cp config.mk.dist $(SHADOWDIR)
-	$(MKDIR_P) $(SHADOWDIR)/xxd
-	cd $(SHADOWDIR)/xxd; ln -s ../../xxd/*.[ch] ../../xxd/Make* .
 	$(MKDIR_P) $(SHADOWDIR)/testdir
 	cd $(SHADOWDIR)/testdir; ln -s ../../testdir/Makefile \
 				 ../../testdir/Make_all.mak \
