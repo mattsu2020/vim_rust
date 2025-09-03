@@ -2088,6 +2088,8 @@ dependencies = [
  "rust_sha256",
  "rust_spell",
  "rust_wayland",
+ "serde",
+ "serde_json",
  "tokio",
 ]
 

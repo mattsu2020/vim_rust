@@ -1,6 +1,7 @@
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
 
+use serde::Deserialize;
 use serde_json::error::Category;
 use serde_json::{self, Value};
 
@@ -9,6 +10,13 @@ use serde_json::{self, Value};
 const JSON_JS: c_int = 1;
 const JSON_NO_NONE: c_int = 2;
 const JSON_NL: c_int = 4;
+
+fn cstr_to_str<'a>(input: *const c_char) -> Option<&'a str> {
+    if input.is_null() {
+        return None;
+    }
+    unsafe { CStr::from_ptr(input).to_str().ok() }
+}
 
 /// Result for decoding a JSON string.
 #[repr(C)]
@@ -30,24 +38,19 @@ pub struct JsonFindEndResult {
 // encoded result when set.
 #[no_mangle]
 pub extern "C" fn json_encode_rs(input: *const c_char, options: c_int) -> *mut c_char {
-    unsafe {
-        if input.is_null() {
-            return CString::new("\"\"").unwrap().into_raw();
-        }
-        match CStr::from_ptr(input).to_str() {
-            Ok(s) => {
-                let mut json = match serde_json::to_string(s) {
-                    Ok(json) => json,
-                    Err(_) => "\"\"".to_string(),
-                };
-                if (options & JSON_NL) != 0 {
-                    json.push('\n');
-                }
-                CString::new(json).unwrap().into_raw()
-            }
-            Err(_) => CString::new("\"\"").unwrap().into_raw(),
-        }
+    let s = match cstr_to_str(input) {
+        Some(s) => s,
+        None => return CString::new("\"\"").unwrap().into_raw(),
+    };
+
+    let mut json = match serde_json::to_string(s) {
+        Ok(json) => json,
+        Err(_) => "\"\"".to_string(),
+    };
+    if (options & JSON_NL) != 0 {
+        json.push('\n');
     }
+    CString::new(json).unwrap().into_raw()
 }
 
 // Decode a JSON value back to a string.  When the decoded value is a JSON
@@ -58,50 +61,40 @@ pub extern "C" fn json_encode_rs(input: *const c_char, options: c_int) -> *mut c
 // decoding succeeds.
 #[no_mangle]
 pub extern "C" fn json_decode_rs(input: *const c_char, _options: c_int) -> JsonDecodeResult {
-    unsafe {
-        if input.is_null() {
+    let s = match cstr_to_str(input) {
+        Some(s) => s,
+        None => {
             return JsonDecodeResult {
                 ptr: CString::new("").unwrap().into_raw(),
                 used: 0,
                 error: 2,
             };
         }
+    };
 
-        let s = match CStr::from_ptr(input).to_str() {
-            Ok(s) => s,
-            Err(_) => {
-                return JsonDecodeResult {
-                    ptr: CString::new("").unwrap().into_raw(),
-                    used: 0,
-                    error: 2,
-                };
+    let mut de = serde_json::Deserializer::from_str(s);
+    match Value::deserialize(&mut de) {
+        Ok(v) => {
+            let used = s.len();
+            let out = match v {
+                Value::String(st) => st,
+                other => other.to_string(),
+            };
+            JsonDecodeResult {
+                ptr: CString::new(out).unwrap().into_raw(),
+                used,
+                error: 0,
             }
-        };
-
-        let mut de = serde_json::Deserializer::from_str(s);
-        match Value::deserialize(&mut de) {
-            Ok(v) => {
-                let used = de.byte_offset();
-                let out = match v {
-                    Value::String(st) => st,
-                    other => other.to_string(),
-                };
-                JsonDecodeResult {
-                    ptr: CString::new(out).unwrap().into_raw(),
-                    used,
-                    error: 0,
-                }
-            }
-            Err(e) => {
-                let err = match e.classify() {
-                    Category::Eof => 1,
-                    _ => 2,
-                };
-                JsonDecodeResult {
-                    ptr: CString::new("").unwrap().into_raw(),
-                    used: 0,
-                    error: err,
-                }
+        }
+        Err(e) => {
+            let err = match e.classify() {
+                Category::Eof => 1,
+                _ => 2,
+            };
+            JsonDecodeResult {
+                ptr: CString::new("").unwrap().into_raw(),
+                used: 0,
+                error: err,
             }
         }
     }
@@ -111,28 +104,23 @@ pub extern "C" fn json_decode_rs(input: *const c_char, _options: c_int) -> JsonD
 // Vim constants OK (1), FAIL (0) or MAYBE (2).
 #[no_mangle]
 pub extern "C" fn json_find_end_rs(input: *const c_char, _options: c_int) -> JsonFindEndResult {
-    unsafe {
-        if input.is_null() {
-            return JsonFindEndResult { used: 0, status: 0 };
-        }
-        let s = match CStr::from_ptr(input).to_str() {
-            Ok(s) => s,
-            Err(_) => return JsonFindEndResult { used: 0, status: 0 },
-        };
+    let s = match cstr_to_str(input) {
+        Some(s) => s,
+        None => return JsonFindEndResult { used: 0, status: 0 },
+    };
 
-        let mut de = serde_json::Deserializer::from_str(s);
-        match Value::deserialize(&mut de) {
-            Ok(_) => {
-                let used = de.byte_offset();
-                JsonFindEndResult { used, status: 1 }
-            }
-            Err(e) => {
-                let status = match e.classify() {
-                    Category::Eof => 2,
-                    _ => 0,
-                };
-                JsonFindEndResult { used: 0, status }
-            }
+    let mut de = serde_json::Deserializer::from_str(s);
+    match Value::deserialize(&mut de) {
+        Ok(_) => {
+            let used = s.len();
+            JsonFindEndResult { used, status: 1 }
+        }
+        Err(e) => {
+            let status = match e.classify() {
+                Category::Eof => 2,
+                _ => 0,
+            };
+            JsonFindEndResult { used: 0, status }
         }
     }
 }
