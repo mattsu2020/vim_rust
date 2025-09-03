@@ -12,7 +12,7 @@
  */
 
 #include "vim.h"
-#include "../rust_excmd/include/rust_excmd.h"
+#include "../rust_cmdhist/include/rust_cmdhist.h"
 
 // Functions implemented in Rust for command history.
 

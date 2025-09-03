@@ -31,7 +31,6 @@ type CmdFunc = unsafe extern "C" fn();
 
 static COMMANDS: Lazy<Mutex<HashMap<String, CmdFunc>>> =
     Lazy::new(|| Mutex::new(HashMap::new()));
-static HISTORY: Lazy<Mutex<Vec<String>>> = Lazy::new(|| Mutex::new(Vec::new()));
 
 #[no_mangle]
 pub extern "C" fn rs_cmd_add(name: *const c_char, func: CmdFunc) {
@@ -50,21 +49,6 @@ pub extern "C" fn rs_cmd_execute(name: *const c_char) -> c_int {
     }
 }
 
-#[no_mangle]
-pub extern "C" fn rs_cmd_history_add(cmd: *const c_char) {
-    let cmd = unsafe { CStr::from_ptr(cmd) }.to_string_lossy().into_owned();
-    HISTORY.lock().unwrap().push(cmd);
-}
-
-#[no_mangle]
-pub extern "C" fn rs_cmd_history_get(idx: c_int) -> *const c_char {
-    let hist = HISTORY.lock().unwrap();
-    if let Some(cmd) = hist.get(idx as usize) {
-        CString::new(cmd.clone()).unwrap().into_raw()
-    } else {
-        std::ptr::null()
-    }
-}
 
 #[no_mangle]
 pub extern "C" fn do_cmdline(

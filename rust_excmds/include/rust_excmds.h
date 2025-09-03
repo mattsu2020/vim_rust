@@ -1,5 +1,5 @@
-#ifndef RUST_EXCMD_H
-#define RUST_EXCMD_H
+#ifndef RUST_EXCMDS_H
+#define RUST_EXCMDS_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -15,8 +15,6 @@ typedef int (*Fgetline)(int, void *, int, GetlineOpt);
 
 void rs_cmd_add(const char *name, void (*func)(void));
 int rs_cmd_execute(const char *name);
-void rs_cmd_history_add(const char *cmd);
-const char *rs_cmd_history_get(int idx);
 
 int do_cmdline(CharU *cmdline, Fgetline fgetline, void *cookie, int flags);
 CharU *do_one_cmd(CharU **cmdlinep, int flags, void *cstack, Fgetline fgetline,
@@ -42,4 +40,4 @@ void set_pressedreturn(int val);
 }
 #endif
 
-#endif // RUST_EXCMD_H
+#endif // RUST_EXCMDS_H

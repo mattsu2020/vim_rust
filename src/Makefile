@@ -1403,8 +1403,10 @@ RUST_BEVAL_DIR = ../rust_beval
 RUST_BEVAL_LIB = $(RUST_BEVAL_DIR)/target/release/librust_beval.a
 RUST_MBYTE_DIR = ../rust_mbyte
 RUST_MBYTE_LIB = $(RUST_MBYTE_DIR)/target/release/librust_mbyte.a
-RUST_EXCMD_DIR = ../rust_excmd
-RUST_EXCMD_LIB = $(RUST_EXCMD_DIR)/target/release/librust_excmd.a
+RUST_EXCMD_DIR = ../rust_excmds
+RUST_EXCMD_LIB = $(RUST_EXCMD_DIR)/target/release/librust_excmds.a
+RUST_CMDHIST_DIR = ../rust_cmdhist
+RUST_CMDHIST_LIB = $(RUST_CMDHIST_DIR)/target/release/librust_cmdhist.a
 RUST_AUTOCMD_DIR = ../rust_autocmd
 RUST_AUTOCMD_LIB = $(RUST_AUTOCMD_DIR)/target/release/librust_autocmd.a
 RUST_SEARCH_DIR = ../rust_search
@@ -1437,8 +1439,10 @@ RUST_BLOWFISH_LIB = $(RUST_BLOWFISH_DIR)/target/release/librust_blowfish.a
 # Additional Rust crates used by this configuration
 RUST_CHANGE_DIR = ../rust_change
 RUST_CHANGE_LIB = $(RUST_CHANGE_DIR)/target/release/librust_change.a
-RUST_EXCMD_DIR = ../rust_excmd
-RUST_EXCMD_LIB = $(RUST_EXCMD_DIR)/target/release/librust_excmd.a
+RUST_EXCMD_DIR = ../rust_excmds
+RUST_EXCMD_LIB = $(RUST_EXCMD_DIR)/target/release/librust_excmds.a
+RUST_CMDHIST_DIR = ../rust_cmdhist
+RUST_CMDHIST_LIB = $(RUST_CMDHIST_DIR)/target/release/librust_cmdhist.a
 EXTRA_IPATHS += -I$(RUST_ARABIC_DIR)/include
 EXTRA_IPATHS += -I$(RUST_BEVAL_DIR)/include
 
@@ -1465,6 +1469,7 @@ ALL_LIBS = \
            $(RUST_EVALFUNC_LIB) \
            $(RUST_EVAL_LIB) \
            $(RUST_EXCMD_LIB) \
+           $(RUST_CMDHIST_LIB) \
            $(RUST_ARABIC_LIB) \
            $(RUST_BEVAL_LIB) \
            $(RUST_MBYTE_LIB) \
@@ -1573,7 +1578,10 @@ $(RUST_MBYTE_LIB):
 	cd $(RUST_MBYTE_DIR) && cargo build --release
 
 $(RUST_EXCMD_LIB):
-	cd $(RUST_EXCMD_DIR) && cargo build --release
+        cd $(RUST_EXCMD_DIR) && cargo build --release
+
+$(RUST_CMDHIST_LIB):
+        cd $(RUST_CMDHIST_DIR) && cargo build --release
 
 $(RUST_AUTOCMD_LIB):
 	cd $(RUST_AUTOCMD_DIR) && cargo build --release
@@ -1696,7 +1704,9 @@ $(RUST_CHANGE_LIB):
 	cd $(RUST_CHANGE_DIR) && cargo build --release
 
 $(RUST_EXCMD_LIB):
-	cd $(RUST_EXCMD_DIR) && cargo build --release
+        cd $(RUST_EXCMD_DIR) && cargo build --release
+$(RUST_CMDHIST_LIB):
+        cd $(RUST_CMDHIST_DIR) && cargo build --release
 DEST_LANG = $(DESTDIR)$(LANGSUBLOC)
 DEST_COMP = $(DESTDIR)$(COMPSUBLOC)
 DEST_KMAP = $(DESTDIR)$(KMAPSUBLOC)
@@ -1775,7 +1785,7 @@ BASIC_SRC = \
 	evalfunc.c \
 	evalvars.c \
 	evalwindow.c \
-       # ex_cmds.c replaced by rust_excmd crate \
+       # ex_cmds.c replaced by rust_excmds crate \
         ex_eval.c \
         ex_getln.c \
 	fileio.c \
@@ -4086,7 +4096,7 @@ objects/evalwindow.o: evalwindow.c vim.h protodef.h auto/config.h feature.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h errors.h
-objects/ex_cmds.o: # ex_cmds.c replaced by rust_excmd crate
+objects/ex_cmds.o: # ex_cmds.c replaced by rust_excmds crate
 objects/ex_eval.o: ex_eval.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \

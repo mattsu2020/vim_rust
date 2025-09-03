@@ -29,7 +29,7 @@ void showruler(int always)
     (void)always;
 }
 
-// pressedreturn は rust_excmd が提供するため未定義にしておく
+// pressedreturn は rust_excmds が提供するため未定義にしておく
 
 // Parse helpers (very simplified)
 char_u *skip_option_env_lead(char_u *start)

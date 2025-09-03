@@ -13,7 +13,8 @@
 
 #include "vim.h"
 #include "rust_arabic.h"
-#include "../rust_excmd/include/rust_excmd.h"
+#include "../rust_excmds/include/rust_excmds.h"
+#include "../rust_cmdhist/include/rust_cmdhist.h"
 extern int rust_empty_pattern_magic(char_u *p, size_t len, int magic_val);
 
 // Functions implemented in Rust for command line history.

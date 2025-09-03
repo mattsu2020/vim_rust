@@ -1,0 +1,11 @@
+[package]
+name = "rust_cmdhist"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "rust_cmdhist"
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+once_cell = "1"

@@ -13,7 +13,7 @@
 
 #include "vim.h"
 #include "version.h"
-#include "../rust_excmd/include/rust_excmd.h"
+#include "../rust_excmds/include/rust_excmds.h"
 
 #include <float.h>
 
