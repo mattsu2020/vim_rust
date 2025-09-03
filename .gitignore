@@ -41,6 +41,7 @@ vim*.dll
 
 # Rust build artifacts
 */target/
+target/
 vim*.lib
 src/dobj*/pathdef.c
 src/gobj*/pathdef.c
