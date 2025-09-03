@@ -759,7 +759,6 @@ Section -post
 !endif
 
 	# Register EstimatedSize and AllowSilent.
-	# Other information will be set by the install.exe (dosinst.c).
 	${If} ${RunningX64}
 	  SetRegView 64
 	${EndIf}

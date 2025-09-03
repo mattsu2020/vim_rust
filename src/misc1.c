@@ -1236,7 +1236,6 @@ vim_beep(unsigned val)
  *  This also works with mounts and links.
  *  Don't do this for MS-DOS, it will change the "current dir" for a drive.
  * For Windows:
- *  This code is duplicated in init_homedir() in dosinst.c.  Keep in sync!
  */
     void
 init_homedir(void)

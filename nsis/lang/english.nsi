@@ -11,7 +11,6 @@
 
 
 # Overwrite the default translation.
-# These strings should be always English.  Otherwise dosinst.c fails.
 LangString ^SetupCaption     ${LANG_ENGLISH} \
         "$(^Name) Setup"
 LangString ^UninstallCaption ${LANG_ENGLISH} \

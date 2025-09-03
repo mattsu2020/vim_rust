@@ -515,10 +515,8 @@ SRC_DOS =	\
 		src/msvc2022.bat \
 		src/msys32.bat \
 		src/msys64.bat \
-		src/dosinst.c \
-		src/dosinst.h \
-		src/gui_dwrite.cpp \
-		src/gui_dwrite.h \
+                src/gui_dwrite.cpp \
+                src/gui_dwrite.h \
 		src/gui_w32.c \
 		src/gui_w32_rc.h \
 		src/iscygpty.c \
@@ -535,11 +533,10 @@ SRC_DOS =	\
 		src/testdir/Make_dos.mak \
 		src/testdir/Make_mvc.mak \
 		src/testdir/Make_ming.mak \
-		src/testdir/util/dos.vim \
-		src/uninstall.c \
-		src/vim.rc \
-		src/vim.manifest \
-		src/vimrun.c \
+                src/testdir/util/dos.vim \
+                src/vim.rc \
+                src/vim.manifest \
+                src/vimrun.c \
 		src/xpm_w32.c \
 		src/xpm_w32.h \
 		src/tee/Make_ming.mak \
