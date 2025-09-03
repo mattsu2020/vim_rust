@@ -110,7 +110,6 @@ extern int _stricoll(char *a, char *b);
 # include "locale.pro"
 /* logfile.c をビルド対象から外しているため、対応するプロトタイプも除外 */
 /* # include "logfile.pro" */
-# include "blob.pro"
 # include "main.pro"
 # include "map.pro"
 # include "mark.pro"

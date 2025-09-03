@@ -488,7 +488,6 @@ SRC = \
  arglist.c \
  autocmd.c \
  beval.c \
- blob.c \
  blowfish.c \
  buffer.c \
  bufwrite.c \
@@ -618,7 +617,6 @@ OBJ = \
  [.$(DEST)]arglist.obj \
  [.$(DEST)]autocmd.obj \
  [.$(DEST)]beval.obj \
- [.$(DEST)]blob.obj \
  [.$(DEST)]blowfish.obj \
  [.$(DEST)]buffer.obj \
  [.$(DEST)]bufwrite.obj \
@@ -998,7 +996,6 @@ lua_env :
 [.$(DEST)]arglist.obj : arglist.c vim.h [.$(DEST)]config.h feature.h os_unix.h
 [.$(DEST)]autocmd.obj : autocmd.c vim.h [.$(DEST)]config.h feature.h os_unix.h
 [.$(DEST)]blowfish.obj : blowfish.c vim.h [.$(DEST)]config.h feature.h os_unix.h
-[.$(DEST)]blob.obj : blob.c vim.h [.$(DEST)]config.h feature.h os_unix.h
 [.$(DEST)]buffer.obj : buffer.c vim.h [.$(DEST)]config.h feature.h os_unix.h \
  ascii.h keymap.h termdefs.h macros.h structs.h regexp.h \
  gui.h beval.h [.proto]gui_beval.pro option.h ex_cmds.h proto.h \

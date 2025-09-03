@@ -671,12 +671,11 @@ INCL = vim.h alloc.h ascii.h ex_cmds.h feature.h errors.h globals.h \
 
 OBJ = \
 	$(OUTDIR)\alloc.obj \
-	$(OUTDIR)\arglist.obj \
-	$(OUTDIR)\autocmd.obj \
-	$(OUTDIR)\beval.obj \
-	$(OUTDIR)\blob.obj \
-	$(OUTDIR)\blowfish.obj \
-	$(OUTDIR)\buffer.obj \
+        $(OUTDIR)\arglist.obj \
+        $(OUTDIR)\autocmd.obj \
+        $(OUTDIR)\beval.obj \
+        $(OUTDIR)\blowfish.obj \
+        $(OUTDIR)\buffer.obj \
 	$(OUTDIR)\bufwrite.obj \
 	$(OUTDIR)\change.obj \
 	$(OUTDIR)\charset.obj \
@@ -1493,8 +1492,6 @@ $(OUTDIR)/autocmd.obj: $(OUTDIR) autocmd.c $(INCL)
 
 $(OUTDIR)/beval.obj: $(OUTDIR) beval.c $(INCL)
 
-$(OUTDIR)/blob.obj: $(OUTDIR) blob.c $(INCL)
-
 $(OUTDIR)/blowfish.obj: $(OUTDIR) blowfish.c $(INCL)
 
 $(OUTDIR)/buffer.obj: $(OUTDIR) buffer.c $(INCL) version.h
@@ -1887,8 +1884,7 @@ proto.h: \
 	proto/alloc.pro \
 	proto/arglist.pro \
 	proto/autocmd.pro \
-	proto/blob.pro \
-	proto/blowfish.pro \
+        proto/blowfish.pro \
 	proto/buffer.pro \
 	proto/bufwrite.pro \
 	proto/change.pro \

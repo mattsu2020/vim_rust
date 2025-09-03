@@ -74,11 +74,10 @@ endif
 # Common sources
 SRC += \
 	arglist.c \
-	autocmd.c \
-	beval.c \
-	blob.c \
-	blowfish.c \
-	buffer.c \
+        autocmd.c \
+        beval.c \
+        blowfish.c \
+        buffer.c \
 	bufwrite.c \
 	change.c \
 	charset.c \
