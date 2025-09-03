@@ -103,28 +103,6 @@ checkclean:
 nb.po: no.po
 	$(CP) no.po nb.po
 
-# Convert ja.po to create ja.sjis.po.
-ja.sjis.po: ja.po
-	@ $(MAKE) -nologo -f Make_mvc.mak sjiscorr
-	- $(RM) $@
-!IF DEFINED (ICONV)
-	$(ICONV) -f UTF-8 -t CP932 $? | .\sjiscorr.exe > $@
-!ELSE
-	$(PS) $(PSFLAGS) [System.IO.File]::WriteAllText(\"$@\", \
-		[System.IO.File]::ReadAllText(\"$?\", \
-		[System.Text.Encoding]::GetEncoding(65001)), \
-		[System.Text.Encoding]::GetEncoding(932))
-	type $@ | .\sjiscorr.exe > $@.tmp
-	@ $(MV) $@.tmp $@
-!ENDIF
-	$(PS) $(PSFLAGS) $$out = [System.IO.File]::ReadAllText(\"$@\", \
-		[System.Text.Encoding]::GetEncoding(932)) \
-		-replace \"`r`n\", \"`n\"; \
-		[System.IO.File]::WriteAllText(\"$@\", $$out, \
-		[System.Text.Encoding]::GetEncoding(932))
-
-sjiscorr: sjiscorr.c
-	$(CC) sjiscorr.c
 
 # Convert ja.po to create ja.euc-jp.po.
 ja.euc-jp.po: ja.po
@@ -279,45 +257,6 @@ zh_TW.po: zh_TW.UTF-8.po
 		[System.IO.File]::WriteAllText(\"$@\", $$out, \
 		[System.Text.Encoding]::GetEncoding(950))
 
-# Convert zh_TW.UTF-8.po to create zh_TW.po with backslash characters.
-# Requires doubling backslashes in the second byte.  Don't depend on big5corr,
-# it should only be compiled when zh_TW.po is outdated.
-
-#
-#  06.11.23, added by Restorer:
-#  For more details, see:
-#  https://github.com/vim/vim/pull/3261
-#  https://github.com/vim/vim/pull/3476
-#  https://github.com/vim/vim/pull/12153
-#  (read all comments)
-#
-#  I checked the workability on the list of backslash characters
-#  specified in zh_TW.UTF-8.po. It works.
-#  But it is better to have someone native speaker check it.
-#
-
-#zh_TW.po: zh_TW.UTF-8.po
-#	@$(MAKE) -nologo -f Make_mvc.mak big5corr
-#	- $(RM) $@
-#!IF DEFINED (ICONV)
-#	$(ICONV) -f UTF-8 -t BIG5 $? | .\big5corr.exe > $@
-#!ELSE
-#	$(PS) $(PSFLAGS) [System.IO.File]::WriteAllText(\"$@\", \
-#		[System.IO.File]::ReadAllText(\"$?\", \
-#		[System.Text.Encoding]::GetEncoding(65001)), \
-#		[System.Text.Encoding]::GetEncoding(950))
-#	type $@ | .\big5corr.exe > tmp.$@
-#	@$(MV) tmp.$@ $@
-#!ENDIF
-#	$(PS) $(PSFLAGS) $$out = [System.IO.File]::ReadAllText(\"$@\", \
-#		[System.Text.Encoding]::GetEncoding(950)) \
-#		-replace \"`r`n\", \"`n\"; \
-#		[System.IO.File]::WriteAllText(\"$@\", $$out, \
-#		[System.Text.Encoding]::GetEncoding(950))
-
-# See above in the zh_TW.po conversion section for backslashes.
-#big5corr: big5corr.c
-#	$(CC) big5corr.c
 
 # Convert ko.UTF-8.po to create ko.po.
 ko.po: ko.UTF-8.po
@@ -481,8 +420,6 @@ clean: checkclean
 	- $(RM) *.mo
 	- $(RM) *.orig
 	- $(RM) files allfiles
-	- $(RM) sjiscorr.obj sjiscorr.exe
 #	- $(RM) *.pot
-#	- $(RM) big5corr.obj big5corr.exe
 
 # vim: set noet sw=8 ts=8 sts=0 wm=0 tw=79 ft=make:
