@@ -7,7 +7,7 @@ use rust_path::normalize_path;
 /// Read the file at `fname`.
 /// Unused parameters mirror the original C API.
 #[no_mangle]
-pub extern "C" fn readfile(
+pub extern "C" fn rs_readfile(
     fname: *const c_char,
     _sfname: *const c_char,
     _from: isize,
@@ -36,7 +36,7 @@ pub extern "C" fn readfile(
 
 /// Write `len` bytes from `data` to the file at `fname`.
 #[no_mangle]
-pub extern "C" fn writefile(
+pub extern "C" fn rs_writefile(
     fname: *const c_char,
     data: *const c_char,
     len: usize,
@@ -72,11 +72,11 @@ mod tests {
         let name = CString::new("./tmp_rust_fileio.txt").unwrap();
         let data = b"hello rust";
         assert_eq!(
-            writefile(name.as_ptr(), data.as_ptr() as *const c_char, data.len(), 0),
+            rs_writefile(name.as_ptr(), data.as_ptr() as *const c_char, data.len(), 0),
             0
         );
         assert_eq!(
-            readfile(
+            rs_readfile(
                 name.as_ptr(),
                 std::ptr::null(),
                 0,
@@ -90,5 +90,33 @@ mod tests {
         let content = fs::read_to_string("tmp_rust_fileio.txt").unwrap();
         assert_eq!(content, "hello rust");
         fs::remove_file("tmp_rust_fileio.txt").unwrap();
+    }
+
+    #[test]
+    fn large_file() {
+        use tempfile::tempdir;
+
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("large.bin");
+        let cpath = CString::new(file_path.to_str().unwrap()).unwrap();
+        let data = vec![b'a'; 5 * 1024 * 1024]; // 5MB
+        assert_eq!(
+            rs_writefile(cpath.as_ptr(), data.as_ptr() as *const c_char, data.len(), 0),
+            0
+        );
+        assert_eq!(
+            rs_readfile(
+                cpath.as_ptr(),
+                std::ptr::null(),
+                0,
+                0,
+                0,
+                std::ptr::null_mut(),
+                0
+            ),
+            0
+        );
+        let metadata = fs::metadata(file_path).unwrap();
+        assert_eq!(metadata.len(), data.len() as u64);
     }
 }
