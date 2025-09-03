@@ -2043,9 +2043,8 @@ OBJ_MAIN = \
 	objects/json.o \
 	objects/main.o \
 	objects/memfile.o \
-	objects/message.o \
-	objects/evalfunc_stubs.o \
-	objects/terminal_stubs.o
+       objects/message.o \
+       objects/evalfunc_stubs.o
 
 OBJ = $(OBJ_COMMON) $(OBJ_MAIN)
 
@@ -4632,5 +4631,3 @@ objects/message.o: message.c
 	$(CCC) -o $@ message.c
 objects/evalfunc_stubs.o: evalfunc_stubs.c
 	$(CCC) -o $@ evalfunc_stubs.c
-objects/terminal_stubs.o: terminal_stubs.c
-	$(CCC) -o $@ terminal_stubs.c
