@@ -40,18 +40,7 @@
 #define	    NFA_ENGINE		2
 
 #ifdef USE_RUST_REGEX
-// Avoid pulling conflicting function prototypes; only import types.
-# define vim_regsub rust_engine_vim_regsub
-# define vim_regcomp rust_engine_vim_regcomp
-# define vim_regexec rust_engine_vim_regexec
-# define vim_regexec_nl rust_engine_vim_regexec_nl
-# define vim_regexec_multi rust_engine_vim_regexec_multi
-# include "../rust_regex_engine/include/rust_regex_engine.h"
-# undef vim_regsub
-# undef vim_regcomp
-# undef vim_regexec
-# undef vim_regexec_nl
-# undef vim_regexec_multi
+# include "../rust_regexp/include/rust_regexp.h"
 typedef RegProg regprog_T;
 #else
 typedef struct regengine regengine_T;
