@@ -1397,6 +1397,8 @@ RUST_PYTHON_DIR = ../rust_python
 RUST_PYTHON_LIB = $(RUST_PYTHON_DIR)/target/release/librust_python.a
 RUST_EVALFUNC_DIR = ../rust_evalfunc
 RUST_EVALFUNC_LIB = $(RUST_EVALFUNC_DIR)/target/release/librust_evalfunc.a
+RUST_EVALFUNC_STUBS_DIR = ../rust_evalfunc_stubs
+RUST_EVALFUNC_STUBS_LIB = $(RUST_EVALFUNC_STUBS_DIR)/target/release/librust_evalfunc_stubs.a
 # Rust eval crate exposing eval_expr_rs used by C side
 RUST_EVAL_DIR = ../rust_eval
 RUST_EVAL_LIB = $(RUST_EVAL_DIR)/target/release/librust_eval.a
@@ -1477,6 +1479,7 @@ ALL_LIBS = \
            $(RUST_CHANNEL_LIB) \
            $(RUST_GUI_LIB) \
            $(RUST_EVALFUNC_LIB) \
+           $(RUST_EVALFUNC_STUBS_LIB) \
            $(RUST_EVAL_LIB) \
            $(RUST_VIM9_LIB) \
            $(RUST_EXCMD_LIB) \
@@ -1578,7 +1581,10 @@ $(RUST_GUI_LIB):
 	cd $(RUST_GUI_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_EVALFUNC_LIB):
-	cd $(RUST_EVALFUNC_DIR) && CARGO_TARGET_DIR=target cargo build --release
+       cd $(RUST_EVALFUNC_DIR) && CARGO_TARGET_DIR=target cargo build --release
+
+$(RUST_EVALFUNC_STUBS_LIB):
+       cd $(RUST_EVALFUNC_STUBS_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_EVAL_LIB):
 	cd $(RUST_EVAL_DIR) && CARGO_TARGET_DIR=target cargo build --release
@@ -2059,8 +2065,7 @@ OBJ_MAIN = \
 	objects/json.o \
 	objects/main.o \
 	objects/memfile.o \
-       objects/message.o \
-       objects/evalfunc_stubs.o
+       objects/message.o
 
 OBJ = $(OBJ_COMMON) $(OBJ_MAIN)
 
@@ -2308,7 +2313,7 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(SRC_RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_BUFWRITE_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_EVAL_LIB) $(RUST_VIM9_LIB) $(RUST_EXCMD_LIB) $(RUST_CMDHIST_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB) $(RUST_TAG_LIB) $(RUST_ALLOC_LIB) $(RUST_BLOB_LIB) $(RUST_SHA256_LIB)
+$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(SRC_RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_BUFWRITE_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_EVALFUNC_STUBS_LIB) $(RUST_EVAL_LIB) $(RUST_VIM9_LIB) $(RUST_EXCMD_LIB) $(RUST_CMDHIST_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB) $(RUST_TAG_LIB) $(RUST_ALLOC_LIB) $(RUST_BLOB_LIB) $(RUST_SHA256_LIB)
 	@$(BUILD_DATE_MSG)
     @LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
 		-o $(VIMTARGET) objects/*.o $(ALL_LIBS)" \
@@ -4499,5 +4504,3 @@ objects/gui_gtk_gresources.o: auto/gui_gtk_gresources.c
 ## objects/vterm_*: C版libvtermを撤去したため依存を削除
 objects/message.o: message.c
 	$(CCC) -o $@ message.c
-objects/evalfunc_stubs.o: evalfunc_stubs.c
-	$(CCC) -o $@ evalfunc_stubs.c
