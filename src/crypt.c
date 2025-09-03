@@ -648,14 +648,21 @@ crypt_free_state(cryptstate_T *state)
 #ifdef FEAT_SODIUM
     if (crypt_method_is_sodium(state->method_nr))
     {
-	sodium_munlock(((sodium_state_T *)state->method_state)->key,
-							 crypto_box_SEEDBYTES);
-	sodium_memzero(state->method_state, sizeof(sodium_state_T));
-	sodium_free(state->method_state);
+        sodium_munlock(((sodium_state_T *)state->method_state)->key,
+                                                         crypto_box_SEEDBYTES);
+        sodium_memzero(state->method_state, sizeof(sodium_state_T));
+        sodium_free(state->method_state);
     }
     else
 #endif
-	vim_free(state->method_state);
+    {
+#ifdef FEAT_RUST_CRYPT
+        if (state->method_nr <= CRYPT_M_BF2)
+            crypt_state_free(state);
+        else
+#endif
+            vim_free(state->method_state);
+    }
     vim_free(state);
 }
 
