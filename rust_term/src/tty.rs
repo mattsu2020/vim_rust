@@ -1,5 +1,5 @@
 use std::ffi::CStr;
-use std::io::{stdout, Write};
+use std::io::{self, stdout, Write};
 use std::os::raw::{c_char, c_int};
 
 #[cfg(unix)]
@@ -15,31 +15,28 @@ impl TermBuffer {
     fn new() -> Self {
         // use a small default similar to Vim's OUT_SIZE
         let cap = 1024;
-        Self { buf: Vec::with_capacity(cap), cap }
+        Self {
+            buf: Vec::with_capacity(cap),
+            cap,
+        }
     }
+}
 
-    fn write_byte(&mut self, b: u8) {
-        self.buf.push(b);
+impl Write for TermBuffer {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.buf.extend_from_slice(buf);
         if self.buf.len() >= self.cap {
-            // ignore errors on flush; caller can handle via explicit flush
-            let _ = self.flush();
+            self.flush()?;
         }
+        Ok(buf.len())
     }
 
-    fn write_str(&mut self, s: &str) {
-        for &b in s.as_bytes() {
-            self.write_byte(b);
-        }
-    }
-
-    fn flush(&mut self) -> c_int {
+    fn flush(&mut self) -> io::Result<()> {
         let mut out = stdout();
-        if out.write_all(&self.buf).is_ok() && out.flush().is_ok() {
-            self.buf.clear();
-            0
-        } else {
-            -1
-        }
+        out.write_all(&self.buf)?;
+        out.flush()?;
+        self.buf.clear();
+        Ok(())
     }
 }
 
@@ -50,23 +47,33 @@ pub struct Terminal {
 
 impl Terminal {
     fn new() -> Self {
-        Self { buffer: TermBuffer::new() }
+        Self {
+            buffer: TermBuffer::new(),
+        }
     }
 
     fn move_cursor(&mut self, x: c_int, y: c_int) -> c_int {
-        self.buffer
-            .write_str(&format!("\x1B[{};{}H", y + 1, x + 1));
-        self.buffer.flush()
+        if write!(self.buffer, "\x1B[{};{}H", y + 1, x + 1).is_ok() && self.buffer.flush().is_ok() {
+            0
+        } else {
+            -1
+        }
     }
 
     fn clear_screen(&mut self) -> c_int {
-        self.buffer.write_str("\x1B[2J");
-        self.buffer.flush()
+        if self.buffer.write_all(b"\x1B[2J").is_ok() && self.buffer.flush().is_ok() {
+            0
+        } else {
+            -1
+        }
     }
 
     fn print(&mut self, s: &str) -> c_int {
-        self.buffer.write_str(s);
-        self.buffer.flush()
+        if self.buffer.write_all(s.as_bytes()).is_ok() && self.buffer.flush().is_ok() {
+            0
+        } else {
+            -1
+        }
     }
 }
 
@@ -77,60 +84,54 @@ pub extern "C" fn rust_term_new() -> *mut Terminal {
     Box::into_raw(Box::new(Terminal::new()))
 }
 
+macro_rules! ffi_term {
+    ($term:expr) => {
+        ffi_term!($term, -1)
+    };
+    ($term:expr, $ret:expr) => {{
+        if $term.is_null() {
+            return $ret;
+        }
+        unsafe { &mut *$term }
+    }};
+}
+
 #[no_mangle]
 pub unsafe extern "C" fn rust_term_free(term: *mut Terminal) {
-    if !term.is_null() {
-        drop(Box::from_raw(term));
-    }
+    let term_ref = ffi_term!(term, ());
+    drop(Box::from_raw(term_ref as *mut Terminal));
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn rust_term_out_char(term: *mut Terminal, c: c_int) -> c_int {
-    if term.is_null() {
-        return -1;
-    }
-    let term = &mut *term;
-    term.buffer.write_byte(c as u8);
-    0
+    let term = ffi_term!(term);
+    term.buffer.write_all(&[c as u8]).map(|_| 0).unwrap_or(-1)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn rust_term_out_flush(term: *mut Terminal) -> c_int {
-    if term.is_null() {
-        return -1;
-    }
-    (&mut *term).buffer.flush()
+    let term = ffi_term!(term);
+    term.buffer.flush().map(|_| 0).unwrap_or(-1)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn rust_term_move_cursor(
-    term: *mut Terminal,
-    x: c_int,
-    y: c_int,
-) -> c_int {
-    if term.is_null() {
-        return -1;
-    }
-    (&mut *term).move_cursor(x, y)
+pub unsafe extern "C" fn rust_term_move_cursor(term: *mut Terminal, x: c_int, y: c_int) -> c_int {
+    let term = ffi_term!(term);
+    term.move_cursor(x, y)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn rust_term_clear_screen(term: *mut Terminal) -> c_int {
-    if term.is_null() {
-        return -1;
-    }
-    (&mut *term).clear_screen()
+    let term = ffi_term!(term);
+    term.clear_screen()
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn rust_term_print(
-    term: *mut Terminal,
-    s: *const c_char,
-) -> c_int {
-    if term.is_null() || s.is_null() {
+pub unsafe extern "C" fn rust_term_print(term: *mut Terminal, s: *const c_char) -> c_int {
+    if s.is_null() {
         return -1;
     }
-    let term = &mut *term;
+    let term = ffi_term!(term);
     let c_str = CStr::from_ptr(s);
     match c_str.to_str() {
         Ok(s) => term.print(s),
@@ -145,10 +146,7 @@ pub extern "C" fn rust_term_color_count() -> c_int {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn rust_term_get_winsize(
-    width: *mut c_int,
-    height: *mut c_int,
-) -> c_int {
+pub unsafe extern "C" fn rust_term_get_winsize(width: *mut c_int, height: *mut c_int) -> c_int {
     #[cfg(unix)]
     {
         let mut ws: winsize = std::mem::zeroed();
@@ -202,4 +200,3 @@ mod tests {
         }
     }
 }
-
