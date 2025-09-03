@@ -1,9 +1,7 @@
 use std::os::raw::{c_char, c_int, c_void};
-use std::sync::Mutex;
+use std::sync::{Mutex, OnceLock};
 
-use rust_hashtab::{
-    rust_hashtab_free, rust_hashtab_get, rust_hashtab_new, rust_hashtab_set,
-};
+use rust_hashtab::{rust_hashtab_free, rust_hashtab_get, rust_hashtab_new, rust_hashtab_set};
 
 #[repr(C)]
 pub struct rust_funccall_S {
@@ -17,30 +15,27 @@ struct FuncState {
     current: *mut rust_funccall_S,
 }
 
-static mut FUNC_STATE: *mut Mutex<FuncState> = std::ptr::null_mut();
+unsafe impl Send for FuncState {}
+
+static FUNC_STATE: OnceLock<Mutex<FuncState>> = OnceLock::new();
 
 #[no_mangle]
 pub extern "C" fn rust_func_init() {
-    let state = Mutex::new(FuncState {
-        table: rust_hashtab_new(),
-        current: std::ptr::null_mut(),
+    FUNC_STATE.get_or_init(|| {
+        Mutex::new(FuncState {
+            table: rust_hashtab_new(),
+            current: std::ptr::null_mut(),
+        })
     });
-    unsafe {
-        if FUNC_STATE.is_null() {
-            FUNC_STATE = Box::into_raw(Box::new(state));
-        }
-    }
 }
 
 #[no_mangle]
 pub extern "C" fn rust_func_deinit() {
-    unsafe {
-        if !FUNC_STATE.is_null() {
-            if let Ok(guard) = (*FUNC_STATE).lock() {
-                rust_hashtab_free(guard.table);
-            }
-            drop(Box::from_raw(FUNC_STATE));
-            FUNC_STATE = std::ptr::null_mut();
+    if let Some(state) = FUNC_STATE.get() {
+        if let Ok(mut guard) = state.lock() {
+            rust_hashtab_free(guard.table);
+            guard.table = std::ptr::null_mut();
+            guard.current = std::ptr::null_mut();
         }
     }
 }
@@ -62,14 +57,11 @@ pub extern "C" fn rust_funccall_free(fc: *mut rust_funccall_S) {
     }
 }
 
-unsafe fn with_state<F, R>(f: F) -> Option<R>
+fn with_state<F, R>(f: F) -> Option<R>
 where
     F: FnOnce(&mut FuncState) -> R,
 {
-    if FUNC_STATE.is_null() {
-        return None;
-    }
-    let state = &mut *FUNC_STATE;
+    let state = FUNC_STATE.get()?;
     if let Ok(mut guard) = state.lock() {
         Some(f(&mut *guard))
     } else {
@@ -78,15 +70,11 @@ where
 }
 
 #[no_mangle]
-pub extern "C" fn rust_func_hashtab_set(
-    name: *const c_char,
-    func: *mut c_void,
-) -> c_int {
+pub extern "C" fn rust_func_hashtab_set(name: *const c_char, func: *mut c_void) -> c_int {
     if name.is_null() {
         return 0;
     }
-    unsafe { with_state(|st| rust_hashtab_set(st.table, name, func)) }
-        .unwrap_or(0)
+    with_state(|st| rust_hashtab_set(st.table, name, func)).unwrap_or(0)
 }
 
 #[no_mangle]
@@ -94,7 +82,7 @@ pub extern "C" fn rust_func_hashtab_get(name: *const c_char) -> *mut c_void {
     if name.is_null() {
         return std::ptr::null_mut();
     }
-    unsafe { with_state(|st| rust_hashtab_get(st.table, name)).unwrap_or(std::ptr::null_mut()) }
+    with_state(|st| rust_hashtab_get(st.table, name)).unwrap_or(std::ptr::null_mut())
 }
 
 #[cfg(test)]
