@@ -860,12 +860,9 @@ find_word(matchinf_T *mip, int mode)
 			mip->mi_compoff = (int)(p - mip->mi_fword);
 		    }
 		}
-#if 0 // Disabled, see below
-		c = mip->mi_compoff;
-#endif
-		++mip->mi_complen;
-		if (flags & WF_COMPROOT)
-		    ++mip->mi_compextra;
+                ++mip->mi_complen;
+                if (flags & WF_COMPROOT)
+                    ++mip->mi_compextra;
 
 		// For NOBREAK we need to try all NOBREAK languages, at least
 		// to find the ".add" file(s).
@@ -890,16 +887,6 @@ find_word(matchinf_T *mip, int mode)
 			mip->mi_compoff = wlen;
 			find_word(mip, FIND_KEEPCOMPOUND);
 
-#if 0	    // Disabled, a prefix must not appear halfway a compound word,
-	    // unless the COMPOUNDPERMITFLAG is used and then it can't be a
-	    // postponed prefix.
-			if (!slang->sl_nobreak || mip->mi_result == SP_BAD)
-			{
-			    // Check for following word with prefix.
-			    mip->mi_compoff = c;
-			    find_prefix(mip, FIND_COMPOUND);
-			}
-#endif
 		    }
 
 		    if (!slang->sl_nobreak)
