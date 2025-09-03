@@ -13,6 +13,7 @@ exclude = [
     "rust_alloc",
     "rust_excmd",
     "rust_clipboard",
+    "rust_float",
 ]
 
 [package]
