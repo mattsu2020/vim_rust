@@ -17,6 +17,16 @@ pub struct FileBuffer {
 unsafe impl Send for FileBuffer {}
 unsafe impl Sync for FileBuffer {}
 
+impl Drop for FileBuffer {
+    fn drop(&mut self) {
+        // `drop` is only called for pointers previously allocated by
+        // `buf_alloc`, which uses `calloc_file_buffer` and registers the
+        // pointer in `BUFFERS`.  At this point the pointer is still valid and
+        // uniquely owned so calling `free_file_buffer` is safe.
+        free_file_buffer(NonNull::from(self));
+    }
+}
+
 // Global storage of allocated buffer pointers.  We wrap the Mutex in a newtype
 // so that we can provide manual `Send` and `Sync` implementations even though
 // `NonNull<T>` itself does not implement these traits.
@@ -64,7 +74,11 @@ pub extern "C" fn buf_free(buf: *mut FileBuffer) {
         let mut buffers = m.0.lock().unwrap();
         buffers.retain(|&p| p != ptr);
     }
-    free_file_buffer(ptr);
+    // SAFETY: `ptr` was allocated by `buf_alloc`.  `drop_in_place` will invoke
+    // `FileBuffer`'s `Drop` implementation which releases the allocation.
+    unsafe {
+        std::ptr::drop_in_place(ptr.as_ptr());
+    }
 }
 
 #[no_mangle]
@@ -72,7 +86,11 @@ pub extern "C" fn buf_freeall(_buf: *mut FileBuffer, _flags: c_int) {
     if let Some(m) = BUFFERS.get() {
         let mut buffers = m.0.lock().unwrap();
         for ptr in buffers.drain(..) {
-            free_file_buffer(ptr);
+            // SAFETY: the pointers in `buffers` originate from `buf_alloc` and
+            // are unique.  Dropping them releases the memory.
+            unsafe {
+                std::ptr::drop_in_place(ptr.as_ptr());
+            }
         }
     }
 }
