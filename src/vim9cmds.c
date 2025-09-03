@@ -2337,13 +2337,12 @@ compile_exec(char_u *line_arg, exarg_T *eap, cctx_T *cctx)
 	    if (*p == '{')
 	    {
 		exarg_T ea;
-		int	flags = 0;  // unused
-		int	start_lnum = SOURCING_LNUM;
+		int     start_lnum = SOURCING_LNUM;
 
 		CLEAR_FIELD(ea);
 		ea.arg = eap->arg;
 		fill_exarg_from_cctx(&ea, cctx);
-		(void)may_get_cmd_block(&ea, p, &tofree, &flags);
+		(void)may_get_cmd_block(&ea, p, &tofree);
 		if (tofree != NULL)
 		{
 		    *p = NUL;
