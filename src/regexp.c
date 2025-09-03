@@ -22,6 +22,19 @@ int vim_regexec_prog(regprog_T **prog, int ignore_case, char_u *line, colnr_T co
     return vim_regexec(&rm, line, col);
 }
 
+// Bridge the older C call site to the Rust implementation.  The Rust crate
+// exports `rust_regex_match` which performs the actual matching logic.  This
+// thin wrapper simply forwards the call while taking care of the pointer type
+// conversions required for the C API.
+int rust_regex_match(const char *pat, const char *text, int magic, long timeout_ms);
+
+int
+vim_rust_regex_match_wrapper(char_u *pat, char_u *text, int magic, long timeout_ms)
+{
+    return rust_regex_match((const char *)pat, (const char *)text, magic,
+                            timeout_ms);
+}
+
 #else
 #error "Rust regex engine required"
 #endif
