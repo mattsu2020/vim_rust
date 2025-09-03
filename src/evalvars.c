@@ -12,7 +12,7 @@
  */
 
 #include "vim.h"
-#include "../rust_evalvars/include/rust_evalvars.h"
+#include "../rust_eval/include/rust_eval.h"
 
 #if defined(FEAT_EVAL) || defined(PROTO)
 
@@ -2737,11 +2737,21 @@ set_vim_var_type(int idx, vartype_T type)
  * Set number v: variable to "val".
  * Note that this does not set the type, use set_vim_var_type() for that.
  */
-    void
+void
 set_vim_var_nr(int idx, varnumber_T val)
 {
-    // Delegate storage of v: variables to the Rust implementation.
-    rs_set_vim_var_nr(idx, (long long)val);
+    // Store number in C structure for backward compatibility.
+    vimvars[idx].vv_di.di_tv.v_type = VAR_NUMBER;
+    vimvars[idx].vv_nr = val;
+
+    // Also update the Rust side so that future evaluation can query it.
+    char namebuf[64];
+    vim_snprintf(namebuf, sizeof(namebuf), "v:%s", vimvars[idx].vv_name);
+    typval_T tv;
+    tv.v_type = VAR_NUMBER;
+    tv.v_lock = 0;
+    tv.vval.v_number = val;
+    set_variable_rs(namebuf, &tv);
 }
 
     char *
@@ -2799,9 +2809,14 @@ set_vim_var_tv(int idx, typval_T *tv)
 /*
  * Get number v: variable value.
  */
-    varnumber_T
+varnumber_T
 get_vim_var_nr(int idx)
 {
+    char namebuf[64];
+    typval_T tv;
+    vim_snprintf(namebuf, sizeof(namebuf), "v:%s", vimvars[idx].vv_name);
+    if (eval_variable_rs(namebuf, &tv) && tv.v_type == VAR_NUMBER)
+        return tv.vval.v_number;
     return vimvars[idx].vv_nr;
 }
 
@@ -2906,11 +2921,19 @@ set_vim_var_string(
     clear_tv(&vimvars[idx].vv_di.di_tv);
     vimvars[idx].vv_tv_type = VAR_STRING;
     if (val == NULL)
-	vimvars[idx].vv_str = NULL;
+        vimvars[idx].vv_str = NULL;
     else if (len == -1)
-	vimvars[idx].vv_str = vim_strsave(val);
+        vimvars[idx].vv_str = vim_strsave(val);
     else
-	vimvars[idx].vv_str = vim_strnsave(val, len);
+        vimvars[idx].vv_str = vim_strnsave(val, len);
+
+    char namebuf[64];
+    typval_T tv;
+    tv.v_type = VAR_STRING;
+    tv.v_lock = 0;
+    tv.vval.v_string = (char *)vimvars[idx].vv_str;
+    vim_snprintf(namebuf, sizeof(namebuf), "v:%s", vimvars[idx].vv_name);
+    set_variable_rs(namebuf, &tv);
 }
 
     void
@@ -2922,6 +2945,13 @@ set_vim_var_string_direct(
     vimvars[idx].vv_tv_type = VAR_STRING;
 
     vimvars[idx].vv_str = val;
+    char namebuf[64];
+    typval_T tv;
+    tv.v_type = VAR_STRING;
+    tv.v_lock = 0;
+    tv.vval.v_string = (char *)val;
+    vim_snprintf(namebuf, sizeof(namebuf), "v:%s", vimvars[idx].vv_name);
+    set_variable_rs(namebuf, &tv);
 }
 
 /*
