@@ -33,7 +33,6 @@ SRC_ALL =	\
 		ci/pinned-pkgs \
 		src/Make_all.mak \
 		src/README.md \
-		src/alloc.c \
 		src/alloc.h \
 		src/arglist.c \
 		src/ascii.h \

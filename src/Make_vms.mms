@@ -485,7 +485,6 @@ ALL_LIBS = $(LIBS) $(GUI_LIB_DIR) $(GUI_LIB) $(XPM_LIB)\
 	   $(PERL_LIB) $(PYTHON_LIB) $(PYTHON3_LIB) $(TCL_LIB) $(RUBY_LIB) $(LUA_LIB)
 
 SRC = \
- alloc.c \
  arglist.c \
  autocmd.c \
  beval.c \
@@ -996,7 +995,6 @@ lua_env :
 	-@ !
 .ENDIF
 
-[.$(DEST)]alloc.obj : alloc.c vim.h [.$(DEST)]config.h feature.h os_unix.h \
  ascii.h keymap.h termdefs.h macros.h structs.h regexp.h gui.h beval.h \
  [.proto]gui_beval.pro option.h ex_cmds.h proto.h errors.h globals.h
 [.$(DEST)]arglist.obj : arglist.c vim.h [.$(DEST)]config.h feature.h os_unix.h
