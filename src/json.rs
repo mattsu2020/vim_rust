@@ -43,7 +43,10 @@ pub extern "C" fn json_encode_rs(input: *const c_char, options: c_int) -> *mut c
                 if (options & JSON_NL) != 0 {
                     json.push('\n');
                 }
-                CString::new(json).unwrap().into_raw()
+                match CString::new(json) {
+                    Ok(cjson) => cjson.into_raw(),
+                    Err(_) => CString::new("\"\"").unwrap().into_raw(),
+                }
             }
             Err(_) => CString::new("\"\"").unwrap().into_raw(),
         }
@@ -86,10 +89,17 @@ pub extern "C" fn json_decode_rs(input: *const c_char, _options: c_int) -> JsonD
                     Value::String(st) => st,
                     other => other.to_string(),
                 };
-                JsonDecodeResult {
-                    ptr: CString::new(out).unwrap().into_raw(),
-                    used,
-                    error: 0,
+                match CString::new(out) {
+                    Ok(c_out) => JsonDecodeResult {
+                        ptr: c_out.into_raw(),
+                        used,
+                        error: 0,
+                    },
+                    Err(_) => JsonDecodeResult {
+                        ptr: CString::new("").unwrap().into_raw(),
+                        used,
+                        error: 2,
+                    },
                 }
             }
             Err(e) => {
@@ -133,6 +143,46 @@ pub extern "C" fn json_find_end_rs(input: *const c_char, _options: c_int) -> Jso
                 };
                 JsonFindEndResult { used: 0, status }
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::ffi::{CStr, CString};
+    use std::os::raw::c_char;
+
+    #[test]
+    fn encode_handles_inner_null() {
+        let bytes = [b'a', 0, b'b', 0];
+        let ptr = bytes.as_ptr() as *const c_char;
+        let out_ptr = json_encode_rs(ptr, 0);
+        unsafe {
+            assert_eq!(CStr::from_ptr(out_ptr).to_str().unwrap(), "\"a\"");
+            let _ = CString::from_raw(out_ptr);
+        }
+    }
+
+    #[test]
+    fn decode_handles_null_in_output() {
+        let input = CString::new("\"a\\u0000b\"").unwrap();
+        let res = json_decode_rs(input.as_ptr(), 0);
+        unsafe {
+            assert_eq!(res.error, 2);
+            assert_eq!(CStr::from_ptr(res.ptr).to_bytes(), b"");
+            let _ = CString::from_raw(res.ptr);
+        }
+    }
+
+    #[test]
+    fn decode_input_with_null_byte() {
+        let bytes = [b'"', b'a', 0, b'b', b'"', 0];
+        let res = json_decode_rs(bytes.as_ptr() as *const c_char, 0);
+        unsafe {
+            assert_eq!(res.error, 1);
+            assert_eq!(CStr::from_ptr(res.ptr).to_bytes(), b"");
+            let _ = CString::from_raw(res.ptr);
         }
     }
 }

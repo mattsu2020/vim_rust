@@ -116,7 +116,9 @@ pub extern "C" fn rs_screen_new(width: c_int, height: c_int) -> *mut ScreenBuffe
 #[no_mangle]
 pub extern "C" fn rs_screen_free(buf: *mut ScreenBuffer) {
     if !buf.is_null() {
-        unsafe { drop(Box::from_raw(buf)); }
+        unsafe {
+            drop(Box::from_raw(buf));
+        }
     }
 }
 
@@ -172,7 +174,8 @@ pub extern "C" fn rs_screen_highlight(
 }
 
 /// Callback used by [`rs_screen_flush`].
-pub type FlushCallback = extern "C" fn(row: c_int, text: *const c_char, attr: *const u8, len: c_int);
+pub type FlushCallback =
+    extern "C" fn(row: c_int, text: *const c_char, attr: *const u8, len: c_int);
 
 #[no_mangle]
 pub extern "C" fn rs_screen_flush(buf: *mut ScreenBuffer, cb: Option<FlushCallback>) {
@@ -182,14 +185,19 @@ pub extern "C" fn rs_screen_flush(buf: *mut ScreenBuffer, cb: Option<FlushCallba
     if let Some(callback) = cb {
         let screen = unsafe { &mut *buf };
         for diff in screen.flush_diff() {
-            let c_text = CString::new(diff.text).unwrap();
-            // Callback is expected to copy the data immediately.
-            callback(
-                diff.row as c_int,
-                c_text.as_ptr(),
-                diff.attrs.as_ptr(),
-                diff.attrs.len() as c_int,
-            );
+            let row = diff.row as c_int;
+            let attrs_ptr = diff.attrs.as_ptr();
+            let attrs_len = diff.attrs.len() as c_int;
+            match CString::new(diff.text) {
+                Ok(c_text) => {
+                    // Callback is expected to copy the data immediately.
+                    callback(row, c_text.as_ptr(), attrs_ptr, attrs_len);
+                }
+                Err(_) => {
+                    let empty = CStr::from_bytes_with_nul(b"\0").unwrap();
+                    callback(row, empty.as_ptr(), ptr::null(), 0);
+                }
+            }
         }
     }
 }
@@ -197,6 +205,8 @@ pub extern "C" fn rs_screen_flush(buf: *mut ScreenBuffer, cb: Option<FlushCallba
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::ffi::CStr;
+    use std::sync::atomic::{AtomicBool, Ordering};
     use std::time::Instant;
 
     #[test]
@@ -267,5 +277,26 @@ mod tests {
         rs_screen_clear(&mut sb as *mut ScreenBuffer, 0);
         assert_eq!(sb.line_as_string(0), "   ");
         assert_eq!(sb.line_as_string(1), "   ");
+    }
+
+    static CALLED: AtomicBool = AtomicBool::new(false);
+
+    extern "C" fn null_cb(row: c_int, text: *const c_char, attr: *const u8, len: c_int) {
+        unsafe {
+            assert_eq!(row, 0);
+            assert_eq!(len, 0);
+            assert!(attr.is_null());
+            assert_eq!(CStr::from_ptr(text).to_bytes(), b"");
+        }
+        CALLED.store(true, Ordering::SeqCst);
+    }
+
+    #[test]
+    fn flush_handles_null_bytes() {
+        CALLED.store(false, Ordering::SeqCst);
+        let mut sb = ScreenBuffer::new(5, 1);
+        sb.draw_text(0, 0, "a\0b", 1);
+        rs_screen_flush(&mut sb as *mut ScreenBuffer, Some(null_cb));
+        assert!(CALLED.load(Ordering::SeqCst));
     }
 }
