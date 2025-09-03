@@ -17,50 +17,14 @@
 
 #include "vim.h"
 
+    // Bridge to Rust for outputting UI text.
+extern void rs_ui_write(char *msg, int len);
+
     void
 ui_write(char_u *s, int len, int console UNUSED)
 {
-#ifdef FEAT_GUI
-    if (gui.in_use && !gui.dying && !gui.starting
-# ifndef NO_CONSOLE
-	    && !console
-# endif
-	    )
-    {
-	gui_write(s, len);
-	if (p_wd)
-	    gui_wait_for_chars(p_wd, typebuf.tb_change_cnt);
-	return;
-    }
-#endif
-#ifndef NO_CONSOLE
-    // Don't output anything in silent mode ("ex -s") unless 'verbose' set
-    if (!(silent_mode && p_verbose == 0))
-    {
-# if !defined(MSWIN)
-	char_u	*tofree = NULL;
-
-	if (output_conv.vc_type != CONV_NONE)
-	{
-	    // Convert characters from 'encoding' to 'termencoding'.
-	    tofree = string_convert(&output_conv, s, &len);
-	    if (tofree != NULL)
-		s = tofree;
-	}
-# endif
-
-	mch_write(s, len);
-# if defined(HAVE_FSYNC)
-	if (console && s[len - 1] == '\n')
-	    vim_fsync(1);
-# endif
-
-# if !defined(MSWIN)
-	if (output_conv.vc_type != CONV_NONE)
-	    vim_free(tofree);
-# endif
-    }
-#endif
+    (void)console;
+    rs_ui_write((char *)s, len);
 }
 
 #if defined(UNIX) || defined(VMS) || defined(PROTO) || defined(MSWIN)

@@ -2842,12 +2842,11 @@ screenclear2(int doclear)
     clip_scroll_selection(9999);
 #endif
 
-    // blank out ScreenLines
+    // blank out ScreenLines via Rust implementation
+    if (rs_screen_buf != NULL)
+        rs_screen_clear(rs_screen_buf, 0);
     for (i = 0; i < Rows; ++i)
-    {
-	lineclear(LineOffset[i], (int)Columns, 0);
-	LineWraps[i] = FALSE;
-    }
+        LineWraps[i] = FALSE;
 
     if (doclear && can_clear(T_CL))
     {
