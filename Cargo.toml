@@ -40,6 +40,12 @@ rust_sha256 = { path = "rust_sha256" }
 rust_bufwrite = { path = "rust_bufwrite" }
 rust_evalfunc_stubs = { path = "rust_evalfunc_stubs" }
 rust_evalwindow = { path = "rust_evalwindow" }
+rust_highlight = { path = "rust_highlight" }
+rust_insexpand = { path = "rust_insexpand" }
+rust_match = { path = "rust_match" }
+rust_linematch = { path = "rust_linematch" }
+rust_mark = { path = "rust_mark" }
+rust_textformat = { path = "rust_textformat" }
 regex = "1"
 blowfish = "0.8"
 pbkdf2 = "0.12"

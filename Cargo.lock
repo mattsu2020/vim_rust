@@ -1683,6 +1683,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_cmdexpand"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rust_cmdhist"
 version = "0.1.0"
 dependencies = [
@@ -1912,6 +1919,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_highlight"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "once_cell",
+]
+
+[[package]]
 name = "rust_indent"
 version = "0.1.0"
 dependencies = [
@@ -1920,6 +1935,13 @@ dependencies = [
 
 [[package]]
 name = "rust_input"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
+name = "rust_insexpand"
 version = "0.1.0"
 dependencies = [
  "libc",
@@ -1937,6 +1959,13 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
+]
+
+[[package]]
+name = "rust_linematch"
+version = "0.1.0"
+dependencies = [
+ "libc",
 ]
 
 [[package]]
@@ -1962,6 +1991,20 @@ name = "rust_map"
 version = "0.1.0"
 dependencies = [
  "once_cell",
+]
+
+[[package]]
+name = "rust_mark"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
+name = "rust_match"
+version = "0.1.0"
+dependencies = [
+ "libc",
 ]
 
 [[package]]
@@ -2222,6 +2265,13 @@ version = "0.1.0"
 
 [[package]]
 name = "rust_text"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
+name = "rust_textformat"
 version = "0.1.0"
 dependencies = [
  "libc",
@@ -2797,7 +2847,12 @@ dependencies = [
  "rust_evalwindow",
  "rust_excmds",
  "rust_fold",
+ "rust_highlight",
+ "rust_insexpand",
  "rust_job",
+ "rust_linematch",
+ "rust_mark",
+ "rust_match",
  "rust_message",
  "rust_os_amiga",
  "rust_os_qnx",
@@ -2808,6 +2863,7 @@ dependencies = [
  "rust_python",
  "rust_sha256",
  "rust_spell",
+ "rust_textformat",
  "rust_wayland",
  "serde",
  "serde_json",
