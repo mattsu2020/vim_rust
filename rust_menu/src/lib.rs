@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int, c_void};
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
@@ -7,12 +7,14 @@ use std::sync::Mutex;
 #[derive(Clone, Debug)]
 struct MenuItem {
     enabled: bool,
+    /// Optional key binding used to activate the menu entry.
+    key: Option<String>,
     children: HashMap<String, MenuItem>,
 }
 
 impl MenuItem {
     fn new() -> Self {
-        MenuItem { enabled: true, children: HashMap::new() }
+        MenuItem { enabled: true, key: None, children: HashMap::new() }
     }
 
     fn remove_path(&mut self, parts: &[&str]) -> bool {
@@ -27,6 +29,14 @@ impl MenuItem {
         } else {
             false
         }
+    }
+
+    fn find_mut(&mut self, parts: &[&str]) -> Option<&mut MenuItem> {
+        let mut cur = self;
+        for p in parts {
+            cur = cur.children.get_mut(*p)?;
+        }
+        Some(cur)
     }
 }
 
@@ -73,6 +83,51 @@ pub extern "C" fn rs_menu_show() -> c_int {
     }
     let root = MENUS.lock().unwrap();
     count(&root) as c_int
+}
+
+#[no_mangle]
+pub extern "C" fn rs_menu_bind_key(path: *const c_char, key: *const c_char) -> c_int {
+    let (p, k) = (cstr_to_str(path), cstr_to_str(key));
+    if let (Some(p), Some(k)) = (p, k) {
+        let parts: Vec<&str> = p.split('.').collect();
+        let mut root = MENUS.lock().unwrap();
+        if let Some(item) = root.find_mut(&parts) {
+            item.key = Some(k.to_string());
+            return 1;
+        }
+    }
+    0
+}
+
+fn draw_recursive(node: &MenuItem, indent: usize, out: &mut String) {
+    for (name, child) in &node.children {
+        for _ in 0..indent {
+            out.push(' ');
+        }
+        out.push_str(name);
+        if let Some(k) = &child.key {
+            out.push_str(" [");
+            out.push_str(k);
+            out.push(']');
+        }
+        out.push('\n');
+        draw_recursive(child, indent + 2, out);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn rs_menu_draw() -> *mut c_char {
+    let root = MENUS.lock().unwrap();
+    let mut out = String::new();
+    draw_recursive(&root, 0, &mut out);
+    CString::new(out).unwrap().into_raw()
+}
+
+#[no_mangle]
+pub extern "C" fn rs_menu_free_str(s: *mut c_char) {
+    if !s.is_null() {
+        unsafe { CString::from_raw(s); }
+    }
 }
 
 // Stubs replacing former C functions. These allow linking while the menu system
@@ -149,13 +204,33 @@ pub extern "C" fn f_menu_info(_argvars: *mut c_void, _rettv: *mut c_void) {}
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::ffi::CStr;
+
+    fn reset() {
+        MENUS.lock().unwrap().children.clear();
+    }
 
     #[test]
     fn add_and_remove() {
+        reset();
         let path = std::ffi::CString::new("File.Open").unwrap();
         assert_eq!(rs_menu_add(path.as_ptr()), 1);
         assert_eq!(rs_menu_show(), 2);
         assert_eq!(rs_menu_remove(path.as_ptr()), 1);
         assert_eq!(rs_menu_show(), 0);
+    }
+
+    #[test]
+    fn bind_and_draw() {
+        reset();
+        let path = std::ffi::CString::new("File.Save").unwrap();
+        assert_eq!(rs_menu_add(path.as_ptr()), 1);
+        let key = std::ffi::CString::new("S").unwrap();
+        assert_eq!(rs_menu_bind_key(path.as_ptr(), key.as_ptr()), 1);
+        let drawn_ptr = rs_menu_draw();
+        let drawn = unsafe { CStr::from_ptr(drawn_ptr) }.to_str().unwrap().to_string();
+        rs_menu_free_str(drawn_ptr);
+        assert!(drawn.contains("File"));
+        assert!(drawn.contains("[S]"));
     }
 }
