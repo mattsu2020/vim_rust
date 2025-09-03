@@ -1,33 +1,31 @@
 use std::os::raw::c_int;
 
-#[repr(C)]
-#[derive(Default)]
-pub struct Buffer {
-    pub did_warn: bool,
-    pub changed: bool,
-    pub read_only: bool,
-}
+// Simple state tracking for buffer changes.
+static mut DID_WARN: bool = false;
+static mut CHANGED: bool = false;
+static mut READ_ONLY: bool = true;
 
-impl Buffer {
-    pub fn new(read_only: bool) -> Self {
-        Self { read_only, ..Default::default() }
-    }
-}
-
+/// Equivalent of Vim's change_warning().  Returns 1 when a warning should be
+/// displayed and 0 otherwise.  Only warns once while the buffer is marked as
+/// readonly and not yet changed.
 #[no_mangle]
-pub extern "C" fn change_warning(buf: *mut Buffer) -> c_int {
-    let b = unsafe { &mut *buf };
-    if b.did_warn || b.changed || !b.read_only {
-        return 0;
+pub extern "C" fn change_warning(_col: c_int) -> c_int {
+    unsafe {
+        if DID_WARN || CHANGED || !READ_ONLY {
+            return 0;
+        }
+        DID_WARN = true;
     }
-    b.did_warn = true;
     1
 }
 
+/// Mark the buffer as changed.  This mirrors Vim's changed() which notifies
+/// the editor that modifications have been made.
 #[no_mangle]
-pub extern "C" fn changed(buf: *mut Buffer) {
-    let b = unsafe { &mut *buf };
-    b.changed = true;
+pub extern "C" fn changed() {
+    unsafe {
+        CHANGED = true;
+    }
 }
 
 #[cfg(test)]
@@ -36,10 +34,13 @@ mod tests {
 
     #[test]
     fn warns_only_once() {
-        let mut b = Buffer::new(true);
-        let ptr = &mut b as *mut Buffer;
-        assert_eq!(unsafe { change_warning(ptr) }, 1);
-        assert_eq!(unsafe { change_warning(ptr) }, 0);
-        assert!(b.did_warn);
+        unsafe {
+            DID_WARN = false;
+            CHANGED = false;
+            READ_ONLY = true;
+        }
+        assert_eq!(change_warning(0), 1);
+        assert_eq!(change_warning(0), 0);
     }
 }
+
