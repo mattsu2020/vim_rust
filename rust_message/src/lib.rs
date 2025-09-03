@@ -13,6 +13,16 @@ pub enum LogLevel {
     Error = 2,
 }
 
+impl From<c_int> for LogLevel {
+    fn from(level: c_int) -> Self {
+        match level {
+            1 => LogLevel::Warn,
+            2 => LogLevel::Error,
+            _ => LogLevel::Info,
+        }
+    }
+}
+
 struct QueuedMsg {
     text: CString,
     level: LogLevel,
@@ -23,8 +33,7 @@ static MSG_QUEUE: LazyLock<Mutex<VecDeque<QueuedMsg>>> =
     LazyLock::new(|| Mutex::new(VecDeque::new()));
 
 // Last error message recorded, if any.
-static LAST_ERROR: LazyLock<Mutex<Option<CString>>> =
-    LazyLock::new(|| Mutex::new(None));
+static LAST_ERROR: LazyLock<Mutex<Option<CString>>> = LazyLock::new(|| Mutex::new(None));
 
 // Very small translation table for demonstration purposes.
 fn translate(msg: &str) -> String {
@@ -40,6 +49,21 @@ fn translate(msg: &str) -> String {
     }
 }
 
+fn enqueue_message(text: CString, level: LogLevel) {
+    let translated = translate(text.to_str().unwrap_or(""));
+    let cstring = match CString::new(translated) {
+        Ok(cs) => cs,
+        Err(_) => return,
+    };
+    if level == LogLevel::Error {
+        *LAST_ERROR.lock().unwrap() = Some(cstring.clone());
+    }
+    MSG_QUEUE.lock().unwrap().push_back(QueuedMsg {
+        text: cstring,
+        level,
+    });
+}
+
 /// Enqueue a message with the given log level.
 #[no_mangle]
 pub unsafe extern "C" fn rs_queue_message(msg: *const c_char, level: c_int) {
@@ -47,24 +71,7 @@ pub unsafe extern "C" fn rs_queue_message(msg: *const c_char, level: c_int) {
         return;
     }
     let cstr = CStr::from_ptr(msg);
-    let text = translate(cstr.to_str().unwrap_or(""));
-    let cstring = match CString::new(text) {
-        Ok(cs) => cs,
-        Err(_) => return,
-        };
-    let lvl = match level {
-        1 => LogLevel::Warn,
-        2 => LogLevel::Error,
-        _ => LogLevel::Info,
-    };
-
-    if lvl == LogLevel::Error {
-        *LAST_ERROR.lock().unwrap() = Some(cstring.clone());
-    }
-    MSG_QUEUE
-        .lock()
-        .unwrap()
-        .push_back(QueuedMsg { text: cstring, level: lvl });
+    enqueue_message(cstr.to_owned(), LogLevel::from(level));
 }
 
 /// Write raw text coming from the C UI layer.  The text is enqueued as an
@@ -75,15 +82,7 @@ pub unsafe extern "C" fn rs_ui_write(msg: *const c_char, len: c_int) {
         return;
     }
     let cstr = CStr::from_ptr(msg);
-    let text = translate(cstr.to_str().unwrap_or(""));
-    let cstring = match CString::new(text) {
-        Ok(cs) => cs,
-        Err(_) => return,
-    };
-    MSG_QUEUE
-        .lock()
-        .unwrap()
-        .push_back(QueuedMsg { text: cstring, level: LogLevel::Info });
+    enqueue_message(cstr.to_owned(), LogLevel::Info);
 }
 
 /// Pop the next queued message.  Returns a newly allocated C string that must be
@@ -172,4 +171,3 @@ mod tests {
         }
     }
 }
-
