@@ -12,7 +12,6 @@ exclude = [
     "rust/terminal",
     "rust_alloc",
     "rust_excmd",
-    "rust_clipboard",
 ]
 
 [package]
@@ -39,6 +38,7 @@ rust_message = { path = "rust_message" }
 rust_blob = { path = "rust_blob" }
 rust_sha256 = { path = "rust_sha256" }
 rust_blowfish = { path = "rust_blowfish" }
+rust_clipboard = { path = "rust_clipboard" }
 
 [features]
 default = []

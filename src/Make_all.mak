@@ -9,6 +9,11 @@ TAGS_FILES = \
 	*.cpp \
 	*.h \
 	auto/*.c \
-	libvterm/src/*.c \
-	libvterm/src/*.h \
-	libvterm/include/*.h \
+        libvterm/src/*.c \
+        libvterm/src/*.h \
+        libvterm/include/*.h \
+
+# Build Rust components
+.PHONY: rust_clipboard
+rust_clipboard:
+	cargo build -p rust_clipboard

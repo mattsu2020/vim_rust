@@ -2,30 +2,30 @@ use std::ffi::CString;
 use std::os::raw::{c_char, c_int};
 use std::sync::{Mutex, OnceLock};
 
-#[cfg(any(feature = "x11", feature = "wayland", feature = "windows"))]
+#[cfg(windows)]
 use copypasta::{ClipboardContext, ClipboardProvider};
 
-#[cfg(not(any(feature = "x11", feature = "wayland", feature = "windows")))]
+#[cfg(not(windows))]
 static MEMORY: OnceLock<Mutex<String>> = OnceLock::new();
 
-#[cfg(not(any(feature = "x11", feature = "wayland", feature = "windows")))]
+#[cfg(not(windows))]
 fn set_clipboard_text(s: &str) -> Result<(), ()> {
     *MEMORY.get_or_init(|| Mutex::new(String::new())).lock().unwrap() = s.to_string();
     Ok(())
 }
 
-#[cfg(not(any(feature = "x11", feature = "wayland", feature = "windows")))]
+#[cfg(not(windows))]
 fn get_clipboard_text() -> Option<String> {
     Some(MEMORY.get_or_init(|| Mutex::new(String::new())).lock().unwrap().clone())
 }
 
-#[cfg(any(feature = "x11", feature = "wayland", feature = "windows"))]
+#[cfg(windows)]
 fn set_clipboard_text(s: &str) -> Result<(), ()> {
     let mut ctx = ClipboardContext::new().map_err(|_| ())?;
     ctx.set_contents(s.to_string()).map_err(|_| ())
 }
 
-#[cfg(any(feature = "x11", feature = "wayland", feature = "windows"))]
+#[cfg(windows)]
 fn get_clipboard_text() -> Option<String> {
     let mut ctx = ClipboardContext::new().ok()?;
     ctx.get_contents().ok()
