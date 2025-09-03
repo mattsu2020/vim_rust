@@ -8,3 +8,7 @@ crate-type = ["staticlib", "rlib"]
 
 [dependencies]
 libc = "0.2"
+[features]
+default = ["tty"]
+tty = []
+gui = []
