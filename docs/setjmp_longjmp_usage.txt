@@ -1,0 +1,9 @@
+src/if_ruby.c:1071:	    vim_snprintf(buff, BUFSIZ, _(e_unknown_longjmp_status_nr), state);
+src/clipboard.c:2712:		    // longjmp somewhere else, in that case we will call
+src/gui.c:136:	// hit an X11 I/O error and do a longjmp(), leaving recursive
+src/os_unix.c:1155: * A simplistic version of setjmp() that only allows one level of using.
+src/os_unix.c:1171: * Note: Can't move SETJMP() here, because a function calling setjmp() must
+src/os_unix.c:1195:    // On FreeBSD the signal stack has to be reset after using siglongjmp(),
+src/if_python3.c:1291:# include <setjmp.h>
+src/if_python3.c:1303:    longjmp(exit_hook_jump_buf, 1);
+src/if_python3.c:1382:	if (setjmp(exit_hook_jump_buf) == 0)

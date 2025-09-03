@@ -1,0 +1,539 @@
+20:EXTERN long	Rows			// nr of rows in the screen
+29:EXTERN long	Columns INIT(= 80);	// nr of columns in the screen
+43:EXTERN schar_T	*ScreenLines INIT(= NULL);
+44:EXTERN sattr_T	*ScreenAttrs INIT(= NULL);
+45:EXTERN colnr_T  *ScreenCols INIT(= NULL);
+46:EXTERN unsigned	*LineOffset INIT(= NULL);
+47:EXTERN char_u	*LineWraps INIT(= NULL);	// line wraps to next line
+57:EXTERN u8char_T	*ScreenLinesUC INIT(= NULL);	// decoded UTF-8 characters
+58:EXTERN u8char_T	*ScreenLinesC[MAX_MCO];		// composing characters
+59:EXTERN int	Screen_mco INIT(= 0);		// value of p_mco used when
+64:EXTERN schar_T	*ScreenLines2 INIT(= NULL);
+69:EXTERN schar_T	*current_ScreenLine INIT(= NULL);
+76:EXTERN int	screen_cur_row INIT(= 0);
+77:EXTERN int	screen_cur_col INIT(= 0);
+81:EXTERN match_T	screen_search_hl;
+84:EXTERN linenr_T search_hl_has_cursor_lnum INIT(= 0);
+87:EXTERN int	no_hlsearch INIT(= FALSE);
+91:EXTERN foldinfo_T win_foldinfo;	// info for 'foldcolumn'
+96:EXTERN int redrawing_for_callback INIT(= 0);
+105:EXTERN short	*TabPageIdxs INIT(= NULL);
+109:EXTERN short	*popup_mask INIT(= NULL);
+110:EXTERN short	*popup_mask_next INIT(= NULL);
+112:EXTERN char	*popup_transparent INIT(= NULL);
+115:EXTERN int	popup_mask_refresh INIT(= TRUE);
+118:EXTERN tabpage_T *popup_mask_tab INIT(= NULL);
+122:EXTERN int	screen_zindex INIT(= 0);
+125:EXTERN int	screen_Rows INIT(= 0);	    // actual size of ScreenLines[]
+126:EXTERN int	screen_Columns INIT(= 0);   // actual size of ScreenLines[]
+132:EXTERN int	mod_mask INIT(= 0);		// current key modifiers
+136:EXTERN int	vgetc_mod_mask INIT(= 0);
+137:EXTERN int	vgetc_char INIT(= 0);
+148:EXTERN int	cmdline_row;
+150:EXTERN int	redraw_cmdline INIT(= FALSE);	// cmdline must be redrawn
+151:EXTERN int	redraw_mode INIT(= FALSE);	// mode must be redrawn
+152:EXTERN int	clear_cmdline INIT(= FALSE);	// cmdline must be cleared
+153:EXTERN int	mode_displayed INIT(= FALSE);	// mode is being displayed
+154:EXTERN int	no_win_do_lines_ins INIT(= FALSE); // don't insert lines
+156:EXTERN int	cmdline_star INIT(= FALSE);	// cmdline is crypted
+159:EXTERN int	exec_from_reg INIT(= FALSE);	// executing register
+161:EXTERN int	screen_cleared INIT(= FALSE);	// screen has been cleared
+169:EXTERN colnr_T	dollar_vcol INIT(= -1);
+175:EXTERN char_u	*edit_submode INIT(= NULL); // msg for CTRL-X submode
+176:EXTERN char_u	*edit_submode_pre INIT(= NULL); // prepended to edit_submode
+177:EXTERN char_u	*edit_submode_extra INIT(= NULL);// appended to edit_submode
+178:EXTERN hlf_T	edit_submode_highl;	// highl. method for extra info
+185:EXTERN int	cmdmsg_rl INIT(= FALSE);    // cmdline is drawn right to left
+187:EXTERN int	msg_col;
+188:EXTERN int	msg_row;
+189:EXTERN int	msg_scrolled;	// Number of screen lines that windows have
+191:EXTERN int	msg_scrolled_ign INIT(= FALSE);
+196:EXTERN char_u	*keep_msg INIT(= NULL);	    // msg to be shown after redraw
+197:EXTERN int	keep_msg_attr INIT(= 0);    // highlight attr for keep_msg
+198:EXTERN int	keep_msg_more INIT(= FALSE); // keep_msg was set by msgmore()
+199:EXTERN int	need_fileinfo INIT(= FALSE);// do fileinfo() after redraw
+200:EXTERN int	msg_scroll INIT(= FALSE);   // msg_start() will scroll
+201:EXTERN int	msg_didout INIT(= FALSE);   // msg_outstr() was used in line
+202:EXTERN int	msg_didany INIT(= FALSE);   // msg_outstr() was used at all
+203:EXTERN int	msg_nowait INIT(= FALSE);   // don't wait for this msg
+204:EXTERN int	emsg_off INIT(= 0);	    // don't display errors for now,
+206:EXTERN int	info_message INIT(= FALSE); // printing informative message
+207:EXTERN int      msg_hist_off INIT(= FALSE); // don't add messages to history
+209:EXTERN int	need_clr_eos INIT(= FALSE); // need to clear text before
+211:EXTERN int	emsg_skip INIT(= 0);	    // don't display errors for
+213:EXTERN int	emsg_severe INIT(= FALSE);  // use message of next of several
+216:EXTERN char_u	*emsg_assert_fails_msg INIT(= NULL);
+217:EXTERN long	emsg_assert_fails_lnum INIT(= 0);
+218:EXTERN char_u	*emsg_assert_fails_context INIT(= NULL);
+220:EXTERN int	did_endif INIT(= FALSE);    // just had ":endif"
+222:EXTERN int	did_emsg;		    // incremented by emsg() when a
+225:EXTERN int	did_emsg_silent INIT(= 0);  // incremented by emsg() when
+228:EXTERN int	did_emsg_def;		    // set by emsg() when emsg_silent
+230:EXTERN int	did_emsg_cumul;		    // cumulative did_emsg, increased
+232:EXTERN int	called_vim_beep;	    // set if vim_beep() is called
+233:EXTERN int	uncaught_emsg;		    // number of times emsg() was
+236:EXTERN int	did_emsg_syntax;	    // did_emsg set because of a
+238:EXTERN int	called_emsg;		    // always incremented by emsg()
+239:EXTERN int	in_echowindow;		    // executing ":echowindow"
+240:EXTERN int	ex_exitval INIT(= 0);	    // exit value for ex mode
+241:EXTERN int	emsg_on_display INIT(= FALSE);	// there is an error message
+242:EXTERN int	rc_did_emsg INIT(= FALSE);  // vim_regcomp() called emsg()
+244:EXTERN int	no_wait_return INIT(= 0);   // don't wait for return for now
+245:EXTERN int	need_wait_return INIT(= 0); // need to wait for return later
+246:EXTERN int	did_wait_return INIT(= FALSE);	// wait_return() was used and
+248:EXTERN int	need_maketitle INIT(= TRUE); // call maketitle() soon
+250:EXTERN int	quit_more INIT(= FALSE);    // 'q' hit at "--more--" msg
+252:EXTERN int	newline_on_exit INIT(= FALSE);	// did msg in altern. screen
+253:EXTERN int	intr_char INIT(= 0);	    // extra interrupt character
+256:EXTERN int	x_no_connect INIT(= FALSE); // don't connect to X server
+258:EXTERN int	x_force_connect INIT(= FALSE);	// Do connect to X server.
+263:EXTERN int	ex_keep_indent INIT(= FALSE); // getexmodeline(): keep indent
+264:EXTERN int	vgetc_busy INIT(= 0);	      // when inside vgetc() then > 0
+266:EXTERN int	didset_vim INIT(= FALSE);	    // did set $VIM ourselves
+267:EXTERN int	didset_vimruntime INIT(= FALSE);    // idem for $VIMRUNTIME
+273:EXTERN int	lines_left INIT(= -1);	    // lines left for listing
+274:EXTERN int	msg_no_more INIT(= FALSE);  // don't use more prompt, truncate
+281:EXTERN garray_T	exestack INIT5(0, 0, sizeof(estack_T), 50, NULL);
+289:EXTERN sctx_T	current_sctx
+298:EXTERN int	estack_compiling INIT(= FALSE);
+300:EXTERN int	ex_nesting_level INIT(= 0);	// nesting level
+301:EXTERN int	debug_break_level INIT(= -1);	// break below this level
+302:EXTERN int	debug_did_msg INIT(= FALSE);	// did "debug mode" message
+303:EXTERN int	debug_tick INIT(= 0);		// breakpoint change count
+304:EXTERN int	debug_backtrace_level INIT(= 0); // breakpoint backtrace level
+306:EXTERN int	do_profiling INIT(= PROF_NONE);	// PROF_ values
+308:EXTERN garray_T script_items INIT5(0, 0, sizeof(scriptitem_T *), 20, NULL);
+321:EXTERN except_T *current_exception;
+327:EXTERN int did_throw INIT(= FALSE);
+333:EXTERN int need_rethrow INIT(= FALSE);
+340:EXTERN int check_cstack INIT(= FALSE);
+346:EXTERN int trylevel INIT(= 0);
+356:EXTERN int force_abort INIT(= FALSE);
+368:EXTERN msglist_T **msg_list INIT(= NULL);
+376:EXTERN int suppress_errthrow INIT(= FALSE);
+384:EXTERN except_T *caught_stack INIT(= NULL);
+394:EXTERN int	may_garbage_collect INIT(= FALSE);
+395:EXTERN int	want_garbage_collect INIT(= FALSE);
+396:EXTERN int	garbage_collect_at_exit INIT(= FALSE);
+559:EXTERN type_T static_types[96]
+757:EXTERN int	did_source_packages INIT(= FALSE);
+762:EXTERN char_u	hash_removed;
+765:EXTERN int	scroll_region INIT(= FALSE); // term supports scroll region
+766:EXTERN int	t_colors INIT(= 0);	    // int value of T_CCO
+769:EXTERN int include_none INIT(= 0);	// when 1 include "None"
+770:EXTERN int include_default INIT(= 0);	// when 1 include "default"
+771:EXTERN int include_link INIT(= 0);	// when 2 include "link" and "clear"
+779:EXTERN int	highlight_match INIT(= FALSE);	// show search match pos
+780:EXTERN linenr_T	search_match_lines;		// lines of matched string
+781:EXTERN colnr_T	search_match_endcol;		// col nr of match end
+783:EXTERN linenr_T	search_first_line INIT(= 0);	  // for :{FIRST},{last}s/pat
+784:EXTERN linenr_T	search_last_line INIT(= MAXLNUM); // for :{first},{LAST}s/pat
+787:EXTERN int	no_smartcase INIT(= FALSE);	// don't use 'smartcase' once
+789:EXTERN int	need_check_timestamps INIT(= FALSE); // need to check file
+791:EXTERN int	did_check_timestamps INIT(= FALSE); // did check timestamps
+793:EXTERN int	no_check_timestamps INIT(= 0);	// Don't check timestamps
+795:EXTERN int	highlight_attr[HLF_COUNT];  // Highl. attr for each context.
+800:EXTERN int	highlight_user[9];		// User[1-9] attributes
+802:EXTERN int	highlight_stlnc[9];		// On top of user
+804:EXTERN int	highlight_stlterm[9];		// On top of user
+805:EXTERN int	highlight_stltermnc[9];		// On top of user
+812:EXTERN int	skip_term_loop INIT(= FALSE);
+815:EXTERN char_u	*use_gvimrc INIT(= NULL);	// "-U" cmdline argument
+817:EXTERN int	cterm_normal_fg_color INIT(= 0);
+818:EXTERN int	cterm_normal_fg_bold INIT(= 0);
+819:EXTERN int	cterm_normal_bg_color INIT(= 0);
+820:EXTERN int	cterm_normal_ul_color INIT(= 0);
+822:EXTERN guicolor_T cterm_normal_fg_gui_color INIT(= INVALCOLOR);
+823:EXTERN guicolor_T cterm_normal_bg_gui_color INIT(= INVALCOLOR);
+824:EXTERN guicolor_T cterm_normal_ul_gui_color INIT(= INVALCOLOR);
+827:EXTERN int	is_mac_terminal INIT(= FALSE);  // recognized Terminal.app
+830:EXTERN int	autocmd_busy INIT(= FALSE);	// Is apply_autocmds() busy?
+831:EXTERN int	autocmd_no_enter INIT(= FALSE); // Buf/WinEnter autocmds disabled
+832:EXTERN int	autocmd_no_leave INIT(= FALSE); // Buf/WinLeave autocmds disabled
+833:EXTERN int	tabpage_move_disallowed INIT(= FALSE);  // moving tabpages around disallowed
+837:EXTERN bufref_T	au_new_curbuf INIT3(NULL, 0, 0);
+843:EXTERN buf_T	*au_pending_free_buf INIT(= NULL);
+844:EXTERN win_T	*au_pending_free_win INIT(= NULL);
+849:EXTERN int	mouse_row;
+850:EXTERN int	mouse_col;
+851:EXTERN int	mouse_past_bottom INIT(= FALSE);// mouse below last line
+852:EXTERN int	mouse_past_eol INIT(= FALSE);	// mouse right of line
+853:EXTERN int	mouse_dragging INIT(= 0);	// extending Visual area with
+860:EXTERN int	WantQueryMouse INIT(= FALSE);
+867:EXTERN int	need_mouse_correct INIT(= FALSE);
+870:EXTERN linenr_T gui_prev_topline INIT(= 0);
+872:EXTERN int	gui_prev_topfill INIT(= 0);
+877:EXTERN int	drag_status_line INIT(= FALSE);	// dragging the status line
+878:EXTERN int	postponed_mouseshape INIT(= FALSE); // postponed updating the
+880:EXTERN int	drag_sep_line INIT(= FALSE);	// dragging vert separator
+886:EXTERN int	diff_context INIT(= 6);		// context for folds
+887:EXTERN int      linematch_lines INIT(= 0);      // number of lines for diff line match
+888:EXTERN int	diff_foldcolumn INIT(= 2);	// 'foldcolumn' for diff mode
+889:EXTERN int	diff_need_scrollbind INIT(= FALSE);
+894:EXTERN int	updating_screen INIT(= FALSE);
+898:EXTERN int	redraw_not_allowed INIT(= FALSE);
+903:EXTERN int	dont_parse_messages INIT(= FALSE);
+908:EXTERN vimmenu_T	*root_menu INIT(= NULL);
+913:EXTERN int	sys_menu INIT(= FALSE);
+919:EXTERN vimmenu_T	*current_menu;
+922:EXTERN int force_menu_update INIT(= FALSE);
+926:EXTERN int	    current_tab;
+929:EXTERN int	    current_tabmenu;
+936:EXTERN int	current_scrollbar;
+937:EXTERN long_u	scrollbar_value;
+940:EXTERN int	found_reverse_arg INIT(= FALSE);
+943:EXTERN char	*font_argument INIT(= NULL);
+947:EXTERN char	*background_argument INIT(= NULL);
+950:EXTERN char	*foreground_argument INIT(= NULL);
+959:EXTERN volatile sig_atomic_t hold_gui_events INIT(= 0);
+965:EXTERN int	new_pixel_width INIT(= 0);
+966:EXTERN int	new_pixel_height INIT(= 0);
+969:EXTERN int	gui_win_x INIT(= -1);
+970:EXTERN int	gui_win_y INIT(= -1);
+974:EXTERN Clipboard_T clip_star;	// PRIMARY selection in X11/Wayland
+976:EXTERN Clipboard_T clip_plus;	// CLIPBOARD selection in X11/Wayland
+984:EXTERN int	clip_unnamed INIT(= 0); // above two values or'ed
+986:EXTERN int	clip_autoselect_star INIT(= FALSE);
+987:EXTERN int	clip_autoselect_plus INIT(= FALSE);
+988:EXTERN int	clip_autoselectml INIT(= FALSE);
+989:EXTERN int	clip_html INIT(= FALSE);
+990:EXTERN regprog_T *clip_exclude_prog INIT(= NULL);
+991:EXTERN int	clip_unnamed_saved INIT(= 0);
+1000:EXTERN win_T	*firstwin;		// first window
+1001:EXTERN win_T	*lastwin;		// last window
+1002:EXTERN win_T	*prevwin INIT(= NULL);	// previous window (may equal curwin)
+1006:EXTERN win_T	*curwin;	// currently active window
+1021:EXTERN aucmdwin_T aucmd_win[AUCMD_WIN_COUNT];
+1024:EXTERN win_T    *first_popupwin;		// first global popup window
+1025:EXTERN win_T	*popup_dragwin INIT(= NULL);	// popup window being dragged
+1028:EXTERN int	popup_visible INIT(= FALSE);
+1031:EXTERN int	popup_uses_mouse_move INIT(= FALSE);
+1033:EXTERN int	text_prop_frozen INIT(= 0);
+1036:EXTERN int	ignore_text_props INIT(= FALSE);
+1041:EXTERN int	pum_will_redraw INIT(= FALSE);
+1047:EXTERN frame_T	*topframe;	// top of the window frame tree
+1054:EXTERN tabpage_T    *first_tabpage;
+1055:EXTERN tabpage_T    *curtab;
+1056:EXTERN tabpage_T    *lastused_tabpage;
+1057:EXTERN int	    redraw_tabline INIT(= FALSE);  // need to redraw tabline
+1060:EXTERN int	    redraw_tabpanel INIT(= FALSE);  // need to redraw tabpanel
+1067:EXTERN buf_T	*firstbuf INIT(= NULL);	// first buffer
+1068:EXTERN buf_T	*lastbuf INIT(= NULL);	// last buffer
+1069:EXTERN buf_T	*curbuf INIT(= NULL);	// currently active buffer
+1073:EXTERN int	mf_dont_release INIT(= FALSE);	// don't release blocks
+1079:EXTERN alist_T	global_alist;		    // global argument list
+1080:EXTERN int	max_alist_id INIT(= 0);	    // the previous argument list id
+1081:EXTERN int	arg_had_last INIT(= FALSE); // accessed last file in
+1084:EXTERN int	ru_col;		// column for ruler
+1086:EXTERN int	ru_wid;		// 'rulerfmt' width of ruler when non-zero
+1088:EXTERN int	sc_col;		// column for shown command
+1093:EXTERN DIR	*vim_tempdir_dp INIT(= NULL); // File descriptor of temp dir
+1095:EXTERN char_u	*vim_tempdir INIT(= NULL); // Name of Vim's own temp dir.
+1103:EXTERN int	starting INIT(= NO_SCREEN);
+1106:EXTERN int	exiting INIT(= FALSE);
+1110:EXTERN int	really_exiting INIT(= FALSE);
+1113:EXTERN int	v_dying INIT(= 0); // internal value of v:dying
+1114:EXTERN int	stdout_isatty INIT(= TRUE);	// is stdout a terminal?
+1117:EXTERN int	test_autochdir INIT(= FALSE);
+1119:EXTERN char	*last_chdir_reason INIT(= NULL);
+1121:EXTERN int	entered_free_all_mem INIT(= FALSE);
+1125:EXTERN volatile sig_atomic_t full_screen INIT(= FALSE);
+1129:EXTERN int	restricted INIT(= FALSE);
+1131:EXTERN int	secure INIT(= FALSE);
+1136:EXTERN int	textlock INIT(= 0);
+1141:EXTERN int	curbuf_lock INIT(= 0);
+1144:EXTERN int	allbuf_lock INIT(= 0);
+1150:EXTERN int	sandbox INIT(= 0);
+1156:EXTERN int	silent_mode INIT(= FALSE);
+1160:EXTERN pos_T	VIsual;		// start position of active Visual selection
+1161:EXTERN int	VIsual_active INIT(= FALSE);
+1163:EXTERN int	VIsual_select INIT(= FALSE);
+1165:EXTERN int	VIsual_select_reg INIT(= 0);
+1167:EXTERN int  VIsual_select_exclu_adj INIT(= FALSE);
+1169:EXTERN int	restart_VIsual_select INIT(= 0);
+1171:EXTERN int	VIsual_reselect;
+1175:EXTERN int	VIsual_mode INIT(= 'v');
+1178:EXTERN int	redo_VIsual_busy INIT(= FALSE);
+1184:EXTERN int	resel_VIsual_mode INIT(= NUL);	// 'v', 'V', or Ctrl-V
+1185:EXTERN linenr_T	resel_VIsual_line_count;	// number of lines
+1186:EXTERN colnr_T	resel_VIsual_vcol;		// nr of cols or end col
+1192:EXTERN pos_T	where_paste_started;
+1200:EXTERN int     did_ai INIT(= FALSE);
+1206:EXTERN colnr_T	ai_col INIT(= 0);
+1214:EXTERN int     end_comment_pending INIT(= NUL);
+1222:EXTERN int     did_syncbind INIT(= FALSE);
+1228:EXTERN int	did_si INIT(= FALSE);
+1234:EXTERN int	can_si INIT(= FALSE);
+1240:EXTERN int	can_si_back INIT(= FALSE);
+1242:EXTERN int	old_indent INIT(= 0);	// for ^^D command in insert mode
+1244:EXTERN pos_T	saved_cursor		// w_cursor before formatting text.
+1253:EXTERN pos_T	Insstart;		// This is where the latest
+1259:EXTERN pos_T	Insstart_orig;
+1264:EXTERN int	orig_line_count INIT(= 0);  // Line count when "gR" started
+1265:EXTERN int	vr_lines_changed INIT(= 0); // #Lines changed by "gR" so far
+1269:EXTERN JMP_BUF x_jump_env;
+1288:EXTERN int	enc_dbcs INIT(= 0);		// One of DBCS_xxx values if
+1290:EXTERN int	enc_unicode INIT(= 0);	// 2: UCS-2 or UTF-16, 4: UCS-4
+1291:EXTERN int	enc_utf8 INIT(= FALSE);		// UTF-8 encoded Unicode
+1292:EXTERN int	enc_latin1like INIT(= TRUE);	// 'encoding' is latin1 comp.
+1296:EXTERN int	enc_codepage INIT(= -1);
+1297:EXTERN int	enc_latin9 INIT(= FALSE);	// 'encoding' is latin9
+1299:EXTERN int	has_mbyte INIT(= 0);		// any multi-byte encoding
+1305:EXTERN char	mb_bytelen_tab[256];
+1309:EXTERN vimconv_T input_conv;			// type of input conversion
+1310:EXTERN vimconv_T output_conv;			// type of output conversion
+1320:EXTERN int (*mb_ptr2len)(char_u *p) INIT(= latin_ptr2len);
+1323:EXTERN int (*mb_ptr2len_len)(char_u *p, int size) INIT(= latin_ptr2len_len);
+1326:EXTERN int (*mb_char2len)(int c) INIT(= latin_char2len);
+1330:EXTERN int (*mb_char2bytes)(int c, char_u *buf) INIT(= latin_char2bytes);
+1332:EXTERN int (*mb_ptr2cells)(char_u *p) INIT(= latin_ptr2cells);
+1333:EXTERN int (*mb_ptr2cells_len)(char_u *p, int size) INIT(= latin_ptr2cells_len);
+1334:EXTERN int (*mb_char2cells)(int c) INIT(= latin_char2cells);
+1335:EXTERN int (*mb_off2cells)(unsigned off, unsigned max_off) INIT(= latin_off2cells);
+1336:EXTERN int (*mb_ptr2char)(char_u *p) INIT(= latin_ptr2char);
+1341:EXTERN int (*mb_head_off)(char_u *base, char_u *p) INIT(= latin_head_off);
+1345:EXTERN size_t (*iconv) (iconv_t cd, const char **inbuf, size_t *inbytesleft, char **outbuf, size_t *outbytesleft);
+1346:EXTERN iconv_t (*iconv_open) (const char *tocode, const char *fromcode);
+1347:EXTERN int (*iconv_close) (iconv_t cd);
+1348:EXTERN int (*iconvctl) (iconv_t cd, int request, void *argument);
+1349:EXTERN int* (*iconv_errno) (void);
+1355:EXTERN GtkIMContext	*xic INIT(= NULL);
+1363:EXTERN colnr_T		preedit_start_col INIT(= MAXCOL);
+1364:EXTERN colnr_T		preedit_end_col INIT(= MAXCOL);
+1368:EXTERN int		xim_changed_while_preediting INIT(= FALSE);
+1370:EXTERN XIC		xic INIT(= NULL);
+1373:EXTERN guicolor_T	xim_fg_color INIT(= INVALCOLOR);
+1374:EXTERN guicolor_T	xim_bg_color INIT(= INVALCOLOR);
+1387:EXTERN int	State INIT(= MODE_NORMAL);
+1390:EXTERN int	debug_mode INIT(= FALSE);
+1393:EXTERN int	finish_op INIT(= FALSE);// TRUE while an operator is pending
+1394:EXTERN long	opcount INIT(= 0);	// count for pending operator
+1395:EXTERN int	motion_force INIT(= 0); // motion force for pending operator
+1400:EXTERN int exmode_active INIT(= 0);	// zero, EXMODE_NORMAL or EXMODE_VIM
+1403:EXTERN int pending_exmode_active INIT(= FALSE);
+1405:EXTERN int ex_no_reprint INIT(= FALSE); // no need to print after z or p
+1407:EXTERN int reg_recording INIT(= 0);	// register for recording  or zero
+1408:EXTERN int reg_executing INIT(= 0);	// register being executed or zero
+1410:EXTERN int pending_end_reg_executing INIT(= FALSE);
+1414:EXTERN int seenModifyOtherKeys INIT(= FALSE);
+1434:EXTERN mokstate_T modify_otherkeys_state INIT(= MOKS_INITIAL);
+1452:EXTERN kkpstate_T kitty_protocol_state INIT(= KKPS_INITIAL);
+1454:EXTERN int no_mapping INIT(= FALSE);	// currently no mapping allowed
+1455:EXTERN int no_zero_mapping INIT(= 0);	// mapping zero not allowed
+1456:EXTERN int allow_keys INIT(= FALSE);	// allow key codes when no_mapping
+1458:EXTERN int no_reduce_keys INIT(= FALSE);  // do not apply Ctrl, Shift and Alt
+1460:EXTERN int no_u_sync INIT(= 0);		// Don't call u_sync()
+1462:EXTERN int u_sync_once INIT(= 0);	// Call u_sync() once when evaluating
+1466:EXTERN int restart_edit INIT(= 0);	// call edit when next cmd finished
+1467:EXTERN int arrow_used;			// Normally FALSE, set to TRUE after
+1471:EXTERN int	ins_at_eol INIT(= FALSE); // put cursor after eol when
+1474:EXTERN int	no_abbr INIT(= TRUE);	// TRUE when no abbreviations loaded
+1477:EXTERN char_u	*exe_name;		// the name of the executable
+1481:EXTERN int	dont_scroll INIT(= FALSE);// don't use scrollbars when TRUE
+1483:EXTERN int	mapped_ctrl_c INIT(= FALSE); // modes where CTRL-C is mapped
+1484:EXTERN int	ctrl_c_interrupts INIT(= TRUE);	// CTRL-C sets got_int
+1486:EXTERN cmdmod_T	cmdmod;			// Ex command modifiers
+1487:EXTERN int	sticky_cmdmod_flags INIT(= 0); // used by :execute
+1490:EXTERN int	is_export INIT(= FALSE);    // :export {cmd}
+1493:EXTERN int	msg_silent INIT(= 0);	// don't print messages
+1494:EXTERN int	emsg_silent INIT(= 0);	// don't print error messages
+1496:EXTERN int	emsg_silent_def INIT(= 0);  // value of emsg_silent when a :def
+1499:EXTERN int	emsg_noredir INIT(= 0);	// don't redirect error messages
+1500:EXTERN int	cmd_silent INIT(= FALSE); // don't echo the command line
+1502:EXTERN int	in_assert_fails INIT(= FALSE);	// assert_fails() active
+1504:EXTERN int	swap_exists_action INIT(= SEA_NONE);
+1507:EXTERN int	swap_exists_did_quit INIT(= FALSE);
+1510:EXTERN char_u	*IObuff;		// sprintf's are done in this buffer,
+1512:EXTERN char_u	*NameBuff;		// file names are expanded in this
+1514:EXTERN char	msg_buf[MSG_BUF_LEN];	// small buffer for messages
+1517:EXTERN int	RedrawingDisabled INIT(= 0);
+1519:EXTERN int	readonlymode INIT(= FALSE); // Set to TRUE for "view"
+1520:EXTERN int	recoverymode INIT(= FALSE); // Set to TRUE for "-r" option
+1522:EXTERN typebuf_T typebuf		// typeahead buffer
+1529:EXTERN int	typebuf_was_empty INIT(= FALSE);
+1531:EXTERN int	ex_normal_busy INIT(= 0);   // recursiveness of ex_normal()
+1533:EXTERN int	in_feedkeys INIT(= 0);	    // ex_normal_busy set in feedkeys()
+1535:EXTERN int	ex_normal_lock INIT(= 0);   // forbid use of ex_normal()
+1538:EXTERN int	ignore_script INIT(= FALSE);  // ignore script input
+1540:EXTERN int	stop_insert_mode;	// for ":stopinsert" and 'insertmode'
+1542:EXTERN int	KeyTyped;		// TRUE if user typed current char
+1543:EXTERN int	KeyStuffed;		// TRUE if current char from stuffbuf
+1545:EXTERN int	vgetc_im_active;	// Input Method was active for last
+1548:EXTERN int	maptick INIT(= 0);	// tick for each non-mapped char
+1550:EXTERN int	must_redraw INIT(= 0);	    // type of redraw necessary
+1551:EXTERN int	skip_redraw INIT(= FALSE);  // skip redraw once
+1552:EXTERN int	do_redraw INIT(= FALSE);    // extra redraw once
+1554:EXTERN int	need_diff_redraw INIT(= 0); // need to call diff_redraw()
+1558:EXTERN int	redrawtime_limit_set INIT(= FALSE);
+1561:EXTERN int	need_highlight_changed INIT(= TRUE);
+1564:EXTERN FILE	*scriptin[NSCRIPT];	    // streams to read script from
+1565:EXTERN int	curscript INIT(= 0);	    // index in scriptin[]
+1566:EXTERN FILE	*scriptout  INIT(= NULL);   // stream to write script to
+1567:EXTERN int	read_cmd_fd INIT(= 0);	    // fd to read commands from
+1571:EXTERN volatile sig_atomic_t got_int INIT(= FALSE);
+1575:EXTERN volatile sig_atomic_t got_sigusr1 INIT(= FALSE);
+1578:EXTERN int	term_console INIT(= FALSE); // set to TRUE when console used
+1580:EXTERN int	termcap_active INIT(= FALSE);	// set by starttermcap()
+1581:EXTERN tmode_T	cur_tmode INIT(= TMODE_COOK);	// input terminal mode
+1582:EXTERN int	bangredo INIT(= FALSE);	    // set to TRUE with ! command
+1583:EXTERN int	searchcmdlen;		    // length of previous search cmd
+1585:EXTERN int	reg_do_extmatch INIT(= 0);  // Used when compiling regexp:
+1588:EXTERN reg_extmatch_T *re_extmatch_in INIT(= NULL); // Used by vim_regexec():
+1590:EXTERN reg_extmatch_T *re_extmatch_out INIT(= NULL); // Set by vim_regexec()
+1594:EXTERN int	did_outofmem_msg INIT(= FALSE);
+1596:EXTERN int	did_swapwrite_msg INIT(= FALSE);
+1598:EXTERN int	undo_off INIT(= FALSE);	    // undo switched off for now
+1599:EXTERN int	global_busy INIT(= 0);	    // set when :global is executing
+1600:EXTERN int	listcmd_busy INIT(= FALSE); // set when :argdo, :windo or
+1602:EXTERN int	need_start_insertmode INIT(= FALSE);
+1605:EXTERN char_u	last_mode[MODE_MAX_LENGTH] INIT(= "n"); // for ModeChanged event
+1607:EXTERN char_u	*last_cmdline INIT(= NULL); // last command line (for ":)
+1608:EXTERN char_u	*repeat_cmdline INIT(= NULL); // command line for "."
+1609:EXTERN char_u	*new_last_cmdline INIT(= NULL);	// new value for last_cmdline
+1611:EXTERN char_u	*autocmd_fname INIT(= NULL); // fname for <afile> on cmdline
+1612:EXTERN int	autocmd_fname_full;	     // autocmd_fname is full path
+1613:EXTERN int	autocmd_bufnr INIT(= 0);     // fnum for <abuf> on cmdline
+1614:EXTERN char_u	*autocmd_match INIT(= NULL); // name for <amatch> on cmdline
+1615:EXTERN int	aucmd_cmdline_changed_count INIT(= 0);
+1617:EXTERN int	did_cursorhold INIT(= TRUE);  // set when CursorHold t'gerd
+1618:EXTERN pos_T	last_cursormoved	      // for CursorMoved event
+1624:EXTERN int	postponed_split INIT(= 0);  // for CTRL-W CTRL-] command
+1625:EXTERN int	postponed_split_flags INIT(= 0);  // args for win_split()
+1626:EXTERN int	postponed_split_tab INIT(= 0);  // cmdmod.cmod_tab
+1628:EXTERN int	g_do_tagpreview INIT(= 0);  // for tag preview commands:
+1631:EXTERN int	g_tag_at_cursor INIT(= FALSE); // whether the tag command comes
+1635:EXTERN int	replace_offset INIT(= 0);   // offset for replace_push()
+1637:EXTERN char_u	*escape_chars INIT(= (char_u *)" \t\\\"|");
+1640:EXTERN int	keep_help_flag INIT(= FALSE); // doing :ta from help file
+1647:EXTERN char_u	*empty_option INIT(= (char_u *)"");
+1649:EXTERN int  redir_off INIT(= FALSE);	// no redirection for a moment
+1650:EXTERN FILE *redir_fd INIT(= NULL);	// message redirection file
+1652:EXTERN int  redir_reg INIT(= 0);	// message redirection register
+1653:EXTERN int  redir_vname INIT(= 0);	// message redirection variable
+1654:EXTERN int  redir_execute INIT(= 0);	// execute() redirection
+1658:EXTERN char_u	langmap_mapchar[256];	// mapping for language keys
+1661:EXTERN int  save_p_ls INIT(= -1);	// Save 'laststatus' setting
+1662:EXTERN int  save_p_wmh INIT(= -1);	// Save 'winminheight' setting
+1663:EXTERN int  wild_menu_showing INIT(= 0);
+1668:EXTERN char_u	toupper_tab[256];	// table for toupper()
+1669:EXTERN char_u	tolower_tab[256];	// table for tolower()
+1670:EXTERN int	found_register_arg INIT(= FALSE);
+1674:EXTERN char	breakat_flags[256];	// which characters are in 'breakat'
+1703:EXTERN char_u	*homedir INIT(= NULL);
+1708:EXTERN char_u	*globaldir INIT(= NULL);
+1711:EXTERN int	disable_fold_update INIT(= 0);
+1715:EXTERN int	km_stopsel INIT(= FALSE);
+1716:EXTERN int	km_startsel INIT(= FALSE);
+1718:EXTERN int	cmdwin_type INIT(= 0);	// type of cmdline window or 0
+1719:EXTERN int	cmdwin_result INIT(= 0); // result of cmdline window or 0
+1720:EXTERN buf_T	*cmdwin_buf INIT(= NULL); // buffer of cmdline window or NULL
+1721:EXTERN win_T	*cmdwin_win INIT(= NULL); // window of cmdline window or NULL
+1723:EXTERN char_u no_lines_msg[]	INIT(= N_("--No lines in buffer--"));
+1725:EXTERN char typename_unknown[]	INIT(= N_("unknown"));
+1726:EXTERN char typename_int[]	INIT(= N_("int"));
+1727:EXTERN char typename_longint[]	INIT(= N_("long int"));
+1728:EXTERN char typename_longlongint[]	INIT(= N_("long long int"));
+1729:EXTERN char typename_unsignedint[]	INIT(= N_("unsigned int"));
+1730:EXTERN char typename_unsignedlongint[]	INIT(= N_("unsigned long int"));
+1731:EXTERN char typename_unsignedlonglongint[]	INIT(= N_("unsigned long long int"));
+1732:EXTERN char typename_pointer[]	INIT(= N_("pointer"));
+1733:EXTERN char typename_percent[]	INIT(= N_("percent"));
+1734:EXTERN char typename_char[] INIT(= N_("char"));
+1735:EXTERN char typename_string[]	INIT(= N_("string"));
+1736:EXTERN char typename_float[]	INIT(= N_("float"));
+1743:EXTERN long	sub_nsubs;	// total number of substitutions
+1744:EXTERN linenr_T	sub_nlines;	// total number of lines changed
+1748:EXTERN struct subs_expr_S	*substitute_instr INIT(= NULL);
+1752:EXTERN char_u	wim_flags[4];
+1758:EXTERN int      stl_syntax INIT(= 0);
+1762:EXTERN BalloonEval	*balloonEval INIT(= NULL);
+1763:EXTERN int		balloonEvalForTerm INIT(= FALSE);
+1765:EXTERN int bevalServers INIT(= 0);
+1796:EXTERN option_table_T printer_opts[OPT_PRINT_NUM_OPTIONS]
+1829:EXTERN linenr_T printer_page_num;
+1834:EXTERN char	*xterm_display INIT(= NULL);
+1837:EXTERN int	xterm_display_allocated INIT(= FALSE);
+1840:EXTERN Display	*xterm_dpy INIT(= NULL);
+1843:EXTERN XtAppContext app_context INIT(= (XtAppContext)NULL);
+1847:EXTERN guint32	gtk_socket_id INIT(= 0);
+1848:EXTERN int	echo_wid_arg INIT(= FALSE);	// --echo-wid argument
+1856:EXTERN long_u	win_socket_id INIT(= 0);
+1860:EXTERN int	typebuf_was_filled INIT(= FALSE); // received text from client
+1865:EXTERN char_u	*serverName INIT(= NULL);	// name of the server
+1867:EXTERN Window	commWindow INIT(= None);
+1868:EXTERN Window	clientWindow INIT(= None);
+1869:EXTERN Atom	commProperty INIT(= None);
+1870:EXTERN char_u	*serverDelayedStartName INIT(= NULL);
+1875:EXTERN HWND	clientWindow INIT(= 0);
+1880:EXTERN int	term_is_xterm INIT(= FALSE);	// xterm-like 'term'
+1884:EXTERN char	psepc INIT(= '\\');	// normal path separator character
+1885:EXTERN char	psepcN INIT(= '/');	// abnormal path separator character
+1887:EXTERN char	pseps[2] INIT2('\\', 0);
+1892:EXTERN int	virtual_op INIT(= MAYBE);
+1896:EXTERN disptick_T	display_tick INIT(= 0);
+1902:EXTERN linenr_T		spell_redraw_lnum INIT(= 0);
+1907:EXTERN int		need_cursor_line_redraw INIT(= FALSE);
+1912:EXTERN garray_T error_ga
+1920:EXTERN char *netbeansArg INIT(= NULL);	// the -nb[:host:port:passwd] arg
+1921:EXTERN int netbeansFireChanges INIT(= 1); // send buffer changes if != 0
+1922:EXTERN int netbeansForcedQuit INIT(= 0);// don't write modified files
+1923:EXTERN int netbeansReadFile INIT(= 1);	// OK to read from disk if != 0
+1924:EXTERN int netbeansSuppressNoLines INIT(= 0); // skip "No lines in buffer"
+1930:EXTERN char top_bot_msg[]   INIT(= N_("search hit TOP, continuing at BOTTOM"));
+1931:EXTERN char bot_top_msg[]   INIT(= N_("search hit BOTTOM, continuing at TOP"));
+1933:EXTERN char line_msg[]	    INIT(= N_(" line "));
+1936:EXTERN char need_key_msg[]  INIT(= N_("Need encryption key for \"%s\""));
+1943:EXTERN int xsmp_icefd INIT(= -1);   // The actual connection
+1947:EXTERN FILE *time_fd INIT(= NULL);  // where to write startup timing
+1955:EXTERN int vim_ignored;
+1956:EXTERN char *vim_ignoredp;
+1960:EXTERN alloc_id_T  alloc_fail_id INIT(= aid_none);
+1962:EXTERN int  alloc_fail_countdown INIT(= -1);
+1964:EXTERN int  alloc_fail_repeat INIT(= 0);
+1967:EXTERN int  disable_char_avail_for_testing INIT(= FALSE);
+1968:EXTERN int  disable_redraw_for_testing INIT(= FALSE);
+1969:EXTERN int  ignore_redraw_flag_for_testing INIT(= FALSE);
+1970:EXTERN int  nfa_fail_for_testing INIT(= FALSE);
+1971:EXTERN int  no_query_mouse_for_testing INIT(= FALSE);
+1972:EXTERN int  ui_delay_for_testing INIT(= 0);
+1973:EXTERN int  reset_term_props_on_termresponse INIT(= FALSE);
+1974:EXTERN int  disable_vterm_title_for_testing INIT(= FALSE);
+1975:EXTERN long override_sysinfo_uptime INIT(= -1);
+1976:EXTERN int  override_autoload INIT(= FALSE);
+1977:EXTERN int  override_defcompile INIT(= FALSE);
+1978:EXTERN int  ml_get_alloc_lines INIT(= FALSE);
+1979:EXTERN int  ignore_unreachable_code_for_testing INIT(= FALSE);
+1981:EXTERN int  in_free_unref_items INIT(= FALSE);
+1985:EXTERN int  did_add_timer INIT(= FALSE);
+1986:EXTERN int  timer_busy INIT(= 0);   // when timer is inside vgetc() then > 0
+1989:EXTERN int  input_busy INIT(= 0);   // when inside get_user_input() then > 0
+1991:EXTERN lval_root_T	*lval_root INIT(= NULL);
+1995:EXTERN int  bevalexpr_due_set INIT(= FALSE);
+1996:EXTERN proftime_T bevalexpr_due;
+2000:EXTERN time_T time_for_testing INIT(= 0);
+2002:EXTERN int echo_attr INIT(= 0);   // attributes used for ":echo"
+2005:EXTERN int  did_echo_string_emsg INIT(= FALSE);
+2008:EXTERN int *eval_lavars_used INIT(= NULL);
+2011:EXTERN char windowsVersion[20] INIT(= {0});
+2014:EXTERN listitem_T range_list_item;
+2017:EXTERN evalarg_T EVALARG_EVALUATE
+2029:EXTERN int ctrl_break_was_pressed INIT(= FALSE);
+2030:EXTERN HINSTANCE g_hinst INIT(= NULL);
+2035:EXTERN char *ch_part_names[]
+2042:EXTERN int channel_need_redraw INIT(= FALSE);
+2048:EXTERN int ch_log_output INIT(= FALSE);
+2050:EXTERN int did_repeated_msg INIT(= 0);
+2057:EXTERN optmagic_T magic_overruled INIT(= OPTION_MAGIC_NOT_SET);
+2060:EXTERN int skip_win_fix_cursor INIT(= FALSE);
+2062:EXTERN int skip_win_fix_scroll INIT(= FALSE);
+2064:EXTERN int skip_update_topline INIT(= FALSE);
+2068:EXTERN char_u showcmd_buf[SHOWCMD_BUFLEN];
+2071:EXTERN int	p_tgc_set INIT(= FALSE);
+2075:EXTERN int did_warn_clipboard INIT(= FALSE);
+2078:EXTERN clipmethod_T clipmethod INIT(= CLIPMETHOD_NONE);
+2084:EXTERN int wayland_no_connect INIT(= FALSE);
+2087:EXTERN char *wayland_display_name INIT(= NULL);
+2090:EXTERN int wayland_display_fd;
+2105:EXTERN clientserver_method_T clientserver_method
+2109:EXTERN const clientserver_method_T clientserver_method
+2123:EXTERN char_u *client_socket INIT(= NULL);
