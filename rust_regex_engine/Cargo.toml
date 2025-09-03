@@ -9,3 +9,10 @@ crate-type = ["staticlib", "rlib"]
 
 [dependencies]
 regex = "1"
+
+[dev-dependencies]
+criterion = "0.4"
+
+[[bench]]
+name = "engine"
+harness = false
