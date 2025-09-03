@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 pyo3 = { version = "0.21", features = ["auto-initialize"] }
 rust_ffi = { path = "../rust_ffi" }
+once_cell = "1"
 
 [lib]
 name = "rust_python"

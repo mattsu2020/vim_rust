@@ -6,6 +6,7 @@ pub enum FFIError {
     Null,
     Utf8,
     Exec,
+    Init,
 }
 
 pub type FFIResult<T> = Result<T, FFIError>;

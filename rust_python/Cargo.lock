@@ -190,6 +190,7 @@ version = "0.1.0"
 name = "rust_python"
 version = "0.1.0"
 dependencies = [
+ "once_cell",
  "pyo3",
  "rust_ffi",
 ]

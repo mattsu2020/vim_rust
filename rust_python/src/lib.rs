@@ -1,14 +1,26 @@
+use once_cell::sync::OnceCell;
 use pyo3::prelude::*;
 use std::os::raw::{c_char, c_int};
 
 use rust_ffi::{cstr_to_str, result_to_int, FFIError, FFIResult};
 
+static PY_INITIALIZED: OnceCell<()> = OnceCell::new();
+
 fn init() -> FFIResult<()> {
-    pyo3::prepare_freethreaded_python();
+    PY_INITIALIZED
+        .get_or_init(|| {
+            pyo3::prepare_freethreaded_python();
+        });
+    Ok(())
+}
+
+fn end() -> FFIResult<()> {
+    // Finalization is a no-op to avoid interpreter shutdown issues in tests.
     Ok(())
 }
 
 fn run_code(code: *const c_char) -> FFIResult<()> {
+    init()?;
     let source = cstr_to_str(code)?;
     Python::with_gil(|py| py.run(source, None, None)).map_err(|_| FFIError::Exec)
 }
@@ -39,6 +51,18 @@ pub extern "C" fn python_init() -> c_int {
     vim_python_init()
 }
 
+/// Finalize the embedded Python interpreter.
+#[no_mangle]
+pub extern "C" fn vim_python_end() -> c_int {
+    result_to_int(end())
+}
+
+/// Alias to finalize Python via the traditional name.
+#[no_mangle]
+pub extern "C" fn python_end() -> c_int {
+    vim_python_end()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -49,6 +73,7 @@ mod tests {
         assert_eq!(vim_python_init(), 1);
         let code = CString::new("x = 1 + 1").unwrap();
         assert_eq!(vim_python_exec(code.as_ptr()), 1);
+        assert_eq!(vim_python_end(), 1);
     }
 
     #[test]
