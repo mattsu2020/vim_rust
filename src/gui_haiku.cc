@@ -147,13 +147,6 @@ class VimApp: public BApplication
     ~VimApp();
 
     // callbacks:
-#if 0
-    virtual void DispatchMessage(BMessage *m, BHandler *h)
-    {
-	m->PrintToStream();
-	Inherited::DispatchMessage(m, h);
-    }
-#endif
     virtual void ReadyToRun();
     virtual void ArgvReceived(int32 argc, char **argv);
     virtual void RefsReceived(BMessage *m);
@@ -1331,24 +1324,18 @@ notspecial:
 	    len = 1;
 	}
 
-	// Special keys (and a few others) may have modifiers
-#if 0
-	if (len == 3 ||
-		bytes[0] == B_SPACE || bytes[0] == B_TAB ||
-		bytes[0] == B_RETURN || bytes[0] == '\r' ||
-		bytes[0] == B_ESCAPE)
-#else
-	    if (canHaveVimModifiers)
-#endif
-	    {
-		int modifiers;
-		modifiers = 0;
-		if (beModifiers & B_SHIFT_KEY)
-		    modifiers |= MOD_MASK_SHIFT;
-		if (beModifiers & B_CONTROL_KEY)
-		    modifiers |= MOD_MASK_CTRL;
-		if (beModifiers & B_OPTION_KEY)
-		    modifiers |= MOD_MASK_ALT;
+        // Special keys (and a few others) may have modifiers.
+        // Use canHaveVimModifiers to determine whether to apply modifiers.
+        if (canHaveVimModifiers)
+        {
+            int modifiers;
+            modifiers = 0;
+            if (beModifiers & B_SHIFT_KEY)
+                modifiers |= MOD_MASK_SHIFT;
+            if (beModifiers & B_CONTROL_KEY)
+                modifiers |= MOD_MASK_CTRL;
+            if (beModifiers & B_OPTION_KEY)
+                modifiers |= MOD_MASK_ALT;
 
 		/*
 		 * For some keys a shift modifier is translated into another key
