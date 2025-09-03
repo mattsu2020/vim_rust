@@ -94,10 +94,24 @@ pub extern "C" fn get_highest_fnum() -> c_int {
     TOP_FILE_NUM.load(Ordering::SeqCst) - 1
 }
 
-// Helper for tests to set the top file number.
-#[cfg(test)]
-fn set_top_file_num(num: i32) {
+#[no_mangle]
+pub extern "C" fn get_top_file_num() -> c_int {
+    TOP_FILE_NUM.load(Ordering::SeqCst)
+}
+
+#[no_mangle]
+pub extern "C" fn set_top_file_num(num: c_int) {
     TOP_FILE_NUM.store(num, Ordering::SeqCst);
+}
+
+#[no_mangle]
+pub extern "C" fn next_top_file_num() -> c_int {
+    TOP_FILE_NUM.fetch_add(1, Ordering::SeqCst)
+}
+
+#[no_mangle]
+pub extern "C" fn dec_top_file_num() {
+    TOP_FILE_NUM.fetch_sub(1, Ordering::SeqCst);
 }
 
 #[cfg(test)]
