@@ -44,10 +44,9 @@ SRC_ALL =	\
 		src/change.c \
 		src/channel.c \
 		src/charset.c \
-		src/cindent.c \
-		src/clientserver.c \
-		src/clipboard.c \
-		src/cmdexpand.c \
+                src/cindent.c \
+                src/clipboard.c \
+                src/cmdexpand.c \
 		src/cmdhist.c \
 		src/crypt.c \
 		src/crypt_zip.c \
@@ -111,10 +110,9 @@ SRC_ALL =	\
 		src/mouse.c \
 		src/move.c \
 		src/mysign \
-		src/nbdebug.c \
-		src/nbdebug.h \
-		src/netbeans.c \
-		src/normal.c \
+                src/nbdebug.c \
+                src/nbdebug.h \
+                src/normal.c \
 		src/nv_cmdidxs.h \
 		src/nv_cmds.h \
 		src/ops.c \
@@ -239,9 +237,8 @@ SRC_ALL =	\
 		src/proto/change.pro \
 		src/proto/channel.pro \
 		src/proto/charset.pro \
-		src/proto/cindent.pro \
-		src/proto/clientserver.pro \
-		src/proto/clipboard.pro \
+                src/proto/cindent.pro \
+                src/proto/clipboard.pro \
 		src/proto/cmdexpand.pro \
 		src/proto/cmdhist.pro \
 		src/proto/crypt.pro \
@@ -296,9 +293,8 @@ SRC_ALL =	\
 		src/proto/misc1.pro \
 		src/proto/misc2.pro \
 		src/proto/mouse.pro \
-		src/proto/move.pro \
-		src/proto/netbeans.pro \
-		src/proto/normal.pro \
+                src/proto/move.pro \
+                src/proto/normal.pro \
 		src/proto/ops.pro \
 		src/proto/option.pro \
 		src/proto/optionstr.pro \
