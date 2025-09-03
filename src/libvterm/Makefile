@@ -71,20 +71,11 @@ src/encoding.lo: $(INCFILES)
 bin/%: bin/%.c $(LIBRARY)
 	$(LIBTOOL) --mode=link --tag=CC $(CC) $(CFLAGS) -o $@ $< -lvterm $(LDFLAGS)
 
-t/harness.lo: t/harness.c $(HFILES)
-	$(LIBTOOL) --mode=compile --tag=CC $(CC) $(CFLAGS) -o $@ -c $<
 
-t/harness: t/harness.lo $(LIBRARY)
-	$(LIBTOOL) --mode=link --tag=CC $(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) -static
-
-.PHONY: test
-test: $(LIBRARY) t/harness
-	for T in `ls t/[0-9]*.test`; do echo "** $$T **"; perl t/run-test.pl $$T $(if $(VALGRIND),--valgrind) || exit 1; done
 
 .PHONY: clean
 clean:
 	$(LIBTOOL) --mode=clean rm -f $(OBJECTS) $(INCFILES)
-	$(LIBTOOL) --mode=clean rm -f t/harness.lo t/harness
 	$(LIBTOOL) --mode=clean rm -f $(LIBRARY) $(BINFILES)
 
 .PHONY: install
@@ -120,8 +111,6 @@ distdir: $(INCFILES)
 	cp include/*.h __distdir/include
 	mkdir __distdir/bin
 	cp bin/*.c __distdir/bin
-	mkdir __distdir/t
-	cp t/*.test t/harness.c t/run-test.pl __distdir/t
 	sed "s,@VERSION@,$(VERSION)," <vterm.pc.in >__distdir/vterm.pc.in
 	sed "/^# DIST CUT/Q" <Makefile >__distdir/Makefile
 	mv __distdir $(DISTDIR)

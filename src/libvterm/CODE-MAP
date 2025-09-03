@@ -58,9 +58,3 @@ src/vterm_internal.h
 
 t/
  - contains unit tests
-
-t/harness.c
- - standalone program to embed the library into for unit-test purposes
-
-t/run-test.pl
- - invokes the test harness to run a single unit test script
