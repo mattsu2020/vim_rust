@@ -1473,6 +1473,9 @@ dependencies = [
 [[package]]
 name = "rust_regex_engine"
 version = "0.1.0"
+dependencies = [
+ "regex",
+]
 
 [[package]]
 name = "rust_regexp"
