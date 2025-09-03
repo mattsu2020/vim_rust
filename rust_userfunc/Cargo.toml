@@ -8,4 +8,5 @@ name = "rust_userfunc"
 crate-type = ["staticlib"]
 
 [dependencies]
+rust_hashtab = { path = "../rust_hashtab" }
 

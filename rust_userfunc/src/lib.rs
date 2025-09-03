@@ -1,9 +1,9 @@
-use std::collections::HashMap;
-use std::ffi::CStr;
 use std::os::raw::{c_char, c_int, c_void};
 use std::sync::Mutex;
 
-type FuncTable = HashMap<String, *mut c_void>;
+use rust_hashtab::{
+    rust_hashtab_free, rust_hashtab_get, rust_hashtab_new, rust_hashtab_set,
+};
 
 #[repr(C)]
 pub struct rust_funccall_S {
@@ -13,7 +13,7 @@ pub struct rust_funccall_S {
 
 #[repr(C)]
 struct FuncState {
-    table: FuncTable,
+    table: *mut c_void,
     current: *mut rust_funccall_S,
 }
 
@@ -22,7 +22,7 @@ static mut FUNC_STATE: *mut Mutex<FuncState> = std::ptr::null_mut();
 #[no_mangle]
 pub extern "C" fn rust_func_init() {
     let state = Mutex::new(FuncState {
-        table: FuncTable::new(),
+        table: rust_hashtab_new(),
         current: std::ptr::null_mut(),
     });
     unsafe {
@@ -36,6 +36,9 @@ pub extern "C" fn rust_func_init() {
 pub extern "C" fn rust_func_deinit() {
     unsafe {
         if !FUNC_STATE.is_null() {
+            if let Ok(guard) = (*FUNC_STATE).lock() {
+                rust_hashtab_free(guard.table);
+            }
             drop(Box::from_raw(FUNC_STATE));
             FUNC_STATE = std::ptr::null_mut();
         }
@@ -82,17 +85,8 @@ pub extern "C" fn rust_func_hashtab_set(
     if name.is_null() {
         return 0;
     }
-    let cname = unsafe { CStr::from_ptr(name) };
-    let name = match cname.to_str() {
-        Ok(s) => s.to_owned(),
-        Err(_) => return 0,
-    };
-    unsafe {
-        with_state(|st| {
-            st.table.insert(name, func);
-        });
-    }
-    1
+    unsafe { with_state(|st| rust_hashtab_set(st.table, name, func)) }
+        .unwrap_or(0)
 }
 
 #[no_mangle]
@@ -100,18 +94,7 @@ pub extern "C" fn rust_func_hashtab_get(name: *const c_char) -> *mut c_void {
     if name.is_null() {
         return std::ptr::null_mut();
     }
-    let cname = unsafe { CStr::from_ptr(name) };
-    let name = match cname.to_str() {
-        Ok(s) => s,
-        Err(_) => return std::ptr::null_mut(),
-    };
-    unsafe {
-        if let Some(ptr) = with_state(|st| st.table.get(name).copied()) {
-            ptr.unwrap_or(std::ptr::null_mut())
-        } else {
-            std::ptr::null_mut()
-        }
-    }
+    unsafe { with_state(|st| rust_hashtab_get(st.table, name)).unwrap_or(std::ptr::null_mut()) }
 }
 
 #[cfg(test)]
@@ -121,18 +104,18 @@ mod tests {
 
     #[test]
     fn store_and_get() {
-        unsafe { rust_func_init(); }
+        rust_func_init();
         let name = CString::new("foo").unwrap();
         let fptr = 0xdeadbeef as *mut c_void;
         assert_eq!(rust_func_hashtab_set(name.as_ptr(), fptr), 1);
         assert_eq!(rust_func_hashtab_get(name.as_ptr()), fptr);
-        unsafe { rust_func_deinit(); }
+        rust_func_deinit();
     }
 
     #[test]
     fn funccall_alloc_free() {
         let fc = rust_funccall_new(std::ptr::null_mut(), 1);
         assert!(!fc.is_null());
-        unsafe { rust_funccall_free(fc); }
+        rust_funccall_free(fc);
     }
 }
