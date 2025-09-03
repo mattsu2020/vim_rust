@@ -17,9 +17,10 @@ CFLAGS += \
 	-DHAVE_TGETENT \
 	-DHAVE_TERMCAP \
 	-DNEW_SHELLSIZE \
-	-I proto \
-	-Wno-attributes \
-	-Wextra
+        -I proto \
+        -Wno-attributes \
+        -Wextra \
+        -DFEAT_RUST_CRYPT
 
 # Vim 'huge' build
 ifeq ($(BUILD),huge)
@@ -82,12 +83,11 @@ SRC += \
 	clientserver.c \
 	clipboard.c \
 	cmdhist.c \
-	cmdexpand.c \
-	crypt.c \
-	crypt_zip.c \
-	debugger.c \
-	dict.c \
-	diff.c \
+        cmdexpand.c \
+        crypt.c \
+        debugger.c \
+        dict.c \
+        diff.c \
 	digraph.c \
 	drawline.c \
 	drawscreen.c \

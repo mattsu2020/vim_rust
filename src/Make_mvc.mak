@@ -514,10 +514,11 @@ CON_LIB = $(CON_LIB) /DELAYLOAD:comdlg32.dll /DELAYLOAD:ole32.dll DelayImp.lib
 #VIMRUNTIMEDIR = somewhere
 
 CFLAGS = -c /W3 /GF /nologo -I. -Iproto -DHAVE_PATHDEF -DWIN32 -DHAVE_STDINT_H \
-	$(CSCOPE_DEFS) $(TERM_DEFS) $(SOUND_DEFS) $(NETBEANS_DEFS) \
-	$(NBDEBUG_DEFS) $(XPM_DEFS) $(SOD_DEFS) $(SOD_INC) $(CHANNEL_DEFS) \
-	$(DEFINES) $(CI_CFLAGS) -DWINVER=$(WINVER) -D_WIN32_WINNT=$(WINVER) \
-	/source-charset:utf-8
+        $(CSCOPE_DEFS) $(TERM_DEFS) $(SOUND_DEFS) $(NETBEANS_DEFS) \
+        $(NBDEBUG_DEFS) $(XPM_DEFS) $(SOD_DEFS) $(SOD_INC) $(CHANNEL_DEFS) \
+        $(DEFINES) $(CI_CFLAGS) -DWINVER=$(WINVER) -D_WIN32_WINNT=$(WINVER) \
+        /source-charset:utf-8
+CFLAGS = $(CFLAGS) -DFEAT_RUST_CRYPT
 
 RCFLAGS = -DVIM_VERSION_PATCHLEVEL=$(PATCHLEVEL)
 
@@ -682,11 +683,10 @@ OBJ = \
 	$(OUTDIR)\clientserver.obj \
 	$(OUTDIR)\clipboard.obj \
 	$(OUTDIR)\cmdexpand.obj \
-	$(OUTDIR)\cmdhist.obj \
-	$(OUTDIR)\crypt.obj \
-	$(OUTDIR)\crypt_zip.obj \
-	$(OUTDIR)\debugger.obj \
-	$(OUTDIR)\dict.obj \
+        $(OUTDIR)\cmdhist.obj \
+        $(OUTDIR)\crypt.obj \
+        $(OUTDIR)\debugger.obj \
+        $(OUTDIR)\dict.obj \
 	$(OUTDIR)\diff.obj \
 	$(OUTDIR)\digraph.obj \
 	$(OUTDIR)\drawline.obj \
@@ -1491,8 +1491,6 @@ $(OUTDIR)/cmdhist.obj: $(OUTDIR) cmdhist.c $(INCL)
 
 $(OUTDIR)/crypt.obj: $(OUTDIR) crypt.c $(INCL)
 
-$(OUTDIR)/crypt_zip.obj: $(OUTDIR) crypt_zip.c $(INCL)
-
 $(OUTDIR)/debugger.obj: $(OUTDIR) debugger.c $(INCL)
 
 $(OUTDIR)/dict.obj: $(OUTDIR) dict.c $(INCL)
@@ -1864,7 +1862,6 @@ proto.h: \
 	proto/cmdexpand.pro \
 	proto/cmdhist.pro \
 	proto/crypt.pro \
-	proto/crypt_zip.pro \
 	proto/debugger.pro \
 	proto/dict.pro \
 	proto/diff.pro \

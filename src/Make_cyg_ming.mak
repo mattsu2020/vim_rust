@@ -536,7 +536,8 @@ endif # RUBY
 # Any other defines can be included here.
 DEF_GUI=-DFEAT_GUI_MSWIN -DFEAT_CLIPBOARD
 DEFINES=-DWIN32 -DWINVER=$(WINVER) -D_WIN32_WINNT=$(WINVER) \
-	-DHAVE_PATHDEF -DFEAT_$(FEATURES) -DHAVE_STDINT_H
+        -DHAVE_PATHDEF -DFEAT_$(FEATURES) -DHAVE_STDINT_H
+DEFINES += -DFEAT_RUST_CRYPT
 
 #>>>>> end of choices
 ###########################################################################
@@ -766,7 +767,7 @@ LIB = -lkernel32 -luser32 -lgdi32 -ladvapi32 -lcomdlg32 -lcomctl32 -lnetapi32 -l
 GUIOBJ =  $(OUTDIR)/gui.o $(OUTDIR)/gui_w32.o $(OUTDIR)/gui_beval.o
 CUIOBJ = $(OUTDIR)/iscygpty.o
 OBJ = \
-	$(OUTDIR)/alloc.o \
+        $(OUTDIR)/alloc.o \
 	$(OUTDIR)/arabic.o \
 	$(OUTDIR)/arglist.o \
 	$(OUTDIR)/autocmd.o \
@@ -780,10 +781,9 @@ OBJ = \
 	$(OUTDIR)/clientserver.o \
 	$(OUTDIR)/clipboard.o \
 	$(OUTDIR)/cmdexpand.o \
-	$(OUTDIR)/cmdhist.o \
-	$(OUTDIR)/crypt.o \
-	$(OUTDIR)/crypt_zip.o \
-	$(OUTDIR)/debugger.o \
+        $(OUTDIR)/cmdhist.o \
+        $(OUTDIR)/crypt.o \
+        $(OUTDIR)/debugger.o \
 	$(OUTDIR)/dict.o \
 	$(OUTDIR)/diff.o \
 	$(OUTDIR)/digraph.o \
