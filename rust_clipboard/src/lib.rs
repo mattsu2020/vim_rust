@@ -31,6 +31,20 @@ fn get_clipboard_text() -> Option<String> {
     ctx.get_contents().ok()
 }
 
+/// Set the clipboard contents to the provided text.
+///
+/// This safe wrapper is intended for use by other Rust crates within the
+/// workspace.  It transparently calls the OS specific implementation selected
+/// above.
+pub fn set_string(text: &str) -> Result<(), ()> {
+    set_clipboard_text(text)
+}
+
+/// Retrieve the current clipboard contents as a `String` if available.
+pub fn get_string() -> Option<String> {
+    get_clipboard_text()
+}
+
 #[no_mangle]
 pub extern "C" fn rs_clipboard_set(data: *const c_char, len: usize) -> c_int {
     if data.is_null() {

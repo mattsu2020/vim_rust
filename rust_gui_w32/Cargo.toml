@@ -5,4 +5,5 @@ edition = "2021"
 
 [dependencies]
 rust_gui_core = { path = "../rust_gui_core" }
+rust_clipboard = { path = "../rust_clipboard" }
 

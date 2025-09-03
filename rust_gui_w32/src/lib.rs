@@ -1,5 +1,6 @@
 use rust_gui_core::backend::{GuiBackend, GuiEvent};
 use std::collections::VecDeque;
+use rust_clipboard;
 
 /// Minimal Windows backend.  Real drawing is delegated to the platform APIs
 /// but for now these methods record actions for testing purposes.
@@ -30,6 +31,16 @@ impl GuiBackend for W32Backend {
     }
 }
 
+/// Set the Windows clipboard contents to `text`.
+pub fn clipboard_set(text: &str) -> Result<(), ()> {
+    rust_clipboard::set_string(text)
+}
+
+/// Retrieve text from the Windows clipboard if available.
+pub fn clipboard_get() -> Option<String> {
+    rust_clipboard::get_string()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -41,5 +52,11 @@ mod tests {
         backend.push_event(GuiEvent::Click { x: 1, y: 2 });
         assert_eq!(backend.drawn, vec!["hello".to_string()]);
         assert_eq!(backend.poll_event(), Some(GuiEvent::Click { x: 1, y: 2 }));
+    }
+
+    #[test]
+    fn clipboard_roundtrip() {
+        clipboard_set("w32 clipboard").unwrap();
+        assert_eq!(clipboard_get().as_deref(), Some("w32 clipboard"));
     }
 }
