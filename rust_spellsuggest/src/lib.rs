@@ -1,12 +1,70 @@
 use rust_spellfile::Trie;
+use std::collections::{HashSet, VecDeque};
 
+/// Suggest words within edit distance one of `word`.
+///
+/// Traverses the trie while tracking the index into `word` and the number of
+/// edits performed. Branches that exceed an edit distance of one are pruned
+/// early, avoiding a full traversal of all words in the dictionary.
 pub fn suggest(trie: &Trie, word: &str, max: usize) -> Vec<String> {
-    trie
-        .all_words()
-        .into_iter()
-        .filter(|w| edit_distance_one(word, w))
-        .take(max)
-        .collect()
+    let mut out = Vec::new();
+    let mut seen = HashSet::new();
+    let chars: Vec<char> = word.chars().collect();
+    let mut q: VecDeque<(&rust_spellfile::Node, String, usize, usize)> =
+        VecDeque::new();
+
+    q.push_back((&trie.root, String::new(), 0, 0));
+
+    while let Some((node, prefix, idx, edits)) = q.pop_front() {
+        if edits > 1 {
+            continue;
+        }
+
+        if idx == chars.len() {
+            if node.is_word && edits == 1 && seen.insert(prefix.clone()) {
+                out.push(prefix.clone());
+                if out.len() >= max {
+                    return out;
+                }
+            }
+            if edits < 1 {
+                for (ch, child) in &node.children {
+                    let mut new_pref = prefix.clone();
+                    new_pref.push(*ch);
+                    q.push_back((child, new_pref, idx, edits + 1));
+                }
+            }
+            continue;
+        }
+
+        if edits < 1 {
+            // deletion
+            q.push_back((node, prefix.clone(), idx + 1, edits + 1));
+        }
+
+        for (ch, child) in &node.children {
+            let mut new_pref = prefix.clone();
+            new_pref.push(*ch);
+            if *ch == chars[idx] {
+                q.push_back((child, new_pref.clone(), idx + 1, edits));
+                if edits < 1 {
+                    // insertion
+                    q.push_back((child, new_pref, idx, edits + 1));
+                }
+            } else if edits < 1 {
+                // substitution
+                q.push_back((child, new_pref.clone(), idx + 1, edits + 1));
+                // insertion
+                q.push_back((child, new_pref, idx, edits + 1));
+            }
+        }
+
+        if out.len() >= max {
+            break;
+        }
+    }
+
+    out
 }
 
 fn edit_distance_one(a: &str, b: &str) -> bool {
