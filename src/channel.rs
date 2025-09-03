@@ -63,6 +63,11 @@ mod tests {
     use super::*;
     use tokio::net::TcpListener;
 
+    #[cfg(unix)]
+    use rust_os_unix as os_layer;
+    #[cfg(windows)]
+    use rust_os_win32 as os_layer;
+
     #[tokio::test]
     async fn read_write_roundtrip() {
         let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -107,6 +112,18 @@ mod tests {
 
     extern "C" {
         fn c_add(a: std::os::raw::c_int, b: std::os::raw::c_int) -> std::os::raw::c_int;
+    }
+
+    #[test]
+    fn os_mkdir_works() {
+        use std::ffi::CString;
+        use std::fs;
+        let dir = std::env::temp_dir().join("vim_rust_os_test");
+        let _ = fs::remove_dir_all(&dir);
+        let c_path = CString::new(dir.to_str().unwrap()).unwrap();
+        os_layer::os_mkdir(c_path.as_ptr());
+        assert!(dir.exists());
+        let _ = fs::remove_dir_all(&dir);
     }
 
     #[test]

@@ -1,0 +1,10 @@
+[package]
+name = "rust_os_unix"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[lib]
+name = "rust_os_unix"
+crate-type = ["staticlib", "rlib"]
