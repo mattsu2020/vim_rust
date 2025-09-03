@@ -12,18 +12,8 @@
  */
 
 #include "vim.h"
-#include "../rust_evalvars/include/rust_evalvars.h"
 
 #if defined(FEAT_EVAL) || defined(PROTO)
-
-    static int
-win_getid(typval_T *argvars)
-{
-    int winnr = 0;
-    if (argvars[0].v_type != VAR_UNKNOWN)
-        winnr = tv_get_number(&argvars[0]);
-    return rs_win_getid(winnr);
-}
 
 
     static void
@@ -771,21 +761,6 @@ f_win_findbuf(typval_T *argvars, typval_T *rettv)
 
     if (rettv_list_alloc(rettv) == OK)
 	win_findbuf(argvars, rettv->vval.v_list);
-}
-
-/*
- * "win_getid()" function
- */
-    void
-f_win_getid(typval_T *argvars, typval_T *rettv)
-{
-    if (in_vim9script()
-	    && (check_for_opt_number_arg(argvars, 0) == FAIL
-		|| (argvars[0].v_type != VAR_UNKNOWN
-		    && check_for_opt_number_arg(argvars, 1) == FAIL)))
-	return;
-
-    rettv->vval.v_number = win_getid(argvars);
 }
 
 /*
