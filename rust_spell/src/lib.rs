@@ -2,8 +2,130 @@ use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int, c_uchar};
 use std::sync::{Mutex, MutexGuard, OnceLock, PoisonError};
 
-use rust_spellfile::{load_dict, Trie};
-use rust_spellsuggest::suggest;
+use std::collections::{HashMap, HashSet, VecDeque};
+use std::fs::File;
+use std::io::{BufRead, BufReader};
+
+#[derive(Default)]
+pub struct Node {
+    pub children: HashMap<char, Node>,
+    pub is_word: bool,
+}
+
+#[derive(Default)]
+pub struct Trie {
+    pub root: Node,
+}
+
+impl Trie {
+    pub fn new() -> Self {
+        Self { root: Node::default() }
+    }
+
+    pub fn insert(&mut self, word: &str) {
+        let mut node = &mut self.root;
+        for ch in word.chars() {
+            node = node.children.entry(ch).or_default();
+        }
+        node.is_word = true;
+    }
+
+    pub fn contains(&self, word: &str) -> bool {
+        let mut node = &self.root;
+        for ch in word.chars() {
+            match node.children.get(&ch) {
+                Some(n) => node = n,
+                None => return false,
+            }
+        }
+        node.is_word
+    }
+}
+
+fn load_dict(path: &str) -> std::io::Result<Trie> {
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+    let mut trie = Trie::new();
+    for line in reader.lines() {
+        let line = line?;
+        let word = line.trim();
+        if !word.is_empty() {
+            trie.insert(word);
+        }
+    }
+    Ok(trie)
+}
+
+fn suggest(trie: &Trie, word: &str, max: usize) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut seen = HashSet::new();
+    let chars: Vec<char> = word.chars().collect();
+    let mut q: VecDeque<(&Node, String, usize, usize)> = VecDeque::new();
+
+    q.push_back((&trie.root, String::new(), 0, 0));
+
+    while let Some((node, prefix, idx, edits)) = q.pop_front() {
+        if edits > 1 {
+            continue;
+        }
+
+        if idx == chars.len() {
+            if node.is_word && edits == 1 && seen.insert(prefix.clone()) {
+                out.push(prefix.clone());
+                if out.len() >= max {
+                    return out;
+                }
+            }
+            if edits < 1 {
+                for (ch, child) in &node.children {
+                    let mut new_pref = prefix.clone();
+                    new_pref.push(*ch);
+                    q.push_back((child, new_pref, idx, edits + 1));
+                }
+            }
+            continue;
+        }
+
+        if edits < 1 {
+            // deletion
+            q.push_back((node, prefix.clone(), idx + 1, edits + 1));
+        }
+
+        if edits < 1 && idx + 1 < chars.len() {
+            if let Some(next_node) = node.children.get(&chars[idx + 1]) {
+                if let Some(after) = next_node.children.get(&chars[idx]) {
+                    let mut new_pref = prefix.clone();
+                    new_pref.push(chars[idx + 1]);
+                    new_pref.push(chars[idx]);
+                    q.push_back((after, new_pref, idx + 2, edits + 1));
+                }
+            }
+        }
+
+        for (ch, child) in &node.children {
+            let mut new_pref = prefix.clone();
+            new_pref.push(*ch);
+            if *ch == chars[idx] {
+                q.push_back((child, new_pref.clone(), idx + 1, edits));
+                if edits < 1 {
+                    // insertion
+                    q.push_back((child, new_pref, idx, edits + 1));
+                }
+            } else if edits < 1 {
+                // substitution
+                q.push_back((child, new_pref.clone(), idx + 1, edits + 1));
+                // insertion
+                q.push_back((child, new_pref, idx, edits + 1));
+            }
+        }
+
+        if out.len() >= max {
+            break;
+        }
+    }
+
+    out
+}
 
 const WF_ONECAP: c_int = 0x02;
 const WF_ALLCAP: c_int = 0x04;
