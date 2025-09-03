@@ -61,13 +61,15 @@ extern int _stricoll(char *a, char *b);
 #  include "crypt_zip.pro"
 # endif
 
-// Rust bridge headers (included when available)
+// Rust bridge headers (included when available). If present for change.c,
+// prefer the Rust header over the generated .pro to reduce dependency on it.
 # if defined(__has_include)
 #  if __has_include("../rust_excmds/include/rust_excmds.h")
 #   include "../rust_excmds/include/rust_excmds.h"
 #  endif
 #  if __has_include("../rust_change/include/rust_change.h")
 #   include "../rust_change/include/rust_change.h"
+#   define HAVE_RUST_CHANGE_HDR 1
 #  endif
 # endif
 # include "alloc.pro"
@@ -75,7 +77,9 @@ extern int _stricoll(char *a, char *b);
 # include "autocmd.pro"
 # include "buffer.pro"
 # include "bufwrite.pro"
-# include "change.pro"   // Stub prototypes; implemented in rust_change crate
+# ifndef HAVE_RUST_CHANGE_HDR
+#  include "change.pro"
+# endif
 # include "charset.pro"
 # include "cindent.pro"
 # include "clientserver.pro"
@@ -96,7 +100,7 @@ extern int _stricoll(char *a, char *b);
 # include "evalfunc.pro"
 # include "evalvars.pro"
 # include "evalwindow.pro"
-# include "ex_cmds.pro"  // Stub prototypes; implemented in rust_excmds crate
+# include "ex_cmds.pro"
 # include "ex_cmds2.pro"
 # include "ex_docmd.pro"
 # include "ex_eval.pro"
