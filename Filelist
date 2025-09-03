@@ -535,7 +535,6 @@ SRC_DOS =	\
 		src/msvc2022.bat \
 		src/msys32.bat \
 		src/msys64.bat \
-		src/dlldata.c \
 		src/dosinst.c \
 		src/dosinst.h \
 		src/gui_dwrite.cpp \
