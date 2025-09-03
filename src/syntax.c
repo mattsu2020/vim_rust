@@ -12,6 +12,7 @@
  */
 
 #include "vim.h"
+#include "../rust_syntax/include/rust_syntax.h"
 
 #if defined(FEAT_SYN_HL) || defined(PROTO)
 
@@ -368,6 +369,7 @@ syntax_start(win_T *wp, linenr_T lnum)
 #ifdef FEAT_CONCEAL
     current_sub_char = NUL;
 #endif
+    rs_syntax_start((void *)wp, lnum);
 
     /*
      * After switching buffers, invalidate current_state.
@@ -929,6 +931,10 @@ syn_update_ends(int startofline)
     stateitem_T	*cur_si;
     int		i;
     int		seen_keepend;
+
+    rs_syn_update(startofline);
+    char_u *line = ml_get_buf(syn_buf, current_lnum, FALSE);
+    rs_eval_line((const char *)line);
 
     if (startofline)
     {
