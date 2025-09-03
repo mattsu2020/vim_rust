@@ -1468,45 +1468,45 @@ ALL_LIBS = \
 	   $(X_LIBS) \
 	   $(WAYLAND_LIBS) \
 	   $(X_EXTRA_LIBS) \
-           $(MZSCHEME_LIBS) \
-           $(LIBS) \
-           $(EXTRA_LIBS) \
-           $(RUST_MEM_LIB) \
-           $(RUST_REGEX_LIB) \
-           $(SRC_RUST_REGEX_LIB) \
-           $(RUST_BUFFER_LIB) \
-           $(RUST_BUFWRITE_LIB) \
-           $(RUST_CHANNEL_LIB) \
-           $(RUST_GUI_LIB) \
-           $(RUST_EVALFUNC_LIB) \
-           $(RUST_EVALFUNC_STUBS_LIB) \
-           $(RUST_EVAL_LIB) \
-           $(RUST_VIM9_LIB) \
-           $(RUST_EXCMD_LIB) \
-           $(RUST_CMDHIST_LIB) \
-           $(RUST_ARABIC_LIB) \
-           $(RUST_BEVAL_LIB) \
-           $(RUST_MBYTE_LIB) \
-           $(RUST_AUTOCMD_LIB) \
-           $(RUST_SEARCH_LIB) \
-           $(RUST_TAG_LIB) \
-           $(RUST_USERFUNC_LIB) \
-            $(RUST_ALLOC_LIB) \
-           $(RUST_WINDOW_LIB) \
-           $(RUST_UNDO_LIB) \
-           $(RUST_DRAWSCREEN_LIB) \
-           $(RUST_OPTION_LIB) \
-           $(RUST_EVALVARS_LIB) \
-           $(RUST_SCREEN_LIB) \
-           $(RUST_SIGN_LIB) \
-           $(RUST_BLOB_LIB) \
-           $(RUST_SHA256_LIB) \
-           $(RUST_XCMDSRV_LIB) \
-           $(LUA_LIBS) \
-           $(PERL_LIBS) \
-           $(PYTHON_LIBS) \
-           $(PYTHON3_LIBS) \
-           $(TCL_LIBS) \
+	   $(MZSCHEME_LIBS) \
+	   $(LIBS) \
+	   $(EXTRA_LIBS) \
+	   $(RUST_MEM_LIB) \
+	   $(RUST_REGEX_LIB) \
+	   $(SRC_RUST_REGEX_LIB) \
+	   $(RUST_BUFFER_LIB) \
+	   $(RUST_BUFWRITE_LIB) \
+	   $(RUST_CHANNEL_LIB) \
+	   $(RUST_GUI_LIB) \
+	   $(RUST_EVALFUNC_LIB) \
+	   $(RUST_EVALFUNC_STUBS_LIB) \
+	   $(RUST_EVAL_LIB) \
+	   $(RUST_VIM9_LIB) \
+	   $(RUST_EXCMD_LIB) \
+	   $(RUST_CMDHIST_LIB) \
+	   $(RUST_ARABIC_LIB) \
+	   $(RUST_BEVAL_LIB) \
+	   $(RUST_MBYTE_LIB) \
+	   $(RUST_AUTOCMD_LIB) \
+	   $(RUST_SEARCH_LIB) \
+	   $(RUST_TAG_LIB) \
+	   $(RUST_USERFUNC_LIB) \
+	    $(RUST_ALLOC_LIB) \
+	   $(RUST_WINDOW_LIB) \
+	   $(RUST_UNDO_LIB) \
+	   $(RUST_DRAWSCREEN_LIB) \
+	   $(RUST_OPTION_LIB) \
+	   $(RUST_EVALVARS_LIB) \
+	   $(RUST_SCREEN_LIB) \
+	   $(RUST_SIGN_LIB) \
+	   $(RUST_BLOB_LIB) \
+	   $(RUST_SHA256_LIB) \
+	   $(RUST_XCMDSRV_LIB) \
+	   $(LUA_LIBS) \
+	   $(PERL_LIBS) \
+	   $(PYTHON_LIBS) \
+	   $(PYTHON3_LIBS) \
+	   $(TCL_LIBS) \
 	   $(RUBY_LIBS) \
 	   $(PROFILE_LIBS) \
 	   $(SANITIZER_LIBS) \
@@ -1569,22 +1569,22 @@ $(SRC_RUST_REGEX_LIB):
 	cd $(SRC_RUST_REGEX_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_BUFFER_LIB):
-        cd $(RUST_BUFFER_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_BUFFER_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_BUFWRITE_LIB):
-        cd $(RUST_BUFWRITE_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_BUFWRITE_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_CHANNEL_LIB):
-        cd $(RUST_CHANNEL_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_CHANNEL_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_GUI_LIB):
 	cd $(RUST_GUI_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_EVALFUNC_LIB):
-       cd $(RUST_EVALFUNC_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_EVALFUNC_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_EVALFUNC_STUBS_LIB):
-       cd $(RUST_EVALFUNC_STUBS_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_EVALFUNC_STUBS_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_EVAL_LIB):
 	cd $(RUST_EVAL_DIR) && CARGO_TARGET_DIR=target cargo build --release
@@ -1611,13 +1611,13 @@ $(RUST_AUTOCMD_LIB):
 	cd $(RUST_AUTOCMD_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_SEARCH_LIB):
-       cd $(RUST_SEARCH_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_SEARCH_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_TAG_LIB):
-       cd $(RUST_TAG_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_TAG_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_USERFUNC_LIB):
-       cd $(RUST_USERFUNC_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_USERFUNC_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_ALLOC_LIB):
 	cd $(RUST_ALLOC_DIR) && CARGO_TARGET_DIR=target cargo build --release
@@ -1647,10 +1647,10 @@ $(RUST_BLOB_LIB):
 	cd $(RUST_BLOB_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_SHA256_LIB):
-       cd $(RUST_SHA256_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_SHA256_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_XCMDSRV_LIB):
-       cd $(RUST_XCMDSRV_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_XCMDSRV_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 # Additional Rust libraries providing rs_* APIs used across the C codebase
 RUST_ARGLIST_DIR = ../rust_arglist
@@ -1683,20 +1683,20 @@ RUST_OPS_DIR = ../rust_ops
 RUST_OPS_LIB = $(RUST_OPS_DIR)/target/release/librust_ops.a
 
 ALL_LIBS += \
-           $(RUST_ARGLIST_LIB) \
-           $(RUST_MESSAGE_LIB) \
-           $(RUST_DIGRAPH_LIB) \
-           $(RUST_MOUSE_LIB) \
-           $(RUST_INPUT_LIB) \
-           $(RUST_MEMLINE_LIB) \
-           $(RUST_HELP_LIB) \
-           $(RUST_MAP_LIB) \
-           $(RUST_PATH_LIB) \
-           $(RUST_SESSION_LIB) \
-           $(RUST_POPUPMENU_LIB) \
-           $(RUST_POPUPWIN_LIB) \
-           $(RUST_NORMAL_LIB) \
-           $(RUST_OPS_LIB)
+	   $(RUST_ARGLIST_LIB) \
+	   $(RUST_MESSAGE_LIB) \
+	   $(RUST_DIGRAPH_LIB) \
+	   $(RUST_MOUSE_LIB) \
+	   $(RUST_INPUT_LIB) \
+	   $(RUST_MEMLINE_LIB) \
+	   $(RUST_HELP_LIB) \
+	   $(RUST_MAP_LIB) \
+	   $(RUST_PATH_LIB) \
+	   $(RUST_SESSION_LIB) \
+	   $(RUST_POPUPMENU_LIB) \
+	   $(RUST_POPUPWIN_LIB) \
+	   $(RUST_NORMAL_LIB) \
+	   $(RUST_OPS_LIB)
 
 $(RUST_ARGLIST_LIB):
 	cd $(RUST_ARGLIST_DIR) && CARGO_TARGET_DIR=target cargo build --release
@@ -1783,128 +1783,128 @@ include testdir/Make_all.mak
 #	       ALL_SRC: source files used for make depend and make lint
 
 BASIC_SRC = \
-        arglist.c \
-        autocmd.c \
-        buffer.c \
-        charset.c \
-        cindent.c \
-        clientserver.c \
-        clipboard.c \
-        cmdexpand.c \
-        cmdhist.c \
-        crypt.c \
-        crypt_zip.c \
-        debugger.c \
-        dict.c \
-        diff.c \
-        digraph.c \
-        drawline.c \
-        drawscreen.c \
-        edit.c \
-        eval.c \
-        evalbuffer.c \
-        evalfunc.c \
-        evalvars.c \
-        evalwindow.c \
-        ex_eval.c \
-        ex_getln.c \
-        fileio.c \
-        filepath.c \
-        findfile.c \
-        float.c \
-        fold.c \
-        fuzzy.c \
-        getchar.c \
-        gc.c \
-        gui_xim.c \
-        hardcopy.c \
-        hashtab.c \
-        \
-        highlight.c \
-        if_cscope.c \
-        indent.c \
-        insexpand.c \
-        linematch.c \
-        list.c \
-        locale.c \
-        main.c \
-        map.c \
-        mark.c \
-        match.c \
-        mbyte.c \
-        memfile.c \
-        memline.c \
-        menu.c \
-        misc1.c \
-        misc2.c \
-        mouse.c \
-        move.c \
-        normal.c \
-        ops.c \
-        option.c \
-        optionstr.c \
-        os_unix.c \
-        auto/pathdef.c \
-        popupmenu.c \
-        popupwin.c \
-        profiler.c \
-        pty.c \
-        quickfix.c \
-        regexp.c \
-        register.c \
-        screen.c \
-        scriptfile.c \
-        search.c \
-        session.c \
-        sha256.c \
-        sign.c \
-        sound.c \
+	arglist.c \
+	autocmd.c \
+	buffer.c \
+	charset.c \
+	cindent.c \
+	clientserver.c \
+	clipboard.c \
+	cmdexpand.c \
+	cmdhist.c \
+	crypt.c \
+	crypt_zip.c \
+	debugger.c \
+	dict.c \
+	diff.c \
+	digraph.c \
+	drawline.c \
+	drawscreen.c \
+	edit.c \
+	eval.c \
+	evalbuffer.c \
+	evalfunc.c \
+	evalvars.c \
+	evalwindow.c \
+	ex_eval.c \
+	ex_getln.c \
+	fileio.c \
+	filepath.c \
+	findfile.c \
+	float.c \
+	fold.c \
+	fuzzy.c \
+	getchar.c \
+	gc.c \
+	gui_xim.c \
+	hardcopy.c \
+	hashtab.c \
+	\
+	highlight.c \
+	if_cscope.c \
+	indent.c \
+	insexpand.c \
+	linematch.c \
+	list.c \
+	locale.c \
+	main.c \
+	map.c \
+	mark.c \
+	match.c \
+	mbyte.c \
+	memfile.c \
+	memline.c \
+	menu.c \
+	misc1.c \
+	misc2.c \
+	mouse.c \
+	move.c \
+	normal.c \
+	ops.c \
+	option.c \
+	optionstr.c \
+	os_unix.c \
+	auto/pathdef.c \
+	popupmenu.c \
+	popupwin.c \
+	profiler.c \
+	pty.c \
+	quickfix.c \
+	regexp.c \
+	register.c \
+	screen.c \
+	scriptfile.c \
+	search.c \
+	session.c \
+	sha256.c \
+	sign.c \
+	sound.c \
        spell.c \
        strings.c \
-        syntax.c \
-        tag.c \
-        term.c \
+	syntax.c \
+	tag.c \
+	term.c \
     \
-        textformat.c \
-        textobject.c \
-        textprop.c \
-        time.c \
-        tuple.c \
-        typval.c \
-        ui.c \
-        undo.c \
-        usercmd.c \
-        userfunc.c \
-        version.c \
-        vim9class.c \
-        vim9cmds.c \
-        vim9compile.c \
-        vim9execute.c \
-        vim9expr.c \
-        vim9generics.c \
-        vim9instr.c \
-        vim9script.c \
-        vim9type.c \
-        viminfo.c \
-        window.c \
-        bufwrite.c \
-        $(OS_EXTRA_SRC)
+	textformat.c \
+	textobject.c \
+	textprop.c \
+	time.c \
+	tuple.c \
+	typval.c \
+	ui.c \
+	undo.c \
+	usercmd.c \
+	userfunc.c \
+	version.c \
+	vim9class.c \
+	vim9cmds.c \
+	vim9compile.c \
+	vim9execute.c \
+	vim9expr.c \
+	vim9generics.c \
+	vim9instr.c \
+	vim9script.c \
+	vim9type.c \
+	viminfo.c \
+	window.c \
+	bufwrite.c \
+	$(OS_EXTRA_SRC)
 
 SRC =	$(BASIC_SRC) \
 	$(GUI_SRC) \
 	$(TERM_SRC) \
 	$(XDIFF_SRC) \
 	$(LUA_SRC) \
-        $(MZSCHEME_SRC) \
-        $(PERL_SRC) \
-        $(TCL_SRC) \
-        $(RUBY_SRC) \
-        $(WAYLAND_SRC)
+	$(MZSCHEME_SRC) \
+	$(PERL_SRC) \
+	$(TCL_SRC) \
+	$(RUBY_SRC) \
+	$(WAYLAND_SRC)
 
 EXTRA_SRC = if_lua.c if_mzsch.c auto/if_perl.c if_perlsfio.c \
-           if_tcl.c if_ruby.c \
-           gui_beval.c netbeans.c job.c channel.c \
-            $(GRESOURCE_SRC)
+	   if_tcl.c if_ruby.c \
+	   gui_beval.c netbeans.c job.c channel.c \
+	    $(GRESOURCE_SRC)
 
 $(WAYLAND_SRC):
 	cd auto/wayland; $(MAKE)
@@ -1932,18 +1932,18 @@ ALL_SRC = $(ALL_LOCAL_SRC) $(TERM_SRC) $(XDIFF_SRC)
 # checks more, but may not work well for checking a GUI that wasn't configured.
 # The perl sources also don't work well with lint.
 LINT_SRC = $(BASIC_SRC) $(GUI_SRC) \
-           $(TCL_SRC) \
-           $(NETBEANS_SRC) $(CHANNEL_SRC) $(TERM_SRC)
+	   $(TCL_SRC) \
+	   $(NETBEANS_SRC) $(CHANNEL_SRC) $(TERM_SRC)
 #LINT_SRC = $(SRC)
 #LINT_SRC = $(ALL_SRC)
 #LINT_SRC = $(BASIC_SRC)
 
 OBJ_COMMON = \
-        objects/arglist.o \
-        objects/autocmd.o \
-        objects/buffer.o \
-        objects/change.o \
-        objects/cindent.o \
+	objects/arglist.o \
+	objects/autocmd.o \
+	objects/buffer.o \
+	objects/change.o \
+	objects/cindent.o \
 	objects/clientserver.o \
 	objects/clipboard.o \
 	objects/cmdexpand.o \
@@ -1963,8 +1963,8 @@ OBJ_COMMON = \
 	objects/evalvars.o \
 	objects/evalwindow.o \
  # objects/ex_cmds.o \
-        objects/ex_eval.o \
-        objects/ex_getln.o \
+	objects/ex_eval.o \
+	objects/ex_getln.o \
 	objects/fileio.o \
 	objects/filepath.o \
 	objects/findfile.o \
@@ -2014,23 +2014,23 @@ OBJ_COMMON = \
 	objects/sign.o \
 	objects/sound.o \
 	objects/spell.o \
-        objects/strings.o \
-        objects/syntax.o \
-        objects/tag.o \
-        objects/term.o \
-        objects/textformat.o \
-        objects/textobject.o \
-        objects/textprop.o \
-        objects/time.o \
-        objects/tuple.o \
-        objects/typval.o \
+	objects/strings.o \
+	objects/syntax.o \
+	objects/tag.o \
+	objects/term.o \
+	objects/textformat.o \
+	objects/textobject.o \
+	objects/textprop.o \
+	objects/time.o \
+	objects/tuple.o \
+	objects/typval.o \
 	objects/ui.o \
-        objects/undo.o \
-        objects/undo_stubs.o \
-        objects/usercmd.o \
-        objects/userfunc.o \
-        objects/version.o \
-        objects/vim9class.o \
+	objects/undo.o \
+	objects/undo_stubs.o \
+	objects/usercmd.o \
+	objects/userfunc.o \
+	objects/version.o \
+	objects/vim9class.o \
 	objects/vim9cmds.o \
 	objects/vim9compile.o \
 	objects/vim9execute.o \
@@ -2068,16 +2068,16 @@ OBJ_MAIN = \
 OBJ = $(OBJ_COMMON) $(OBJ_MAIN)
 
 ALL_OBJ = $(OBJ_COMMON) \
-         $(OBJ_MAIN)
+	 $(OBJ_MAIN)
 
 
 PRO_AUTO = \
-        alloc.pro \
-        arglist.pro \
-        autocmd.pro \
-        buffer.pro \
-        bufwrite.pro \
-        change.pro \
+	alloc.pro \
+	arglist.pro \
+	autocmd.pro \
+	buffer.pro \
+	bufwrite.pro \
+	change.pro \
 	channel.pro \
 	charset.pro \
 	cindent.pro \
@@ -2121,12 +2121,12 @@ PRO_AUTO = \
 	highlight.pro \
 	if_cscope.pro \
 	if_lua.pro \
-        if_mzsch.pro \
-        if_ruby.pro \
+	if_mzsch.pro \
+	if_ruby.pro \
 	indent.pro \
-        insexpand.pro \
-        job.pro \
-        list.pro \
+	insexpand.pro \
+	job.pro \
+	list.pro \
 	locale.pro \
 	logfile.pro \
 	main.pro \
@@ -2164,10 +2164,10 @@ PRO_AUTO = \
 	sign.pro \
 	sound.pro \
 	spell.pro \
-        strings.pro \
-        syntax.pro \
-        tag.pro \
-        term.pro \
+	strings.pro \
+	syntax.pro \
+	tag.pro \
+	term.pro \
 	terminal.pro \
 	termlib.pro \
 	testing.pro \
@@ -2700,7 +2700,7 @@ installspell: $(DEST_VIM) $(DEST_RT) $(DEST_SPELL)
 	fi
 
 installtools: $(DESTDIR)$(exec_prefix) $(DEST_BIN) \
-               $(TOOLSSOURCE) $(DEST_VIM) $(DEST_RT) $(DEST_TOOLS)
+	       $(TOOLSSOURCE) $(DEST_VIM) $(DEST_RT) $(DEST_TOOLS)
 	$(INSTALL_DATA_R) $(TOOLSSOURCE)/* $(DEST_TOOLS)
 # When using CVS some CVS directories might have been copied.
 	cvs=`find $(DEST_TOOLS) \( -name CVS -o -name AAPDIR \) -print`; \
@@ -3091,7 +3091,7 @@ clean celan: testclean
 	-rm -f $(UNITTEST_TARGETS)
 	-rm -f runtime pixmaps
 	-rm -f mzscheme_base.c
-	-rm -rf libvterm/.libs libvterm/src/.libs libvterm/t/.libs libvterm/src/*.o libvterm/src/*.lo libvterm/t/*.o libvterm/t/*.lo libvterm/t/harness libvterm/libvterm.la
+	-rm -rf libvterm/.libs libvterm/src/.libs libvterm/src/*.o libvterm/src/*.lo libvterm/libvterm.la
 	if test -d $(PODIR); then \
 		cd $(PODIR); $(MAKE) prefix=$(DESTDIR)$(prefix) clean; \
 	fi
@@ -3321,7 +3321,7 @@ objects/buffer.o: buffer.c
 objects/bufwrite.o: bufwrite.c
 	$(CCC) -o $@ bufwrite.c
 
- 
+
 
 objects/charset.o: charset.c
 	$(CCC) -o $@ charset.c
@@ -3383,7 +3383,7 @@ objects/evalvars.o: evalvars.c
 objects/evalwindow.o: evalwindow.c
 	$(CCC) -o $@ evalwindow.c
 
- 
+
 
 objects/ex_eval.o: ex_eval.c
 	$(CCC) -o $@ ex_eval.c
@@ -3635,9 +3635,9 @@ objects/strings.o: strings.c
 	$(CCC) -o $@ strings.c
 
 objects/syntax.o: syntax.c
-        $(CCC) -o $@ syntax.c
+	$(CCC) -o $@ syntax.c
 objects/tag.o: tag.c
-        $(CCC) -o $@ tag.c
+	$(CCC) -o $@ tag.c
 
 objects/term.o: term.c
 	$(CCC) -o $@ term.c
@@ -3855,7 +3855,7 @@ objects/buffer.o: buffer.c vim.h protodef.h auto/config.h feature.h os_unix.h \
    proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
    libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
    globals.h errors.h version.h
- 
+
 objects/charset.o: charset.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
@@ -3951,7 +3951,7 @@ objects/evalwindow.o: evalwindow.c vim.h protodef.h auto/config.h feature.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h errors.h
- 
+
 objects/ex_eval.o: ex_eval.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
