@@ -1,3 +1,4 @@
+use config::{Config, File, FileFormat};
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
@@ -8,28 +9,6 @@ mod bindings {
 }
 use bindings::rs_opt_t;
 unsafe impl Sync for rs_opt_t {}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct Opt {
-    name: String,
-    value: String,
-}
-
-fn parse_option(s: &str) -> Option<Opt> {
-    let (name, value) = match s.split_once('=') {
-        Some((n, v)) => (n, v),
-        None => (s, "true"),
-    };
-    let name = name.trim();
-    if name.is_empty() {
-        return None;
-    }
-    let value = value.trim();
-    Some(Opt {
-        name: name.to_string(),
-        value: value.to_string(),
-    })
-}
 
 static OPTIONS: OnceLock<Mutex<HashMap<String, String>>> = OnceLock::new();
 
@@ -99,14 +78,18 @@ pub extern "C" fn rs_get_option(name: *const c_char) -> *mut c_char {
 #[no_mangle]
 pub extern "C" fn rs_free_cstring(s: *mut c_char) {
     if !s.is_null() {
-        unsafe { drop(CString::from_raw(s)); }
+        unsafe {
+            drop(CString::from_raw(s));
+        }
     }
 }
 
 #[no_mangle]
 pub extern "C" fn rs_get_option_defs(len: *mut usize) -> *const rs_opt_t {
     if !len.is_null() {
-        unsafe { *len = OPTION_DEFS.len(); }
+        unsafe {
+            *len = OPTION_DEFS.len();
+        }
     }
     OPTION_DEFS.as_ptr()
 }
@@ -117,7 +100,9 @@ pub extern "C" fn rs_verify_option(name: *const c_char) -> bool {
         return false;
     }
     let cstr = unsafe { CStr::from_ptr(name) };
-    let Ok(name) = cstr.to_str() else { return false };
+    let Ok(name) = cstr.to_str() else {
+        return false;
+    };
     OPTION_DEFS.iter().any(|opt| {
         let opt_name = unsafe { CStr::from_ptr(opt.name).to_str().unwrap() };
         opt_name == name
@@ -130,7 +115,9 @@ pub extern "C" fn rs_save_options(path: *const c_char) -> bool {
         return false;
     }
     let cpath = unsafe { CStr::from_ptr(path) };
-    let Ok(path) = cpath.to_str() else { return false };
+    let Ok(path) = cpath.to_str() else {
+        return false;
+    };
     let opts = options().lock().unwrap();
     let mut file = match std::fs::File::create(path) {
         Ok(f) => f,
@@ -150,17 +137,28 @@ pub extern "C" fn rs_load_options(path: *const c_char) -> bool {
         return false;
     }
     let cpath = unsafe { CStr::from_ptr(path) };
-    let Ok(path) = cpath.to_str() else { return false };
+    let Ok(path) = cpath.to_str() else {
+        return false;
+    };
     let content = match std::fs::read_to_string(path) {
         Ok(c) => c,
         Err(_) => return false,
     };
+    let cfg = match Config::builder()
+        .add_source(File::from_str(&content, FileFormat::Ini))
+        .build()
+    {
+        Ok(c) => c,
+        Err(_) => return false,
+    };
+    let map: HashMap<String, String> = match cfg.try_deserialize() {
+        Ok(m) => m,
+        Err(_) => return false,
+    };
     let mut opts = options().lock().unwrap();
     opts.clear();
-    for line in content.lines() {
-        if let Some((k, v)) = line.split_once('=') {
-            opts.insert(k.to_string(), v.to_string());
-        }
+    for (k, v) in map {
+        opts.insert(k, v);
     }
     true
 }
@@ -172,8 +170,24 @@ pub extern "C" fn rs_parse_option(assignment: *const c_char) -> bool {
     }
     let cstr = unsafe { CStr::from_ptr(assignment) };
     let Ok(s) = cstr.to_str() else { return false };
-    if let Some(opt) = parse_option(s) {
-        options().lock().unwrap().insert(opt.name, opt.value);
+    let assignment = if s.contains('=') {
+        s.to_string()
+    } else {
+        format!("{}=true", s)
+    };
+    let cfg = match Config::builder()
+        .add_source(File::from_str(&assignment, FileFormat::Ini))
+        .build()
+    {
+        Ok(c) => c,
+        Err(_) => return false,
+    };
+    let map: HashMap<String, String> = match cfg.try_deserialize() {
+        Ok(m) => m,
+        Err(_) => return false,
+    };
+    if let Some((name, value)) = map.into_iter().next() {
+        options().lock().unwrap().insert(name, value);
         true
     } else {
         false
@@ -190,7 +204,9 @@ mod tests {
         let name = CString::new("shell").unwrap();
         let val_ptr = rs_get_option(name.as_ptr());
         assert!(!val_ptr.is_null());
-        unsafe { drop(CString::from_raw(val_ptr)); }
+        unsafe {
+            drop(CString::from_raw(val_ptr));
+        }
     }
 
     #[test]
@@ -249,4 +265,3 @@ mod tests {
         assert!(!rs_parse_option(assign.as_ptr()));
     }
 }
-
