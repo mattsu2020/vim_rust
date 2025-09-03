@@ -104,4 +104,15 @@ mod tests {
         let res = chan.channel_read(|_| {}).await;
         assert!(res.is_err());
     }
+
+    extern "C" {
+        fn c_add(a: std::os::raw::c_int, b: std::os::raw::c_int) -> std::os::raw::c_int;
+    }
+
+    #[test]
+    fn c_add_works() {
+        unsafe {
+            assert_eq!(c_add(2, 3), 5);
+        }
+    }
 }
