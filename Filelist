@@ -739,18 +739,10 @@ RT_ALL =	\
 		runtime/macros/less.sh \
 		runtime/macros/less.vim \
 		runtime/macros/life/click.me \
-		runtime/macros/life/life.vim \
-		runtime/macros/matchit.vim \
-		runtime/macros/maze/README.txt \
-		runtime/macros/maze/[mM]akefile \
-		runtime/macros/maze/maze.c \
-		runtime/macros/maze/maze_5.78 \
-		runtime/macros/maze/maze_mac \
-		runtime/macros/maze/mazeansi.c \
-		runtime/macros/maze/mazeclean.c \
-		runtime/macros/maze/poster \
-		runtime/macros/shellmenu.vim \
-		runtime/macros/swapmous.vim \
+                runtime/macros/life/life.vim \
+                runtime/macros/matchit.vim \
+                runtime/macros/shellmenu.vim \
+                runtime/macros/swapmous.vim \
 		runtime/macros/urm/README.txt \
 		runtime/macros/urm/examples \
 		runtime/macros/urm/urm \
@@ -942,11 +934,10 @@ RT_AMI =	\
 		runtime/icons.info \
 		runtime/macros.info \
 		runtime/macros/*.info \
-		runtime/macros/hanoi/*.info \
-		runtime/macros/life/*.info \
-		runtime/macros/maze/*.info \
-		runtime/macros/urm/*.info \
-		runtime/tools.info \
+                runtime/macros/hanoi/*.info \
+                runtime/macros/life/*.info \
+                runtime/macros/urm/*.info \
+                runtime/tools.info \
 		runtime/tutor.info \
 		runtime/tutor/*.info \
 
