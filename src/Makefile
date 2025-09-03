@@ -1855,7 +1855,6 @@ BASIC_SRC = \
         search.c \
         session.c \
         sha256.c \
-        sound.c \
        spell.c \
        strings.c \
         syntax.c \
@@ -2008,7 +2007,6 @@ OBJ_COMMON = \
 	objects/search.o \
 	objects/session.o \
 	objects/sign.o \
-	objects/sound.o \
 	objects/spell.o \
         objects/strings.o \
         objects/syntax.o \
@@ -3605,8 +3603,6 @@ objects/session.o: session.c
 objects/sha256.o: sha256.c
         $(CCC) -o $@ sha256.c
 
-objects/sound.o: sound.c
-        $(CCC) -o $@ sound.c
 
 objects/spell.o: spell.c
 	$(CCC) -o $@ spell.c
@@ -4174,11 +4170,6 @@ objects/session.o: session.c vim.h protodef.h auto/config.h feature.h os_unix.h 
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
 objects/sha256.o: sha256.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
-objects/sound.o: sound.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \

@@ -2144,6 +2144,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_sound"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rust_spell"
 version = "0.1.0"
 
@@ -2770,6 +2777,7 @@ dependencies = [
  "rust_pty",
  "rust_python",
  "rust_sha256",
+ "rust_sound",
  "rust_spell",
  "rust_wayland",
  "serde",
