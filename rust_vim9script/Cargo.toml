@@ -1,11 +1,10 @@
 [package]
-name = "rust_vim9"
+name = "rust_vim9script"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "rust_vim9"
+name = "rust_vim9script"
 crate-type = ["rlib"]
 
 [dependencies]
-rust_vim9script = { path = "../rust_vim9script" }
