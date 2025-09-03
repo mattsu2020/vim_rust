@@ -468,10 +468,10 @@ stuff_yank(int regname, char_u *p)
 	    vim_free(p);
 	    return FAIL;
 	}
-	STRCPY(tmp, pp->string);
-	STRCPY(tmp + pp->length, p);
-	vim_free(p);
-	vim_free(pp->string);
+        vim_strncpy(tmp, pp->string, pp->length);
+        vim_strncpy(tmp + pp->length, p, plen);
+        vim_free(p);
+        vim_free(pp->string);
 	pp->string = tmp;
 	pp->length = tmplen;
     }
@@ -1315,9 +1315,11 @@ op_yank(oparg_T *oap, int deleting, int mess)
 	    }
 
 	    --j;
-	    STRCPY(pnew, curr->y_array[j].string);
-	    STRCPY(pnew + curr->y_array[j].length, y_current->y_array[0].string);
-	    vim_free(curr->y_array[j].string);
+            vim_strncpy(pnew, curr->y_array[j].string, curr->y_array[j].length);
+            vim_strncpy(pnew + curr->y_array[j].length,
+                        y_current->y_array[0].string,
+                        y_current->y_array[0].length);
+            vim_free(curr->y_array[j].string);
 	    curr->y_array[j].string = pnew;
 	    curr->y_array[j].length = curr->y_array[j].length + y_current->y_array[0].length;
 	    ++j;
@@ -2163,8 +2165,8 @@ do_put(
 		    newp = alloc(ml_get_len(lnum) - col + totlen + 1);
 		    if (newp == NULL)
 			goto error;
-		    STRCPY(newp, y_array[y_size - 1].string);
-		    STRCPY(newp + totlen, ptr);
+                    vim_strncpy(newp, y_array[y_size - 1].string, totlen);
+                    vim_strncpy(newp + totlen, ptr, ml_get_len(lnum) - col);
 		    // insert second line
 		    ml_append(lnum, newp, (colnr_T)0, FALSE);
 		    ++new_lnum;
@@ -2740,8 +2742,10 @@ get_reg_contents(int regname, int flags)
     len = 0;
     for (i = 0; i < y_current->y_size; ++i)
     {
-	STRCPY(retval + len, y_current->y_array[i].string);
-	len += (long)y_current->y_array[i].length;
+        vim_strncpy(retval + len,
+                    y_current->y_array[i].string,
+                    y_current->y_array[i].length);
+        len += (long)y_current->y_array[i].length;
 
 	// Insert a newline between lines and after the last line if y_type is
 	// MLINE.
