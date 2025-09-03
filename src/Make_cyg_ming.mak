@@ -851,7 +851,6 @@ OBJ = \
 	$(OUTDIR)/screen.o \
 	$(OUTDIR)/search.o \
 	$(OUTDIR)/session.o \
-	$(OUTDIR)/sha256.o \
 	$(OUTDIR)/sign.o \
 	$(OUTDIR)/spell.o \
         $(OUTDIR)/strings.o \

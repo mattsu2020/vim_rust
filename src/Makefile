@@ -1852,7 +1852,6 @@ BASIC_SRC = \
         scriptfile.c \
         search.c \
         session.c \
-        sha256.c \
         sound.c \
        spell.c \
        strings.c \
@@ -3594,8 +3593,6 @@ objects/search.o: search.c
 objects/session.o: session.c
 	$(CCC) -o $@ session.c
 
-objects/sha256.o: sha256.c
-        $(CCC) -o $@ sha256.c
 
 objects/sound.o: sound.c
         $(CCC) -o $@ sound.c
@@ -4151,11 +4148,6 @@ objects/search.o: search.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
 objects/session.o: session.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
-objects/sha256.o: sha256.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
