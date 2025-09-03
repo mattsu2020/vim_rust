@@ -31,26 +31,20 @@ SRC_ALL =	\
 		ci/remove_snap.sh \
 		ci/ddebs.list \
 		ci/pinned-pkgs \
-		src/Make_all.mak \
                 src/README.md \
                 src/alloc.h \
                 src/ascii.h \
                 src/autocmd.c \
                 src/beval.c \
                 src/beval.h \
-                src/buffer.c \
-		src/bufwrite.c \
 		src/channel.c \
 		src/charset.c \
 		src/cindent.c \
 		src/clientserver.c \
 		src/clipboard.c \
 		src/cmdexpand.c \
-                src/cmdhist.c \
                 src/crypt.c \
-                src/debugger.c \
                 src/dict.c \
-                src/diff.c \
 		src/linematch.c \
 		src/digraph.c \
 		src/drawline.c \
@@ -83,7 +77,6 @@ SRC_ALL =	\
 		src/highlight.c \
 		src/indent.c \
 		src/insexpand.c \
-                src/job.c \
                 src/keymap.h \
 		src/kword_test.c \
 		src/list.c \
@@ -116,16 +109,13 @@ SRC_ALL =	\
 		src/option.h \
 		src/optiondefs.h \
 		src/optionstr.c \
-		src/profiler.c \
 		src/quickfix.c \
 		src/regexp.c \
 		src/regexp.h \
 		src/register.c \
 		src/scriptfile.c \
 		src/session.c \
-		src/sha256.c \
                 src/sound.c \
-		src/spell.c \
                 src/spell.h \
                 src/strings.c \
                 src/structs.h \
@@ -406,7 +396,6 @@ SRC_UNIX =	\
 		pixmaps/stock_icons.h \
 		src/INSTALL \
 		src/INSTALLx.txt \
-		src/Makefile \
 		src/auto/configure \
 		src/config.h.in \
 		src/config.mk.dist \
@@ -452,7 +441,6 @@ SRC_UNIX =	\
 		src/proto/gui_x11.pro \
 		src/proto/wayland.pro \
 		src/proto/pty.pro \
-		src/pty.c \
 		src/testdir/Makefile \
 		src/testdir/util/unix.vim \
 		src/toolcheck \
@@ -488,10 +476,6 @@ SRC_DOS =	\
 		src/GvimExt/uninst.bat \
 		README_srcdos.txt \
 		src/INSTALLpc.txt \
-		src/Make_cyg.mak \
-		src/Make_cyg_ming.mak \
-		src/Make_ming.mak \
-		src/Make_mvc.mak \
 		tools/rename.bat \
 		src/bigvim.bat \
 		src/bigvim64.bat \
@@ -554,7 +538,6 @@ SRC_AMI =	\
 		README_amisrc.txt.info \
 		src.info \
 		src/INSTALLami.txt \
-		src/Make_ami.mak \
 		src/testdir/Make_amiga.mak \
 		src/testdir/util/amiga.vim \
 
