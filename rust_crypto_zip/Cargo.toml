@@ -4,9 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-crypto = { version = "0.5", features = ["cipher"] }
-aes = "0.8"
-cbc = "0.1"
 zip = "4.6.1"
 
 [lib]
