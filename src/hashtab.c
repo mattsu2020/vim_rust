@@ -29,34 +29,10 @@
 
 #include "vim.h"
 
-#if 0
-# define HT_DEBUG	// extra checks for table consistency  and statistics
-
-static long hash_count_lookup = 0;	// count number of hashtab lookups
-static long hash_count_perturb = 0;	// count number of "misses"
-#endif
-
 // Magic value for algorithm that walks through the array.
 #define PERTURB_SHIFT 5
 
 static int hash_may_resize(hashtab_T *ht, int minitems);
-
-#if 0 // currently not used
-/*
- * Create an empty hash table.
- * Returns NULL when out of memory.
- */
-    hashtab_T *
-hash_create(void)
-{
-    hashtab_T *ht;
-
-    ht = ALLOC_ONE(hashtab_T);
-    if (ht != NULL)
-	hash_init(ht);
-    return ht;
-}
-#endif
 
 /*
  * Initialize an empty hash table.
@@ -145,10 +121,6 @@ hash_lookup(hashtab_T *ht, char_u *key, hash_T hash)
     hashitem_T	*hi;
     unsigned	idx;
 
-#ifdef HT_DEBUG
-    ++hash_count_lookup;
-#endif
-
     /*
      * Quickly handle the most common situations:
      * - return if there is no item at all
@@ -178,9 +150,6 @@ hash_lookup(hashtab_T *ht, char_u *key, hash_T hash)
      */
     for (perturb = hash; ; perturb >>= PERTURB_SHIFT)
     {
-#ifdef HT_DEBUG
-	++hash_count_perturb;	    // count a "miss" for hashtab lookup
-#endif
 	idx = (unsigned)((idx << 2U) + idx + perturb + 1U);
 	hi = &ht->ht_array[idx & ht->ht_mask];
 	if (hi->hi_key == NULL)
@@ -193,25 +162,6 @@ hash_lookup(hashtab_T *ht, char_u *key, hash_T hash)
 	    freeitem = hi;
     }
 }
-
-#if defined(FEAT_EVAL) || defined(FEAT_SYN_HL) || defined(PROTO)
-/*
- * Print the efficiency of hashtable lookups.
- * Useful when trying different hash algorithms.
- * Called when exiting.
- */
-    void
-hash_debug_results(void)
-{
-# ifdef HT_DEBUG
-    fprintf(stderr, "\r\n\r\n\r\n\r\n");
-    fprintf(stderr, "Number of hashtable lookups: %ld\r\n", hash_count_lookup);
-    fprintf(stderr, "Number of perturb loops: %ld\r\n", hash_count_perturb);
-    fprintf(stderr, "Percentage of perturb loops: %ld%%\r\n",
-				hash_count_perturb * 100 / hash_count_lookup);
-# endif
-}
-#endif
 
 /*
  * Add item with key "key" to hashtable "ht".
@@ -262,23 +212,6 @@ hash_add_item(
     // When the space gets low may resize the array.
     return hash_may_resize(ht, 0);
 }
-
-#if 0  // not used
-/*
- * Overwrite hashtable item "hi" with "key".  "hi" must point to the item that
- * is to be overwritten.  Thus the number of items in the hashtable doesn't
- * change.
- * Although the key must be identical, the pointer may be different, thus it's
- * set anyway (the key is part of an item with that key).
- * The caller must take care of freeing the old item.
- * "hi" is invalid after this!
- */
-    void
-hash_set(hashitem_T *hi, char_u *key)
-{
-    hi->hi_key = key;
-}
-#endif
 
 /*
  * Remove item "hi" from  hashtable "ht".  "hi" must have been obtained with
@@ -359,12 +292,6 @@ hash_may_resize(
     if (ht->ht_locked > 0)
 	return OK;
 
-#ifdef HT_DEBUG
-    if (ht->ht_used > ht->ht_filled)
-	emsg("hash_may_resize(): more used than filled");
-    if (ht->ht_filled >= ht->ht_mask + 1)
-	emsg("hash_may_resize(): table completely filled");
-#endif
 
     long_u oldsize = ht->ht_mask + 1;
     if (minitems == 0)
@@ -489,10 +416,6 @@ hash_may_resize(
 
 /*
  * Get the hash number for a key.
- * If you think you know a better hash function: Compile with HT_DEBUG set and
- * run a script that uses hashtables a lot.  Vim will then print statistics
- * when exiting.  Try that with the current hash algorithm and yours.  The
- * lower the percentage the better.
  */
     hash_T
 hash_hash(char_u *key)
