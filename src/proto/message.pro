@@ -48,6 +48,7 @@ void windgoto(int row, int col);
 /* Optional Rust helpers if available */
 char *rs_pop_message(int *level);
 void rs_queue_message(char *msg, int level);
+void rs_ui_write(char *msg, int len);
 char *rs_get_last_error(void);
 void rs_clear_messages(void);
 void rs_free_cstring(char *s);

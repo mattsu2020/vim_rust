@@ -47,6 +47,14 @@ impl ScreenBuffer {
         }
     }
 
+    /// Clear the entire screen buffer with the given attribute.
+    pub fn clear(&mut self, attr: u8) {
+        for i in 0..self.lines.len() {
+            self.lines[i] = ' ';
+            self.attrs[i] = attr;
+        }
+    }
+
     /// Apply a highlight attribute to a range without modifying the text.
     pub fn highlight_range(&mut self, row: usize, col: usize, len: usize, attr: u8) {
         if row >= self.height {
@@ -137,6 +145,15 @@ pub extern "C" fn rs_screen_clear_line(buf: *mut ScreenBuffer, row: c_int, attr:
     }
     let screen = unsafe { &mut *buf };
     screen.clear_line(row as usize, attr);
+}
+
+#[no_mangle]
+pub extern "C" fn rs_screen_clear(buf: *mut ScreenBuffer, attr: u8) {
+    if buf.is_null() {
+        return;
+    }
+    let screen = unsafe { &mut *buf };
+    screen.clear(attr);
 }
 
 #[no_mangle]
@@ -240,5 +257,15 @@ mod tests {
         assert_eq!(diff[0].text, "abcdef");
         // highlight attr applied to cde
         assert_eq!(diff[0].attrs[2..5], [3, 3, 3]);
+    }
+
+    #[test]
+    fn clear_whole_screen() {
+        let mut sb = ScreenBuffer::new(3, 2);
+        sb.draw_text(0, 0, "ab", 1);
+        sb.draw_text(1, 0, "cd", 1);
+        rs_screen_clear(&mut sb as *mut ScreenBuffer, 0);
+        assert_eq!(sb.line_as_string(0), "   ");
+        assert_eq!(sb.line_as_string(1), "   ");
     }
 }

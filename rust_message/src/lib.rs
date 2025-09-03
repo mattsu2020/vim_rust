@@ -67,6 +67,25 @@ pub unsafe extern "C" fn rs_queue_message(msg: *const c_char, level: c_int) {
         .push_back(QueuedMsg { text: cstring, level: lvl });
 }
 
+/// Write raw text coming from the C UI layer.  The text is enqueued as an
+/// info-level message so that Rust-side code can display or process it.
+#[no_mangle]
+pub unsafe extern "C" fn rs_ui_write(msg: *const c_char, len: c_int) {
+    if msg.is_null() || len <= 0 {
+        return;
+    }
+    let cstr = CStr::from_ptr(msg);
+    let text = translate(cstr.to_str().unwrap_or(""));
+    let cstring = match CString::new(text) {
+        Ok(cs) => cs,
+        Err(_) => return,
+    };
+    MSG_QUEUE
+        .lock()
+        .unwrap()
+        .push_back(QueuedMsg { text: cstring, level: LogLevel::Info });
+}
+
 /// Pop the next queued message.  Returns a newly allocated C string that must be
 /// freed with `rs_free_cstring`.  When `level` is not NULL the log level is
 /// written there.  Returns NULL when the queue is empty.
@@ -136,6 +155,20 @@ mod tests {
             rs_free_cstring(ptr2);
             assert_eq!(lvl2, LogLevel::Error as c_int);
             assert_eq!(last_err, "failure");
+        }
+    }
+
+    #[test]
+    fn ui_write_enqueues() {
+        unsafe {
+            rs_clear_messages();
+            let msg = CString::new("hi").unwrap();
+            rs_ui_write(msg.as_ptr(), 2);
+            let mut lvl = -1;
+            let ptr = rs_pop_message(&mut lvl as *mut c_int);
+            assert!(!ptr.is_null());
+            rs_free_cstring(ptr);
+            assert_eq!(lvl, LogLevel::Info as c_int);
         }
     }
 }
