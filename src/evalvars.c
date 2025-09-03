@@ -12,7 +12,7 @@
  */
 
 #include "vim.h"
-#include "../rust_eval/include/rust_eval.h"
+#include "../rust_evalvars/include/rust_evalvars.h"
 
 #if defined(FEAT_EVAL) || defined(PROTO)
 
@@ -2745,13 +2745,7 @@ set_vim_var_nr(int idx, varnumber_T val)
     vimvars[idx].vv_nr = val;
 
     // Also update the Rust side so that future evaluation can query it.
-    char namebuf[64];
-    vim_snprintf(namebuf, sizeof(namebuf), "v:%s", vimvars[idx].vv_name);
-    typval_T tv;
-    tv.v_type = VAR_NUMBER;
-    tv.v_lock = 0;
-    tv.vval.v_number = val;
-    set_variable_rs(namebuf, &tv);
+    rs_set_vim_var_nr(idx, val);
 }
 
     char *
@@ -2812,11 +2806,9 @@ set_vim_var_tv(int idx, typval_T *tv)
 varnumber_T
 get_vim_var_nr(int idx)
 {
-    char namebuf[64];
-    typval_T tv;
-    vim_snprintf(namebuf, sizeof(namebuf), "v:%s", vimvars[idx].vv_name);
-    if (eval_variable_rs(namebuf, &tv) && tv.v_type == VAR_NUMBER)
-        return tv.vval.v_number;
+    int64_t out;
+    if (rs_get_vim_var_nr(idx, &out))
+        return (varnumber_T)out;
     return vimvars[idx].vv_nr;
 }
 
@@ -2927,13 +2919,7 @@ set_vim_var_string(
     else
         vimvars[idx].vv_str = vim_strnsave(val, len);
 
-    char namebuf[64];
-    typval_T tv;
-    tv.v_type = VAR_STRING;
-    tv.v_lock = 0;
-    tv.vval.v_string = (char *)vimvars[idx].vv_str;
-    vim_snprintf(namebuf, sizeof(namebuf), "v:%s", vimvars[idx].vv_name);
-    set_variable_rs(namebuf, &tv);
+    rs_set_vim_var_str(idx, (const char *)vimvars[idx].vv_str);
 }
 
     void
@@ -2945,13 +2931,7 @@ set_vim_var_string_direct(
     vimvars[idx].vv_tv_type = VAR_STRING;
 
     vimvars[idx].vv_str = val;
-    char namebuf[64];
-    typval_T tv;
-    tv.v_type = VAR_STRING;
-    tv.v_lock = 0;
-    tv.vval.v_string = (char *)val;
-    vim_snprintf(namebuf, sizeof(namebuf), "v:%s", vimvars[idx].vv_name);
-    set_variable_rs(namebuf, &tv);
+    rs_set_vim_var_str(idx, (const char *)val);
 }
 
 /*
