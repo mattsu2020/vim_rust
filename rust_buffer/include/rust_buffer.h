@@ -16,3 +16,13 @@ int get_top_file_num(void);
 void set_top_file_num(int num);
 int next_top_file_num(void);
 void dec_top_file_num(void);
+
+typedef struct {
+    void *br_buf;
+    int br_fnum;
+    int br_buf_free_count;
+} bufref_T;
+
+void set_bufref(bufref_T *bufref, void *buf);
+int bufref_valid(const bufref_T *bufref);
+int buf_valid(void *buf);

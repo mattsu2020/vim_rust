@@ -27,10 +27,17 @@ impl Drop for FileBuffer {
     }
 }
 
-// Global storage of allocated buffer pointers.  We wrap the Mutex in a newtype
-// so that we can provide manual `Send` and `Sync` implementations even though
+// Information tracked for each allocated buffer.
+#[derive(Clone, Copy)]
+struct BufferRecord {
+    ptr: NonNull<FileBuffer>,
+    fnum: i32,
+}
+
+// Global storage of allocated buffers.  We wrap the Mutex in a newtype so that
+// we can provide manual `Send` and `Sync` implementations even though
 // `NonNull<T>` itself does not implement these traits.
-struct BufferList(Mutex<Vec<NonNull<FileBuffer>>>);
+struct BufferList(Mutex<Vec<BufferRecord>>);
 
 unsafe impl Send for BufferList {}
 unsafe impl Sync for BufferList {}
@@ -54,12 +61,16 @@ fn free_file_buffer(ptr: NonNull<FileBuffer>) {
 #[no_mangle]
 pub extern "C" fn buf_alloc(size: usize) -> *mut FileBuffer {
     if let Some(ptr) = calloc_file_buffer(size) {
+        let rec = BufferRecord {
+            ptr,
+            fnum: next_top_file_num(),
+        };
         BUFFERS
             .get_or_init(|| BufferList(Mutex::new(Vec::new())))
             .0
             .lock()
             .unwrap()
-            .push(ptr);
+            .push(rec);
         ptr.as_ptr()
     } else {
         std::ptr::null_mut()
@@ -73,8 +84,9 @@ pub extern "C" fn buf_free(buf: *mut FileBuffer) {
     };
     if let Some(m) = BUFFERS.get() {
         let mut buffers = m.0.lock().unwrap();
-        buffers.retain(|&p| p != ptr);
+        buffers.retain(|rec| rec.ptr != ptr);
     }
+    inc_buf_free_count();
     // SAFETY: `ptr` was allocated by `buf_alloc`.  `drop_in_place` will invoke
     // `FileBuffer`'s `Drop` implementation which releases the allocation.
     unsafe {
@@ -86,11 +98,12 @@ pub extern "C" fn buf_free(buf: *mut FileBuffer) {
 pub extern "C" fn buf_freeall(_buf: *mut FileBuffer, _flags: c_int) {
     if let Some(m) = BUFFERS.get() {
         let mut buffers = m.0.lock().unwrap();
-        for ptr in buffers.drain(..) {
+        for rec in buffers.drain(..) {
+            inc_buf_free_count();
             // SAFETY: the pointers in `buffers` originate from `buf_alloc` and
             // are unique.  Dropping them releases the memory.
             unsafe {
-                std::ptr::drop_in_place(ptr.as_ptr());
+                std::ptr::drop_in_place(rec.ptr.as_ptr());
             }
         }
     }
@@ -143,6 +156,61 @@ pub extern "C" fn inc_buf_free_count() {
     BUF_FREE_COUNT.fetch_add(1, Ordering::SeqCst);
 }
 
+// Helper: look up a buffer record for a raw pointer.
+fn find_buffer(ptr: NonNull<FileBuffer>) -> Option<BufferRecord> {
+    BUFFERS
+        .get()
+        .and_then(|m| m.0.lock().ok()?.iter().find(|rec| rec.ptr == ptr).cloned())
+}
+
+#[repr(C)]
+pub struct BufRef {
+    pub br_buf: *mut FileBuffer,
+    pub br_fnum: c_int,
+    pub br_buf_free_count: c_int,
+}
+
+#[no_mangle]
+pub extern "C" fn set_bufref(bufref: *mut BufRef, buf: *mut FileBuffer) {
+    if bufref.is_null() {
+        return;
+    }
+    let mut br = unsafe { &mut *bufref };
+    br.br_buf = buf;
+    if let Some(rec) = NonNull::new(buf).and_then(find_buffer) {
+        br.br_fnum = rec.fnum;
+    } else {
+        br.br_fnum = 0;
+    }
+    br.br_buf_free_count = get_buf_free_count();
+}
+
+#[no_mangle]
+pub extern "C" fn buf_valid(buf: *mut FileBuffer) -> c_int {
+    let Some(ptr) = NonNull::new(buf) else {
+        return 0;
+    };
+    if find_buffer(ptr).is_some() { 1 } else { 0 }
+}
+
+#[no_mangle]
+pub extern "C" fn bufref_valid(bufref: *const BufRef) -> c_int {
+    if bufref.is_null() {
+        return 0;
+    }
+    let br = unsafe { &*bufref };
+    if br.br_buf_free_count == get_buf_free_count() {
+        return 1;
+    }
+    let Some(ptr) = NonNull::new(br.br_buf) else {
+        return 0;
+    };
+    match find_buffer(ptr) {
+        Some(rec) if rec.fnum == br.br_fnum => 1,
+        _ => 0,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -153,9 +221,17 @@ mod tests {
         let p = buf_alloc(16);
         assert!(!p.is_null());
         let list = &BUFFERS.get().unwrap().0;
-        assert!(list.lock().unwrap().contains(&NonNull::new(p).unwrap()));
+        assert!(list
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|rec| rec.ptr == NonNull::new(p).unwrap()));
         buf_free(p);
-        assert!(!list.lock().unwrap().contains(&NonNull::new(p).unwrap()));
+        assert!(!list
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|rec| rec.ptr == NonNull::new(p).unwrap()));
     }
 
     #[test]
@@ -166,11 +242,23 @@ mod tests {
         let list = &BUFFERS.get().unwrap().0;
         {
             let guard = list.lock().unwrap();
-            assert!(guard.contains(&NonNull::new(p1).unwrap()));
-            assert!(guard.contains(&NonNull::new(p2).unwrap()));
+            assert!(guard.iter().any(|rec| rec.ptr == NonNull::new(p1).unwrap()));
+            assert!(guard.iter().any(|rec| rec.ptr == NonNull::new(p2).unwrap()));
         }
         buf_freeall(std::ptr::null_mut(), 0);
         assert!(list.lock().unwrap().is_empty());
+    }
+
+    #[test]
+    fn bufref_tracking() {
+        let p = buf_alloc(4);
+        assert!(buf_valid(p) != 0);
+        let mut br = BufRef { br_buf: std::ptr::null_mut(), br_fnum: 0, br_buf_free_count: 0 };
+        set_bufref(&mut br, p);
+        assert!(bufref_valid(&br) != 0);
+        buf_free(p);
+        assert!(buf_valid(p) == 0);
+        assert!(bufref_valid(&br) == 0);
     }
 
     #[test]
