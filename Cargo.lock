@@ -430,6 +430,7 @@ dependencies = [
 name = "diff"
 version = "0.1.0"
 dependencies = [
+ "rust_alloc",
  "similar",
 ]
 
@@ -1324,6 +1325,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_evalbuffer"
+version = "0.1.0"
+dependencies = [
+ "once_cell",
+]
+
+[[package]]
 name = "rust_evalfunc"
 version = "0.1.0"
 dependencies = [
@@ -1778,7 +1786,12 @@ name = "rust_vim9cmds"
 version = "0.1.0"
 dependencies = [
  "rust_eval",
+ "rust_vim9compile",
 ]
+
+[[package]]
+name = "rust_vim9compile"
+version = "0.1.0"
 
 [[package]]
 name = "rust_wayland"
@@ -2685,6 +2698,3 @@ checksum = "e0b1513b141123073ce54d5bb1d33f801f17508fbd61e02060b1214e96d39c56"
 dependencies = [
  "nix 0.25.1",
 ]
-[[package]]
-name = "rust_vim9compile"
-version = "0.1.0"
