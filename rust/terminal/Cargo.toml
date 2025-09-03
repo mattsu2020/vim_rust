@@ -5,6 +5,5 @@ edition = "2021"
 
 [dependencies]
 libc = "0.2"
-
-[target.'cfg(unix)'.dependencies]
-nix = { version = "0.27", features = ["term"] }
+ratatui = "0.27"
+crossterm = "0.27"
