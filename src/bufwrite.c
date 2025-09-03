@@ -12,6 +12,7 @@
  */
 
 #include "vim.h"
+#include "rust_bufwrite.h"
 
 #if defined(HAVE_UTIME) && defined(HAVE_UTIME_H)
 # include <utime.h>		// for struct utimbuf
@@ -506,7 +507,7 @@ buf_write_bytes(struct bw_info *ip)
 								ip->bw_finish);
 	    if (len == 0)
 		return OK;  // Crypt layer is buffering, will flush later.
-	    wlen = write_eintr(ip->bw_fd, outbuf, len);
+            wlen = rs_buf_write(ip->bw_fd, outbuf, len);
 	    vim_free(outbuf);
 	    return (wlen < len) ? FAIL : OK;
 	}
@@ -514,7 +515,7 @@ buf_write_bytes(struct bw_info *ip)
     }
 #endif
 
-    wlen = write_eintr(ip->bw_fd, buf, len);
+    wlen = rs_buf_write(ip->bw_fd, buf, len);
     return (wlen < len) ? FAIL : OK;
 }
 
@@ -2174,7 +2175,7 @@ restore_backup:
 	if (!buf->b_p_fixeol && buf->b_p_eof)
 	{
 	    // write trailing CTRL-Z
-	    (void)write_eintr(write_info.bw_fd, "\x1a", 1);
+            (void)rs_buf_write(write_info.bw_fd, "\x1a", 1);
 	    nchars++;
 	}
 

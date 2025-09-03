@@ -39,6 +39,7 @@ rust_message = { path = "rust_message" }
 rust_blob = { path = "rust_blob" }
 rust_sha256 = { path = "rust_sha256" }
 rust_blowfish = { path = "rust_blowfish" }
+rust_bufwrite = { path = "rust_bufwrite" }
 
 [features]
 default = []
