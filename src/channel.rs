@@ -133,6 +133,19 @@ mod tests {
     }
 
     #[test]
+    fn os_chdir_works() {
+        use std::ffi::CString;
+        use std::env;
+        let orig = env::current_dir().unwrap();
+        let dir = env::temp_dir();
+        let c_path = CString::new(dir.to_str().unwrap()).unwrap();
+        assert_eq!(os_layer::os_chdir(c_path.as_ptr()), 0);
+        assert_eq!(env::current_dir().unwrap(), dir);
+        let c_orig = CString::new(orig.to_str().unwrap()).unwrap();
+        os_layer::os_chdir(c_orig.as_ptr());
+    }
+
+    #[test]
     fn add_works() {
         assert_eq!(super::add(2, 3), 5);
     }

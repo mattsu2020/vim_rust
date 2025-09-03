@@ -447,7 +447,6 @@ SRC_UNIX =	\
 		src/installman.sh \
 		src/installml.sh \
 		src/install-sh \
-		src/os_unix.c \
 		src/os_unix.h \
 		src/os_unixx.h \
 		src/osdef.sh \
@@ -461,7 +460,6 @@ SRC_UNIX =	\
 		src/proto/gui_xmdlg.pro \
 		src/proto/gui_x11.pro \
 		src/proto/wayland.pro \
-		src/proto/os_unix.pro \
 		src/proto/pty.pro \
 		src/pty.c \
 		src/testdir/Makefile \
@@ -520,14 +518,8 @@ SRC_DOS =	\
 		src/iscygpty.c \
 		src/iscygpty.h \
 		src/os_dos.h \
-		src/os_w32dll.c \
-		src/os_w32exe.c \
-		src/os_win32.c \
-		src/os_mswin.c \
 		src/os_win32.h \
 		src/proto/gui_w32.pro \
-		src/proto/os_win32.pro \
-		src/proto/os_mswin.pro \
 		src/testdir/Make_dos.mak \
 		src/testdir/Make_mvc.mak \
 		src/testdir/Make_ming.mak \
@@ -591,9 +583,7 @@ SRC_HAIKU =	\
 SRC_MAC =	\
 		src/INSTALLmac.txt \
 		src/os_mac.h \
-		src/os_mac_conv.c \
 		src/os_macosx.m \
-		src/proto/os_mac_conv.pro \
 		src/proto/os_macosx.pro \
 
 # Source files for QNX (in the extra archive).

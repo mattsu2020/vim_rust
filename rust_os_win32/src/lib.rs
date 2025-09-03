@@ -2,7 +2,7 @@
 
 use std::ffi::CStr;
 use std::os::raw::c_char;
-use std::fs;
+use std::{env, fs};
 use windows::Win32::System::Console::SetConsoleTitleA;
 use windows::core::PCSTR;
 
@@ -28,11 +28,20 @@ pub extern "C" fn os_set_title(title: *const c_char) {
     unsafe { SetConsoleTitleA(PCSTR(bytes.as_ptr())); }
 }
 
+#[no_mangle]
+pub extern "C" fn os_chdir(path: *const c_char) -> i32 {
+    let c_str = unsafe { CStr::from_ptr(path) };
+    match env::set_current_dir(c_str.to_string_lossy().into_owned()) {
+        Ok(_) => 0,
+        Err(_) => -1,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::ffi::CString;
-    use std::fs;
+    use std::{env, fs};
 
     #[test]
     fn creates_directory() {
@@ -42,5 +51,16 @@ mod tests {
         assert_eq!(os_mkdir(c_path.as_ptr()), 0);
         assert!(dir.exists());
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn changes_directory() {
+        let orig = env::current_dir().unwrap();
+        let dir = env::temp_dir();
+        let c_path = CString::new(dir.to_str().unwrap()).unwrap();
+        assert_eq!(os_chdir(c_path.as_ptr()), 0);
+        assert_eq!(env::current_dir().unwrap(), dir);
+        let c_orig = CString::new(orig.to_str().unwrap()).unwrap();
+        assert_eq!(os_chdir(c_orig.as_ptr()), 0);
     }
 }
