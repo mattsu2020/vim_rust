@@ -26,7 +26,7 @@
  */
 
 #include "vim.h"
-
+#include "../rust_buffer/include/rust_buffer.h"
 
 #ifdef FEAT_EVAL
 // Determines how deeply nested %{} blocks will be evaluated in statusline.
@@ -67,9 +67,7 @@ static char *msg_qflist = N_("[Quickfix List]");
 #endif
 
 // Number of times free_buffer() was called.
-static int	buf_free_count = 0;
-
-static int	top_file_num = 1;	// highest file number
+static int      buf_free_count = 0;
 static garray_T buf_reuse = GA_EMPTY;	// file numbers to recycle
 
     static void
@@ -86,27 +84,9 @@ trigger_undo_ftplugin(buf_T *buf, win_T *win)
     window_layout_unlock();
 }
 
-/*
- * Calculate the percentage that `part` is of the `whole`.
- */
-    static int
-calc_percentage(long part, long whole)
-{
-    // With 32 bit longs and more than 21,474,836 lines multiplying by 100
-    // causes an overflow, thus for large numbers divide instead.
-    return (part > 1000000L)
-	? (int)(part / (whole / 100L))
-	: (int)((part * 100L) / whole);
-}
+// calc_percentage() implemented in rust_buffer crate
 
-/*
- * Return the highest possible buffer number.
- */
-    int
-get_highest_fnum(void)
-{
-    return top_file_num - 1;
-}
+// get_highest_fnum() implemented in rust_buffer crate
 
 /*
  * Read data from buffer for retrying.
@@ -2164,7 +2144,7 @@ buflist_new(
     stat_T	st;
 #endif
 
-    if (top_file_num == 1)
+    if (get_top_file_num() == 1)
 	hash_init(&buf_hashtab);
 
     fname_expand(curbuf, &ffname, &sfname);	// will allocate ffname
@@ -2342,8 +2322,8 @@ buflist_new(
 	    }
 	}
 	else
-	    buf->b_fnum = top_file_num++;
-	if (top_file_num < 0)		// wrap around (may cause duplicates)
+	    buf->b_fnum = next_top_file_num();
+	if (get_top_file_num() < 0)		// wrap around (may cause duplicates)
 	{
 	    emsg(_("W14: Warning: List of file names overflow"));
 	    if (emsg_silent == 0 && !in_assert_fails)
@@ -2351,7 +2331,7 @@ buflist_new(
 		out_flush();
 		ui_delay(3001L, TRUE);	// make sure it is noticed
 	    }
-	    top_file_num = 1;
+	    set_top_file_num(1);
 	}
 	buf_hashtab_add(buf);
 
@@ -6229,8 +6209,8 @@ wipe_buffer(
     buf_T	*buf,
     int		aucmd)	    // When TRUE trigger autocommands.
 {
-    if (buf->b_fnum == top_file_num - 1)
-	--top_file_num;
+    if (buf->b_fnum == get_top_file_num() - 1)
+	dec_top_file_num();
 
     if (!aucmd)		    // Don't trigger BufDelete autocommands here.
 	block_autocmds();
