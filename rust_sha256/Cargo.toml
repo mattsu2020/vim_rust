@@ -1,0 +1,11 @@
+[package]
+name = "rust_sha256"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+libc = "0.2"
+
+[lib]
+name = "rust_sha256"
+crate-type = ["staticlib", "rlib"]

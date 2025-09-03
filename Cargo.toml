@@ -33,6 +33,9 @@ rust_change = { path = "rust_change" }
 rust_excmd = { path = "rust_excmd" }
 rust_alloc = { path = "rust_alloc" }
 rust_message = { path = "rust_message" }
+rust_blob = { path = "rust_blob" }
+rust_sha256 = { path = "rust_sha256" }
+rust_blowfish = { path = "rust_blowfish" }
 
 [features]
 default = []

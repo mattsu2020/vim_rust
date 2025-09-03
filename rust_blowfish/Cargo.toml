@@ -1,0 +1,13 @@
+[package]
+name = "rust_blowfish"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+libc = "0.2"
+blowfish = "0.8"
+rust_sha256 = { path = "../rust_sha256" }
+
+[lib]
+name = "rust_blowfish"
+crate-type = ["staticlib", "rlib"]
