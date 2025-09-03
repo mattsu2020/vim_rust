@@ -70,10 +70,8 @@ SRC_ALL =	\
 		src/findfile.c \
 		src/float.c \
 		src/fold.c \
-                src/fuzzy.c \
-                src/gc.c \
-		src/globals.h \
-		src/gui.c \
+                src/globals.h \
+                src/gui.c \
 		src/gui.h \
 		src/gui_beval.c \
 		src/hardcopy.c \

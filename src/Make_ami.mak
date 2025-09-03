@@ -105,12 +105,10 @@ SRC += \
 	filepath.c \
 	findfile.c \
 	float.c \
-	fold.c \
-	fuzzy.c \
-	getchar.c \
-	gc.c \
-	hardcopy.c \
-	hashtab.c \
+        fold.c \
+        getchar.c \
+        hardcopy.c \
+        hashtab.c \
 	help.c \
 	highlight.c \
 	if_cscope.c \

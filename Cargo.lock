@@ -1683,6 +1683,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_cmdexpand"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rust_cmdhist"
 version = "0.1.0"
 dependencies = [
@@ -1818,6 +1825,14 @@ version = "0.1.0"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "rust_fuzzy"
+version = "0.1.0"
+
+[[package]]
+name = "rust_gc"
+version = "0.1.0"
 
 [[package]]
 name = "rust_getchar"
@@ -2138,6 +2153,7 @@ version = "0.1.0"
 dependencies = [
  "criterion 0.5.1",
  "regex",
+ "rust_fuzzy",
 ]
 
 [[package]]
@@ -2797,6 +2813,8 @@ dependencies = [
  "rust_evalwindow",
  "rust_excmds",
  "rust_fold",
+ "rust_fuzzy",
+ "rust_gc",
  "rust_job",
  "rust_message",
  "rust_os_amiga",
