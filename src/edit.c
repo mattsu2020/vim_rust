@@ -12,6 +12,7 @@
  */
 
 #include "vim.h"
+#include "../rust_edit/include/rust_edit.h"
 
 #define BACKSPACE_CHAR		    1
 #define BACKSPACE_WORD		    2
@@ -1848,15 +1849,7 @@ undisplay_dollar(void)
     void
 truncate_spaces(char_u *line, size_t len)
 {
-    int	    i;
-
-    // find start of trailing white space
-    for (i = (int)len - 1; i >= 0 && VIM_ISWHITE(line[i]); i--)
-    {
-	if (State & REPLACE_FLAG)
-	    replace_join(0);	    // remove a NUL from the replace stack
-    }
-    line[i + 1] = NUL;
+    rs_truncate_spaces((char *)line, len);
 }
 
 /*
