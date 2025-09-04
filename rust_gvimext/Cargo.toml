@@ -1,0 +1,10 @@
+[package]
+name = "rust_gvimext"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+windows = { version = "0.51", features = ["Win32_System_Com", "Win32_System_Registry", "Win32_UI_Shell", "Win32_Foundation"] }
