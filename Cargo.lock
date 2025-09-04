@@ -3382,6 +3382,7 @@ dependencies = [
  "rust_gc",
  "rust_job",
  "rust_message",
+ "rust_normal",
  "rust_os_amiga",
  "rust_os_qnx",
  "rust_os_unix",

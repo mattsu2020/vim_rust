@@ -13,7 +13,6 @@
  */
 
 #include "vim.h"
-#include "normal_rs.h"
 #include "../rust_excmds/include/rust_excmds.h"
 
 // Rust implementations for command execution and key mapping.
@@ -23,18 +22,12 @@ extern const char *rs_map_lookup(const char *lhs);
 void spell_add_word(char_u *ptr, int len, int add_good, int count1, int undo);
 void spell_suggest(int count0);
 
-void normal_cmd(oparg_T *oap, int toplevel)
-{
-    rs_normal_cmd(oap, toplevel);
-}
-
 static int	VIsual_mode_orig = NUL;		// saved Visual mode
 
 #ifdef FEAT_EVAL
 static void	set_vcount_ca(cmdarg_T *cap, int *set_prevcount);
 #endif
 static void	unshift_special(cmdarg_T *cap);
-// static void	del_from_showcmd(int);
 
 /*
  * nv_*(): functions called to handle Normal and Visual mode commands.
@@ -253,7 +246,7 @@ getcount:
 	    if (c == K_DEL || c == K_KDEL)
 	    {
 		cap->count0 /= 10;
-		rs_del_from_showcmd(4);	// delete the digit and ~@%
+		del_from_showcmd(4);	// delete the digit and ~@%
 	    }
 	    else if (cap->count0 > 99999999L)
 	    {
@@ -507,7 +500,7 @@ normal_cmd_get_more_chars(
 		{
 		    *cp = c;
 		    // Guessing how to update showcmd here...
-		    rs_del_from_showcmd(3);
+		    del_from_showcmd(3);
 		    *need_flushbuf |= add_to_showcmd(*cp);
 		}
 	    }
@@ -1608,7 +1601,7 @@ may_clear_cmdline(void)
 
 static char_u	old_showcmd_buf[SHOWCMD_BUFLEN];  // For push_showcmd()
 static int	showcmd_is_clear = TRUE;
-static int	showcmd_visual = FALSE;
+int	showcmd_visual = FALSE;
 
 static void display_showcmd(void);
 
@@ -1712,84 +1705,6 @@ clear_showcmd(void)
     }
 
     display_showcmd();
-}
-
-/*
- * Add 'c' to string of shown command chars.
- * Return TRUE if output has been written (and setcursor() has been called).
- */
-    int
-add_to_showcmd(int c)
-{
-    char_u	*p;
-    int		old_len;
-    int		extra_len;
-    int		overflow;
-    int		i;
-    char_u	mbyte_buf[MB_MAXBYTES];
-    static int	ignore[] =
-    {
-#ifdef FEAT_GUI
-	K_VER_SCROLLBAR, K_HOR_SCROLLBAR,
-	K_LEFTMOUSE_NM, K_LEFTRELEASE_NM,
-#endif
-	K_IGNORE, K_PS,
-	K_LEFTMOUSE, K_LEFTDRAG, K_LEFTRELEASE, K_MOUSEMOVE,
-	K_MIDDLEMOUSE, K_MIDDLEDRAG, K_MIDDLERELEASE,
-	K_RIGHTMOUSE, K_RIGHTDRAG, K_RIGHTRELEASE,
-	K_MOUSEDOWN, K_MOUSEUP, K_MOUSELEFT, K_MOUSERIGHT,
-	K_X1MOUSE, K_X1DRAG, K_X1RELEASE, K_X2MOUSE, K_X2DRAG, K_X2RELEASE,
-	K_CURSORHOLD,
-	0
-    };
-
-    if (!p_sc || msg_silent != 0)
-	return FALSE;
-
-    if (showcmd_visual)
-    {
-	showcmd_buf[0] = NUL;
-	showcmd_visual = FALSE;
-    }
-
-    // Ignore keys that are scrollbar updates and mouse clicks
-    if (IS_SPECIAL(c))
-	for (i = 0; ignore[i] != 0; ++i)
-	    if (ignore[i] == c)
-		return FALSE;
-
-    if (c <= 0x7f || !vim_isprintc(c))
-    {
-	p = transchar(c);
-	if (*p == ' ')
-	    STRCPY(p, "<20>");
-    }
-    else
-    {
-	mbyte_buf[(*mb_char2bytes)(c, mbyte_buf)] = NUL;
-	p = mbyte_buf;
-    }
-    old_len = (int)STRLEN(showcmd_buf);
-    extra_len = (int)STRLEN(p);
-    overflow = old_len + extra_len - SHOWCMD_COLS;
-    if (overflow > 0)
-	mch_memmove(showcmd_buf, showcmd_buf + overflow,
-						      old_len - overflow + 1);
-    STRCAT(showcmd_buf, p);
-
-    if (char_avail())
-	return FALSE;
-
-    display_showcmd();
-
-    return TRUE;
-}
-
-    void
-add_to_showcmd_c(int c)
-{
-    if (!add_to_showcmd(c))
-	setcursor();
 }
 
 /*
