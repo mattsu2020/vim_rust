@@ -600,13 +600,6 @@ mf_sync(memfile_T *mfp, int flags)
 	    fflush(NULL);
 # endif
 #endif
-#ifdef VMS
-	if (STRCMP(p_sws, "fsync") == 0)
-	{
-	    if (vim_fsync(mfp->mf_fd))
-		status = FAIL;
-	}
-#endif
 #ifdef MSWIN
 	if (_commit(mfp->mf_fd))
 	    status = FAIL;

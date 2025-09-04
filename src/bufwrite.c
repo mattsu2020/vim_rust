@@ -1670,9 +1670,6 @@ buf_write(
 	}
     }
 
-#ifdef VMS
-    vms_remove_version(fname); // remove version
-#endif
     // Default: write the file directly.  May write to a temp file for
     // multi-byte conversion.
     wfname = fname;
@@ -2118,44 +2115,6 @@ restore_backup:
 		    break;
 		}
 	    }
-#ifdef VMS
-	    // On VMS there is a problem: newlines get added when writing
-	    // blocks at a time. Fix it by writing a line at a time.
-	    // This is much slower!
-	    // Explanation: VAX/DECC RTL insists that records in some RMS
-	    // structures end with a newline (carriage return) character, and
-	    // if they don't it adds one.
-	    // With other RMS structures it works perfect without this fix.
-# ifndef MIN
-// Older DECC compiler for VAX doesn't define MIN()
-#  define MIN(a, b) ((a) < (b) ? (a) : (b))
-# endif
-	    if (buf->b_fab_rfm == FAB$C_VFC
-		    || ((buf->b_fab_rat & (FAB$M_FTN | FAB$M_CR)) != 0))
-	    {
-		int b2write;
-
-		buf->b_fab_mrs = (buf->b_fab_mrs == 0
-			? MIN(4096, bufsize)
-			: MIN(buf->b_fab_mrs, bufsize));
-
-		b2write = len;
-		while (b2write > 0)
-		{
-		    write_info.bw_len = MIN(b2write, buf->b_fab_mrs);
-		    if (buf_write_bytes(&write_info) == FAIL)
-		    {
-			end = 0;
-			break;
-		    }
-		    b2write -= MIN(b2write, buf->b_fab_mrs);
-		}
-		write_info.bw_len = bufsize;
-		nchars += len;
-		s = buffer;
-		len = 0;
-	    }
-#endif
 	}
 	if (len > 0 && end > 0)
 	{
@@ -2383,7 +2342,7 @@ restore_backup:
     lnum -= start;	    // compute number of written lines
     --no_wait_return;	    // may wait for return now
 
-#if !(defined(UNIX) || defined(VMS))
+#ifndef UNIX
     fname = sfname;	    // use shortname now, for the messages
 #endif
     if (!filtering)
