@@ -786,9 +786,8 @@ OBJ = \
 	$(OUTDIR)/edit.o \
 	$(OUTDIR)/eval.o \
 	$(OUTDIR)/evalbuffer.o \
-	$(OUTDIR)/evalfunc.o \
-	$(OUTDIR)/evalvars.o \
-	$(OUTDIR)/evalwindow.o \
+        $(OUTDIR)/evalvars.o \
+        $(OUTDIR)/evalwindow.o \
 	$(OUTDIR)/ex_cmds.o \
 	$(OUTDIR)/ex_cmds2.o \
 	$(OUTDIR)/ex_docmd.o \
@@ -1246,8 +1245,6 @@ $(OUTDIR):
 	$(MKDIR) $(OUTDIR)
 
 $(OUTDIR)/buffer.o: buffer.c $(INCL) version.h
-
-$(OUTDIR)/evalfunc.o: evalfunc.c $(INCL) version.h
 
 $(OUTDIR)/evalvars.o: evalvars.c $(INCL) version.h
 

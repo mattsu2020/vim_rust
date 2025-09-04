@@ -41,7 +41,7 @@ rust_misc1 = { path = "rust_misc1" }
 rust_blob = { path = "rust_blob" }
 rust_sha256 = { path = "rust_sha256" }
 rust_bufwrite = { path = "rust_bufwrite" }
-rust_evalfunc_stubs = { path = "rust_evalfunc_stubs" }
+rust_evalfunc = { path = "rust_evalfunc" }
 rust_evalwindow = { path = "rust_evalwindow" }
 rust_fuzzy = { path = "rust_fuzzy" }
 rust_gc = { path = "rust_gc" }
