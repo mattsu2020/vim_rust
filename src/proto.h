@@ -207,9 +207,6 @@ void mbyte_im_set_active(int active_arg);
 #   include "terminal.pro"
 #  endif
 # endif
-# if defined(HAVE_TGETENT) && (defined(AMIGA) || defined(VMS))
-#  include "termlib.pro"
-# endif
 # ifdef FEAT_PROP_POPUP
 #  include "popupwin.pro"
 #  include "textprop.pro"

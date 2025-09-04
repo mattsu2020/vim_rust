@@ -2139,7 +2139,6 @@ PRO_AUTO = \
         tag.pro \
         term.pro \
 	terminal.pro \
-	termlib.pro \
 	testing.pro \
 	textformat.pro \
 	textobject.pro \

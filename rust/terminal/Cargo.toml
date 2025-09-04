@@ -7,3 +7,4 @@ edition = "2021"
 libc = "0.2"
 ratatui = "0.27"
 crossterm = "0.27"
+rust_termlib = { path = "../../rust_termlib" }

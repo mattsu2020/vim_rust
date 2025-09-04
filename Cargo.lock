@@ -2730,7 +2730,12 @@ version = "0.1.0"
 dependencies = [
  "crossterm",
  "libc",
+ "rust_termlib",
 ]
+
+[[package]]
+name = "rust_termlib"
+version = "0.1.0"
 
 [[package]]
 name = "rust_testing"

@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 libc = "0.2"
 crossterm = "0.27"
+rust_termlib = { path = "../rust_termlib" }
 [features]
 default = ["tty"]
 tty = []
