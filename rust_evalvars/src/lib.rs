@@ -1,7 +1,5 @@
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
-use std::ffi::CStr;
-use std::os::raw::{c_char, c_int, c_longlong};
 use std::sync::Mutex;
 
 #[derive(Clone, Debug)]
@@ -10,53 +8,43 @@ enum Value {
     String(String),
 }
 
-static VIM_VARS: Lazy<Mutex<HashMap<i32, Value>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+static VIM_VARS: Lazy<Mutex<HashMap<i32, Value>>> =
+    Lazy::new(|| Mutex::new(HashMap::new()));
 
 static WINDOWS: Lazy<Mutex<Vec<i32>>> = Lazy::new(|| Mutex::new(Vec::new()));
 
-#[no_mangle]
-pub extern "C" fn rs_set_vim_var_nr(idx: c_int, val: c_longlong) {
+/// Store a numeric Vim variable identified by `idx`.
+pub fn set_vim_var_nr(idx: i32, val: i64) {
     let mut vars = VIM_VARS.lock().unwrap();
     vars.insert(idx, Value::Number(val));
 }
 
-#[no_mangle]
-pub extern "C" fn rs_get_vim_var_nr(idx: c_int, out: *mut c_longlong) -> bool {
-    if out.is_null() {
-        return false;
-    }
+/// Retrieve a previously stored numeric Vim variable.
+pub fn get_vim_var_nr(idx: i32) -> Option<i64> {
     if let Some(Value::Number(n)) = VIM_VARS.lock().unwrap().get(&idx) {
-        unsafe {
-            *out = *n;
-        }
-        true
+        Some(*n)
     } else {
-        false
+        None
     }
 }
 
-#[no_mangle]
-pub extern "C" fn rs_set_vim_var_str(idx: c_int, val: *const c_char) {
-    if val.is_null() {
-        return;
-    }
-    let s = unsafe { CStr::from_ptr(val) };
-    if let Ok(text) = s.to_str() {
-        let mut vars = VIM_VARS.lock().unwrap();
-        vars.insert(idx, Value::String(text.to_string()));
-    }
+/// Store a string Vim variable identified by `idx`.
+pub fn set_vim_var_str(idx: i32, val: &str) {
+    let mut vars = VIM_VARS.lock().unwrap();
+    vars.insert(idx, Value::String(val.to_string()));
 }
 
-#[no_mangle]
-pub extern "C" fn rs_win_create() -> c_int {
+/// Create a new window and return its id.  The first window gets id 1.
+pub fn win_create() -> i32 {
     let mut wins = WINDOWS.lock().unwrap();
     let id = (wins.len() as i32) + 1;
     wins.push(id);
     id
 }
 
-#[no_mangle]
-pub extern "C" fn rs_win_getid(winnr: c_int) -> c_int {
+/// Return the id of window `winnr`.  If `winnr` is 0 or negative, the current
+/// window (the first one) is used.
+pub fn win_getid(winnr: i32) -> i32 {
     let wins = WINDOWS.lock().unwrap();
     if winnr <= 0 {
         return *wins.first().unwrap_or(&0);
@@ -70,19 +58,17 @@ mod tests {
 
     #[test]
     fn var_numbers_roundtrip() {
-        let mut out: c_longlong = 0;
-        assert!(!rs_get_vim_var_nr(1, &mut out));
-        rs_set_vim_var_nr(1, 42);
-        assert!(rs_get_vim_var_nr(1, &mut out));
-        assert_eq!(out, 42);
+        assert_eq!(get_vim_var_nr(1), None);
+        set_vim_var_nr(1, 42);
+        assert_eq!(get_vim_var_nr(1), Some(42));
     }
 
     #[test]
     fn window_ids() {
-        let id1 = rs_win_create();
-        let id2 = rs_win_create();
-        assert_eq!(rs_win_getid(0), id1);
-        assert_eq!(rs_win_getid(2), id2);
-        assert_eq!(rs_win_getid(3), 0);
+        let id1 = win_create();
+        let id2 = win_create();
+        assert_eq!(win_getid(0), id1);
+        assert_eq!(win_getid(2), id2);
+        assert_eq!(win_getid(3), 0);
     }
 }

@@ -4,9 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-libc = "0.2"
 rust_evalvars = { path = "../rust_evalvars" }
 
 [lib]
 name = "rust_evalwindow"
-crate-type = ["staticlib", "rlib"]
+crate-type = ["rlib"]
