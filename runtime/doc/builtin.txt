@@ -1421,7 +1421,6 @@ bufexists({buf})					*bufexists()*
 <
 		Return type: |Number|
 
-		Obsolete name: buffer_exists().		*buffer_exists()*
 
 
 buflisted({buf})					*buflisted()*
@@ -1496,8 +1495,6 @@ bufname([{buf}])					*bufname()*
 	bufname("file2")	name of buffer where "file2" matches.
 <
 		Return type: |String|
-							*buffer_name()*
-		Obsolete name: buffer_name().
 
 
 bufnr([{buf} [, {create}]])				*bufnr()*
@@ -1524,9 +1521,6 @@ bufnr([{buf} [, {create}]])				*bufnr()*
 <
 		Return type: |Number|
 
-		Obsolete name: buffer_number().		*buffer_number()*
-							*last_buffer_nr()*
-		Obsolete name for bufnr("$"): last_buffer_nr().
 
 
 bufwinid({buf})						*bufwinid()*
@@ -3215,8 +3209,6 @@ filereadable({file})					*filereadable()*
 <
 		Return type: |Number|
 
-							*file_readable()*
-		Obsolete name: file_readable().
 
 
 filewritable({file})					*filewritable()*
@@ -5755,8 +5747,6 @@ hlexists({name})					*hlexists()*
 		defined in some way.  Not necessarily when highlighting has
 		been defined for it, it may also have been used for a syntax
 		item.
-							*highlight_exists()*
-		Obsolete name: highlight_exists().
 
 		Can also be used as a |method|: >
 			GetName()->hlexists()
@@ -5879,8 +5869,6 @@ hlID({name})							*hlID()*
 		group.  For example, to get the background color of the
 		"Comment" group: >
 	:echo synIDattr(synIDtrans(hlID("Comment")), "bg")
-<							*highlightID()*
-		Obsolete name: highlightID().
 
 		Can also be used as a |method|: >
 			GetName()->hlID()

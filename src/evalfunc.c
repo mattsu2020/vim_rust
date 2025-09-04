@@ -2039,12 +2039,6 @@ static const funcentry_T global_functions[] =
 			ret_number,	    f_bufadd},
     {"bufexists",	1, 1, FEARG_1,	    arg1_buffer,
 			ret_number_bool,    f_bufexists},
-    {"buffer_exists",	1, 1, FEARG_1,	    arg1_buffer,	// obsolete
-			ret_number_bool,    f_bufexists},
-    {"buffer_name",	0, 1, FEARG_1,	    arg1_buffer,	// obsolete
-			ret_string,	    f_bufname},
-    {"buffer_number",	0, 1, FEARG_1,	    arg1_buffer,	// obsolete
-			ret_number,	    f_bufnr},
     {"buflisted",	1, 1, FEARG_1,	    arg1_buffer,
 			ret_number_bool,    f_buflisted},
     {"bufload",		1, 1, FEARG_1,	    arg1_buffer,
@@ -2215,8 +2209,6 @@ static const funcentry_T global_functions[] =
 			ret_first_cont,	    f_extendnew},
     {"feedkeys",	1, 2, FEARG_1,	    arg2_string,
 			ret_void,	    f_feedkeys},
-    {"file_readable",	1, 1, FEARG_1,	    arg1_string,	// obsolete
-			ret_number_bool,    f_filereadable},
     {"filecopy",	2, 2, FEARG_1,	    arg2_string,
 			ret_number_bool,    f_filecopy},
     {"filereadable",	1, 1, FEARG_1,	    arg1_string,
@@ -2399,10 +2391,6 @@ static const funcentry_T global_functions[] =
 			ret_number,	    f_haslocaldir},
     {"hasmapto",	1, 3, FEARG_1,	    arg3_string_string_bool,
 			ret_number_bool,    f_hasmapto},
-    {"highlightID",	1, 1, FEARG_1,	    arg1_string,	// obsolete
-			ret_number,	    f_hlID},
-    {"highlight_exists",1, 1, FEARG_1,	    arg1_string,	// obsolete
-			ret_number_bool,    f_hlexists},
     {"histadd",		2, 2, FEARG_2,	    arg2_string,
 			ret_number_bool,    f_histadd},
     {"histdel",		1, 2, FEARG_1,	    arg2_string_string_or_number,
@@ -2489,8 +2477,6 @@ static const funcentry_T global_functions[] =
 			ret_list_string,    f_keys},
     {"keytrans",	1, 1, FEARG_1,	    arg1_string,
 			ret_string,	    f_keytrans},
-    {"last_buffer_nr",	0, 0, 0,	    NULL,	// obsolete
-			ret_number,	    f_last_buffer_nr},
     {"len",		1, 1, FEARG_1,	    arg1_len,
 			ret_number,	    f_len},
     {"libcall",		3, 3, FEARG_3,	    arg3_libcall,
@@ -8000,7 +7986,7 @@ f_haslocaldir(typval_T *argvars, typval_T *rettv)
 }
 
 /*
- * "highlightID(name)" function
+ * "hlID(name)" function
  */
     static void
 f_hlID(typval_T *argvars, typval_T *rettv)
@@ -8012,7 +7998,7 @@ f_hlID(typval_T *argvars, typval_T *rettv)
 }
 
 /*
- * "highlight_exists()" function
+ * "hlexists()" function
  */
     static void
 f_hlexists(typval_T *argvars, typval_T *rettv)
