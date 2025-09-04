@@ -35,104 +35,29 @@ SRC_ALL =	\
                 src/README.md \
                 src/alloc.h \
                 src/ascii.h \
-                src/autocmd.c \
-                src/beval.c \
-                src/beval.h \		src/channel.c \
-		src/charset.c \
-		src/cindent.c \
-                src/clientserver.c \
-                src/cmdexpand.c \
-                src/cmdhist.c \
-                src/crypt.c \
-                src/debugger.c \
-                src/dict.c \
-                src/diff.c \
-                src/digraph.c \
-		src/drawline.c \
-		src/edit.c \
+                src/beval.h \
 		src/errors.h \
-		src/eval.c \
-                src/evalbuffer.c \
-                src/evalvars.c \
-                src/evalwindow.c \
 		src/ex_cmdidxs.h \
 		src/ex_cmds.h \
-		src/ex_eval.c \
-		src/ex_getln.c \
 		src/feature.h \
-		src/filepath.c \
-		src/findfile.c \
-		src/float.c \
-		src/fold.c \
                 src/globals.h \
-                src/gui.c \
 		src/gui.h \
-		src/gui_beval.c \
-		src/hashtab.c \
-		src/help.c \
-		src/indent.c \
-		src/insexpand.c \
-                src/job.c \
                 src/keymap.h \
-		src/kword_test.c \
-		src/list.c \
-		src/locale.c \
-		src/logfile.c \
 		src/macros.h \
-		src/map.c \
-		src/mbyte.c \
-		src/memfile.c \
-                src/memfile_test.c \
-                src/memline.c \
                 src/rust/mem/Cargo.toml \
                 src/rust/mem/src/lib.rs \
-                src/menu.c \
-                src/misc1.c \
-                src/mouse.c \
-		src/move.c \
 		src/mysign \
-                src/normal.c \
                 src/nv_cmdidxs.h \
                 src/nv_cmds.h \
-                src/ops.c \
-		src/option.c \
 		src/option.h \
                 src/optiondefs.h \
-
-                src/profiler.c \
                 src/regexp.h \
-                src/register.c \
-                src/session.c \
-                src/sound.c \
-		src/spell.c \
                 src/spell.h \
-                src/strings.c \
                 src/structs.h \
-                src/syntax.c \
-                src/tag.c \
-                src/terminal.c \
 		src/termdefs.h \
-
-		src/termlib.c \
-                src/testing.c \
-                src/time.c \
-                src/tuple.c \
-		src/typval.c \
-		src/ui.c \
-                src/userfunc.c \
-		src/version.c \
 		src/version.h \
 		src/vim.h \
                 src/vim9.h \
-                src/vim9cmds.c \
-		src/vim9compile.c \
-		src/vim9execute.c \
-                src/vim9expr.c \
-                src/vim9generics.c \
-                src/vim9instr.c \
-                src/vim9script.c \
-                src/vim9type.c \
-                src/viminfo.c \
                 src/testdir/*.in \
                 src/testdir/*.py \
 		src/testdir/Make_all.mak \
@@ -170,8 +95,7 @@ SRC_ALL =	\
 		src/testdir/samples/test_undo.txt.undo \
 		src/testdir/samples/testa.zip \
 		src/testdir/sautest/autoload/*.vim \
-		src/testdir/silent.wav \
-		src/testdir/test77a.com \
+		src/testdir/silent.wav \om \
 		src/testdir/test77a.ok \
 		src/testdir/test[0-9]*.ok \
 		src/testdir/test_*.vim \
@@ -317,17 +241,10 @@ SRC_UNIX =	\
 		src/configure \
 		src/configure.ac \
                 src/create_cmdidxs.vim \
-                src/gui_gtk.c \
-		src/gui_gtk_f.c \
 		src/gui_gtk_f.h \
-		src/gui_gtk_x11.c \
 		src/gui_gtk_res.xml \
-		src/gui_motif.c \
-		src/gui_xmdlg.c \
-		src/gui_xmebw.c \
 		src/gui_xmebw.h \
 		src/gui_xmebwp.h \
-		src/gui_x11.c \
 		src/gui_x11_pm.h \
 		src/auto/wayland/README.txt \
 		src/auto/wayland/Makefile \
@@ -353,7 +270,6 @@ SRC_UNIX =	\
 		src/proto/gui_x11.pro \
 		src/proto/wayland.pro \
 		src/proto/pty.pro \
-		src/pty.c \
 		src/testdir/Makefile \
 		src/testdir/util/unix.vim \
 		src/toolcheck \
@@ -361,13 +277,11 @@ SRC_UNIX =	\
 		src/vim_mask.xbm \
 		src/vimtutor \
 		src/gvimtutor \
-		src/wayland.c \
 		src/which.sh \
 		src/gen-wayland-protocols.sh \
 
 # Source files for both MS Windows and Unix-like.
 SRC_DOS_UNIX =	\
-		src/gui_xim.c \
 		src/proto/gui_xim.pro \
 		src/typemap \
 
@@ -377,8 +291,7 @@ SRC_DOS =	\
 		src/GvimExt/*.mak \
 		src/GvimExt/GvimExt.reg \
 		src/GvimExt/Makefile \
-		src/GvimExt/README.txt \
-		src/GvimExt/gvimext.cpp \
+		src/GvimExt/README.txt \pp \
 		src/GvimExt/gvimext.def \
 		src/GvimExt/gvimext.h \
 		src/GvimExt/gvimext.inf \
@@ -402,10 +315,8 @@ SRC_DOS =	\
 		src/msvc2019.bat \
 		src/msvc2022.bat \
 		src/msys32.bat \
-		src/msys64.bat \
-                src/gui_dwrite.cpp \
+		src/msys64.bat \pp \
                 src/gui_dwrite.h \
-		src/gui_w32.c \
 		src/gui_w32_rc.h \
 		src/os_dos.h \
 		src/os_win32.h \
@@ -422,7 +333,6 @@ SRC_DOS =	\
 		src/tee/Make_ming.mak \
 		src/tee/Make_mvc.mak \
 		src/tee/Makefile \
-		src/tee/tee.c \
 		nsis/gvim.nsi \
 		nsis/gvim_version.nsh \
 		nsis/Makefile \
@@ -461,8 +371,7 @@ SRC_AMI =	\
 SRC_HAIKU =	\
 		README_haiku.txt \
 		src/os_haiku.h \
-		src/os_haiku.rdef.in \
-		src/gui_haiku.cc \
+		src/os_haiku.rdef.in \c \
 		src/gui_haiku.h \
 		src/proto/gui_haiku.pro \
 
@@ -475,7 +384,6 @@ SRC_MAC =	\
 
 # Source files for QNX (in the extra archive).
 SRC_QNX =	\
-                src/gui_photon.c \
                 src/proto/gui_photon.pro \
 
 # Source files for the extra archive (all sources that are not for Unix).
