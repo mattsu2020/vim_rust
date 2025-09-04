@@ -480,8 +480,9 @@ SRC_DOS =	\
                 src/testdir/util/dos.vim \
                 src/vim.rc \
                 src/vim.manifest \
-                src/vimrun.c \
-		src/xpm_w32.h \
+                rust_vimrun/Cargo.toml \
+                rust_vimrun/src/main.rs \
+                src/xpm_w32.h \
 		src/tee/Make_ming.mak \
 		src/tee/Make_mvc.mak \
 		src/tee/Makefile \

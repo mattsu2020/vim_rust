@@ -1302,9 +1302,9 @@ CFLAGS_INST = /nologo /O2 -DNDEBUG -DWIN32 -DWINVER=$(WINVER) \
 
 CFLAGS_INST = $(CFLAGS_INST) -DVIM_VERSION_PATCHLEVEL=$(PATCHLEVEL)
 
-vimrun.exe: vimrun.c
-        $(CC) /nologo -DNDEBUG vimrun.c -link -subsystem:$(SUBSYSTEM_TOOLS)
-
+vimrun.exe:
+	cargo build --release -p vimrun --target x86_64-pc-windows-gnu
+	cp target/x86_64-pc-windows-gnu/release/vimrun.exe .
 xxd/xxd.exe:
 	cd xxd
 	$(MAKE) -lf Make_mvc.mak $(MAKEFLAGS_TOOLS)
