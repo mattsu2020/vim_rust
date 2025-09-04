@@ -14,7 +14,6 @@
 #include "vim.h"
 
 #if defined(FEAT_EVAL) || defined(PROTO)
-#include "../rust_userfunc/include/rust_userfunc.h"
 /*
  * All user-defined functions are found in this hashtable.
  */
@@ -40,7 +39,6 @@ static char_u *trans_function_name_ext(char_u **pp, int *is_global, int skip, in
     void
 func_init(void)
 {
-    rust_func_init();
     hash_init(&func_hashtab);
 }
 
@@ -3598,7 +3596,6 @@ delete_script_functions(int sid)
     void
 free_all_functions(void)
 {
-    rust_func_deinit();
     hashitem_T	*hi;
     ufunc_T	*fp;
     long_u	skipped = 0;

@@ -2895,9 +2895,6 @@ dependencies = [
 [[package]]
 name = "rust_userfunc"
 version = "0.1.0"
-dependencies = [
- "rust_hashtab",
-]
 
 [[package]]
 name = "rust_version"
