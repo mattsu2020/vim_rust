@@ -16,6 +16,7 @@ int rs_op_change(oparg_T *oap);
 void rs_op_addsub(oparg_T *oap, long Prenum1, int g_cmd);
 void rs_op_colon(oparg_T *oap);
 void rs_op_function(oparg_T *oap);
+int rs_op_on_lines(int op);
 
 #ifdef __cplusplus
 }
