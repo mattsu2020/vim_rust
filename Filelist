@@ -89,9 +89,8 @@ SRC_ALL =	\
                 src/rust/mem/Cargo.toml \
                 src/rust/mem/src/lib.rs \
                 src/menu.c \
-		src/misc1.c \
-		src/misc2.c \
-		src/mouse.c \
+                src/misc1.c \
+                src/mouse.c \
 		src/move.c \
 		src/mysign \
                 src/normal.c \
