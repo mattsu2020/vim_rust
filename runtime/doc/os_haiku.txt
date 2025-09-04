@@ -224,6 +224,8 @@ Thank you, all!
 
 14. Bugs & to-do					*haiku-bugs*
 
+Clipboard integration is not implemented yet.
+
 The port is under development now and far away from the perfect state. For bug
 reports, patches and wishes, please use the Vim mailing list or Vim Github
 repository.
