@@ -2385,6 +2385,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_hardcopy"
+version = "0.1.0"
+dependencies = [
+ "rust_gui_core",
+ "rust_gui_gtk",
+ "rust_gui_haiku",
+ "rust_gui_motif",
+ "rust_gui_photon",
+ "rust_gui_w32",
+ "rust_gui_x11",
+]
+
+[[package]]
 name = "rust_hashtab"
 version = "0.1.0"
 dependencies = [
@@ -3481,6 +3494,7 @@ dependencies = [
  "rust_fold",
  "rust_fuzzy",
  "rust_gc",
+ "rust_hardcopy",
  "rust_job",
  "rust_message",
  "rust_netbeans",
