@@ -23,19 +23,7 @@ fn variant_name(name: &str) -> String {
 }
 
 fn main() {
-    println!("cargo:rerun-if-changed=../src/option_rs.h");
     println!("cargo:rerun-if-changed=../src/optiondefs.h");
-
-    // Generate the bindings for the FFI structures.
-    let bindings = bindgen::Builder::default()
-        .header("../src/option_rs.h")
-        .allowlist_type("rs_opt_t")
-        .allowlist_type("rs_opt_type")
-        .generate()
-        .expect("Unable to generate bindings");
-    bindings
-        .write_to_file("src/bindings.rs")
-        .expect("Couldn't write bindings!");
 
     // Parse option names from optiondefs.h to build a Rust table.
     let content = fs::read_to_string("../src/optiondefs.h").expect("failed to read optiondefs.h");
@@ -54,17 +42,11 @@ fn main() {
             let short = caps.get(2).unwrap().as_str().to_string();
             let flags = caps.get(3).unwrap().as_str();
             let (rs_kind, c_kind) = if flags.contains("P_BOOL") {
-                ("OptType::Bool", "crate::bindings::rs_opt_type_RS_OPT_BOOL")
+                ("OptType::Bool", "crate::rs_opt_type::RS_OPT_BOOL")
             } else if flags.contains("P_NUM") {
-                (
-                    "OptType::Number",
-                    "crate::bindings::rs_opt_type_RS_OPT_NUMBER",
-                )
+                ("OptType::Number", "crate::rs_opt_type::RS_OPT_NUMBER")
             } else {
-                (
-                    "OptType::String",
-                    "crate::bindings::rs_opt_type_RS_OPT_STRING",
-                )
+                ("OptType::String", "crate::rs_opt_type::RS_OPT_STRING")
             };
             let var = variant_name(&name);
             if seen.insert(var.clone()) {
@@ -78,7 +60,7 @@ fn main() {
                     name,
                     String::new(),
                     "OptType::String".to_string(),
-                    "crate::bindings::rs_opt_type_RS_OPT_STRING".to_string(),
+                    "crate::rs_opt_type::RS_OPT_STRING".to_string(),
                 ));
             }
         }
