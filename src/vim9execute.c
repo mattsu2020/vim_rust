@@ -7615,9 +7615,6 @@ list_instructions(char *pfx, isn_T *instr, int instr_count, ufunc_T *ufunc)
 			case JUMP_IF_FALSE:
 			    when = "JUMP_IF_FALSE";
 			    break;
-			case JUMP_WHILE_FALSE:
-			    when = "JUMP_WHILE_FALSE";  // unused
-			    break;
 			case JUMP_IF_COND_FALSE:
 			    when = "JUMP_IF_COND_FALSE";
 			    break;
