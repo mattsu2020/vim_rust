@@ -1,0 +1,12 @@
+[package]
+name = "rust_terminal"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rust_term = { path = "../rust_term" }
+rust_termlib = { path = "../rust_termlib" }
+
+[lib]
+name = "rust_terminal"
+crate-type = ["staticlib", "rlib"]
