@@ -9,3 +9,4 @@ crate-type = ["staticlib", "rlib"]
 
 [dependencies]
 tokio = { version = "1", features = ["net", "io-util", "rt", "macros"] }
+once_cell = "1"

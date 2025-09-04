@@ -229,13 +229,12 @@ msg_warn_missing_clipboard(void)
 {
     rs_queue_message("missing clipboard support", 1);
 }
-int
+void
 msg_outnum(long n)
 {
     char buf[64];
     snprintf(buf, sizeof(buf), "%ld", n);
     rs_queue_message(buf, 0);
-    return 0;
 }
 void
 emsg_invreg(int c)

@@ -203,6 +203,9 @@ void do_modelines(int flags);
 #  ifndef mch_free_acl
 #   define mch_free_acl(acl) ((void)0)
 #  endif
+#  ifndef mch_hide
+#   define mch_hide(name) (0)
+#  endif
 #  ifndef buf_setino
 #   define buf_setino(buf) ((void)0)
 #  endif

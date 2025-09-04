@@ -1,0 +1,14 @@
+[package]
+name = "rust_entry"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "rust_entry"
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+rust_bufwrite = { path = "../rust_bufwrite" }
+rust_vim9class = { path = "../rust_vim9class" }
+once_cell = "1"
+

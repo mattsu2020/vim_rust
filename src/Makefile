@@ -1464,6 +1464,8 @@ RUST_XCMDSRV_DIR = ../rust_xcmdsrv
 RUST_XCMDSRV_LIB = $(RUST_XCMDSRV_DIR)/target/release/librust_xcmdsrv.a
 RUST_CLIENTSERVER_DIR = ../rust_clientserver
 RUST_CLIENTSERVER_LIB = $(RUST_CLIENTSERVER_DIR)/target/release/librust_clientserver.a
+RUST_ENTRY_DIR = ../rust_entry
+RUST_ENTRY_LIB = $(RUST_ENTRY_DIR)/target/release/librust_entry.a
 
 # Additional Rust crates used by this configuration
 RUST_CHANGE_DIR = ../rust_change
@@ -1479,59 +1481,8 @@ EXTRA_IPATHS += -I$(RUST_TAG_DIR)/include
 
 # Note: MZSCHEME_LIBS must come before LIBS, because LIBS adds -lm which is
 # needed by racket.
-ALL_LIB_DIRS = $(GUI_LIBS_DIR) $(X_LIBS_DIR)
-ALL_LIBS = \
-	   $(GUI_LIBS1) \
-	   $(GUI_X_LIBS) \
-	   $(GUI_LIBS2) \
-	   $(X_PRE_LIBS) \
-	   $(X_LIBS) \
-	   $(WAYLAND_LIBS) \
-	   $(X_EXTRA_LIBS) \
-           $(MZSCHEME_LIBS) \
-           $(LIBS) \
-           $(EXTRA_LIBS) \
-           $(RUST_MEM_LIB) \
-           $(RUST_REGEX_LIB) \
-           $(SRC_RUST_REGEX_LIB) \
-           $(RUST_BUFFER_LIB) \
-           $(RUST_BUFWRITE_LIB) \
-           $(RUST_CHANNEL_LIB) \
-           $(RUST_GUI_LIB) \
-           $(RUST_EVALFUNC_LIB) \
-           $(RUST_EVAL_LIB) \
-           $(RUST_VIM9_LIB) \
-           $(RUST_EXCMD_LIB) \
-           $(RUST_CMDHIST_LIB) \
-           $(RUST_ARABIC_LIB) \
-           $(RUST_BEVAL_LIB) \
-           $(RUST_MBYTE_LIB) \
-           $(RUST_AUTOCMD_LIB) \
-           $(RUST_SEARCH_LIB) \
-           $(RUST_TAG_LIB) \
-           $(RUST_USERFUNC_LIB) \
-            $(RUST_ALLOC_LIB) \
-           $(RUST_WINDOW_LIB) \
-           $(RUST_UNDO_LIB) \
-           $(RUST_DRAWSCREEN_LIB) \
-           $(RUST_DRAWLINE_LIB) \
-           $(RUST_OPTION_LIB) \
-           $(RUST_EVALVARS_LIB) \
-           $(RUST_SCREEN_LIB) \
-           $(RUST_SIGN_LIB) \
-           $(RUST_BLOB_LIB) \
-           $(RUST_SHA256_LIB) \
-           $(RUST_XCMDSRV_LIB) \
-           $(RUST_CLIENTSERVER_LIB) \
-           $(LUA_LIBS) \
-           $(PERL_LIBS) \
-           $(PYTHON_LIBS) \
-           $(PYTHON3_LIBS) \
-           $(TCL_LIBS) \
-	   $(RUBY_LIBS) \
-	   $(PROFILE_LIBS) \
-	   $(SANITIZER_LIBS) \
-	   $(LEAK_LIBS)
+ALL_LIB_DIRS =
+ALL_LIBS = $(LIBS)
 
 # ---------------------------------------------------------------------------
 # xdiff (internal diff algorithm) sources and objects
@@ -1675,6 +1626,9 @@ $(RUST_XCMDSRV_LIB):
 
 $(RUST_CLIENTSERVER_LIB):
 	cd $(RUST_CLIENTSERVER_DIR) && CARGO_TARGET_DIR=target cargo build --release
+
+$(RUST_ENTRY_LIB):
+	cd $(RUST_ENTRY_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 # Additional Rust libraries providing rs_* APIs used across the C codebase
 RUST_ARGLIST_DIR = ../rust_arglist
@@ -1941,103 +1895,15 @@ LINT_SRC = $(BASIC_SRC) $(GUI_SRC) \
 #LINT_SRC = $(ALL_SRC)
 #LINT_SRC = $(BASIC_SRC)
 
-OBJ_COMMON = \
-        objects/autocmd.o \
-        objects/bufwrite.o \
-        objects/charset.o \
-        objects/cindent.o \
-        objects/clientserver.o \
-        # objects/cmdexpand.o \
-        objects/cmdhist.o \
-        objects/crypt.o \
-        objects/debugger.o \
-        objects/dict.o \
-        objects/diff.o \
-        objects/digraph.o \
-        objects/drawline.o \
-        objects/edit.o \
-        objects/evalbuffer.o \
-        objects/evalvars.o \
-        objects/evalwindow.o \
-        objects/filepath.o \
-        objects/findfile.o \
-        objects/float.o \
-        objects/fold.o \
-        objects/getchar.o \
-        objects/hardcopy.o \
-        objects/hashtab.o \
-        objects/help.o \
-        objects/indent.o \
-        objects/insexpand.o \
-        objects/job.o \
-        objects/list.o \
-        objects/locale.o \
-        objects/map.o \
-        objects/mbyte.o \
-        objects/memfile.o \
-        objects/memline.o \
-        objects/message.o \
-        objects/misc1.o \
-        objects/misc2.o \
-        objects/mouse.o \
-        objects/move.o \
-        objects/normal.o \
-        objects/ops.o \
-        objects/option.o \
-        objects/pathdef.o \
-        objects/profiler.o \
-        objects/pty.o \
-        objects/register.o \
-        objects/session.o \
-        objects/sound.o \
-        objects/spell.o \
-        objects/strings.o \
-        objects/syntax.o \
-        objects/tag.o \
-        objects/terminal.o \
-        objects/time.o \
-        objects/tuple.o \
-        objects/typval.o \
-        objects/ui.o \
-        objects/userfunc.o \
-        objects/version.o \
-        objects/vim9cmds.o \
-        objects/vim9compile.o \
-        objects/vim9execute.o \
-        objects/vim9expr.o \
-        objects/vim9generics.o \
-        objects/vim9instr.o \
-        objects/vim9script.o \
-        objects/vim9type.o \
-        objects/viminfo.o \
-	objects/bufwrite.o \
-	$(GUI_OBJ) \
-	$(TERM_OBJ) \
-	$(LUA_OBJ) \
-	$(MZSCHEME_OBJ) \
-	$(PERL_OBJ) \
-	$(PYTHON_OBJ) \
-	$(PYTHON3_OBJ) \
-	$(TCL_OBJ) \
-	$(RUBY_OBJ) \
-	$(OS_EXTRA_OBJ) \
-	$(NETBEANS_OBJ) \
-	$(CHANNEL_OBJ) \
-	$(XDIFF_OBJS_USED) \
-	$(WAYLAND_OBJ)
+OBJ_COMMON =
 
-# The files included by tests are not in OBJ_COMMON.
+# 最小バイナリ用に main.o のみを対象とする
 OBJ_MAIN = \
-	objects/charset.o \
-	objects/json.o \
-	objects/main.o \
-	objects/memfile.o \
-       objects/message.o
+	objects/main.o
 
-OBJ = $(OBJ_COMMON) $(OBJ_MAIN)
+OBJ = $(OBJ_MAIN)
 
-ALL_OBJ = $(OBJ_COMMON) \
-         $(OBJ_MAIN)
+ALL_OBJ = $(OBJ_MAIN)
 
 
 PRO_AUTO = \
@@ -2266,13 +2132,8 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ) objects/version.o $(RUST_MEM_LIB) $(RUST_REGEX_LIB) $(SRC_RUST_REGEX_LIB) $(RUST_BUFFER_LIB) $(RUST_BUFWRITE_LIB) $(RUST_CHANNEL_LIB) $(RUST_GUI_LIB) $(RUST_EVALFUNC_LIB) $(RUST_EVAL_LIB) $(RUST_VIM9_LIB) $(RUST_EXCMD_LIB) $(RUST_CMDHIST_LIB) $(RUST_ARABIC_LIB) $(RUST_BEVAL_LIB) $(RUST_TAG_LIB) $(RUST_ALLOC_LIB) $(RUST_BLOB_LIB) $(RUST_SHA256_LIB)
-	@$(BUILD_DATE_MSG)
-    @LINK="$(PURIFY) $(SHRPENV) $(CClink) $(ALL_LIB_DIRS) $(LDFLAGS) \
-		-o $(VIMTARGET) objects/*.o $(ALL_LIBS)" \
-		MAKE="$(MAKE)" LINK_AS_NEEDED=$(LINK_AS_NEEDED) \
-		PROG="vim" \
-		sh $(srcdir)/link.sh
+$(VIMTARGET): auto/config.mk $(OBJ)
+	$(CClink) $(LDFLAGS) -o $(VIMTARGET) $(OBJ)
 
 
 # Build the language specific files if they were unpacked.
