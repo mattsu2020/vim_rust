@@ -49,6 +49,7 @@ blowfish = "0.8"
 pbkdf2 = "0.12"
 ring = "0.17"
 rust_vim9class = { path = "rust_vim9class" }
+rust_netbeans = { path = "rust_netbeans" }
 
 [features]
 default = []

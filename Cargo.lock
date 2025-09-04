@@ -2503,6 +2503,14 @@ name = "rust_move"
 version = "0.1.0"
 
 [[package]]
+name = "rust_netbeans"
+version = "0.1.0"
+dependencies = [
+ "once_cell",
+ "tokio",
+]
+
+[[package]]
 name = "rust_normal"
 version = "0.1.0"
 
@@ -3458,6 +3466,7 @@ dependencies = [
  "rust_gc",
  "rust_job",
  "rust_message",
+ "rust_netbeans",
  "rust_os_amiga",
  "rust_os_qnx",
  "rust_os_unix",

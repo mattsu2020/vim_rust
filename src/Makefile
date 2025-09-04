@@ -1884,7 +1884,7 @@ SRC =	$(BASIC_SRC) \
 
 EXTRA_SRC = if_lua.c if_mzsch.c auto/if_perl.c if_perlsfio.c \
            if_tcl.c if_ruby.c \
-           gui_beval.c netbeans.c job.c channel.c \
+           gui_beval.c job.c channel.c \
             $(GRESOURCE_SRC)
 
 $(WAYLAND_SRC):
@@ -2115,7 +2115,6 @@ PRO_AUTO = \
 	misc2.pro \
 	mouse.pro \
 	move.pro \
-	netbeans.pro \
 	normal.pro \
 	ops.pro \
 	option.pro \
@@ -3655,9 +3654,6 @@ objects/xdg-shell.o: auto/wayland/xdg-shell.c
 objects/primary-selection-unstable-v1.o: auto/wayland/primary-selection-unstable-v1.c
 	$(CCC) $(WAYLAND_CFLAGS) $(WAYLAND_CPPFLAGS) -o $@ auto/wayland/primary-selection-unstable-v1.c
 
-objects/netbeans.o: netbeans.c
-	$(CCC) -o $@ netbeans.c
-
 objects/channel.o: channel.c
 	$(CCC) -o $@ channel.c
 
@@ -4340,11 +4336,6 @@ objects/gui_beval.o: gui_beval.c vim.h protodef.h auto/config.h feature.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h errors.h
-objects/netbeans.o: netbeans.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h version.h
 objects/job.o: job.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \

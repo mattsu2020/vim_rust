@@ -9008,9 +9008,9 @@ fi
 if test "$enable_netbeans" = "yes"; then
   printf "%s\n" "#define FEAT_NETBEANS_INTG 1" >>confdefs.h
 
-  NETBEANS_SRC="netbeans.c"
+  NETBEANS_SRC=""
 
-  NETBEANS_OBJ="objects/netbeans.o"
+  NETBEANS_OBJ=""
 
 fi
 if test "$enable_channel" = "yes"; then

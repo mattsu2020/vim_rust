@@ -656,11 +656,6 @@ ifeq ($(NETBEANS),yes)
  ifeq (yes, $(GUI))
 DEFINES += -DFEAT_NETBEANS_INTG
 
-  ifeq ($(NBDEBUG), yes)
-DEFINES += -DNBDEBUG
-NBDEBUG_INCL = nbdebug.h
-NBDEBUG_SRC = nbdebug.c
-  endif
  endif
 endif
 
@@ -926,7 +921,6 @@ NETBEANS=no
 # Cannot use Netbeans without GUI.
 NETBEANS=no
  else
-OBJ += $(OUTDIR)/netbeans.o
  endif
 endif
 
@@ -1214,7 +1208,7 @@ nvcmdidxs: nv_cmds.h
 ###########################################################################
 INCL =	vim.h alloc.h ascii.h ex_cmds.h feature.h errors.h globals.h \
 	keymap.h macros.h option.h os_dos.h os_win32.h proto.h regexp.h \
-	spell.h structs.h termdefs.h beval.h $(NBDEBUG_INCL)
+   spell.h structs.h termdefs.h beval.h
 GUI_INCL = gui.h
 ifeq ($(DIRECTX),yes)
 GUI_INCL += gui_dwrite.h
@@ -1272,8 +1266,6 @@ $(OUTDIR)/hardcopy.o: hardcopy.c $(INCL) version.h
 $(OUTDIR)/misc1.o: misc1.c $(INCL) version.h
 
 $(OUTDIR)/normal.o: normal.c $(INCL) nv_cmdidxs.h nv_cmds.h
-
-$(OUTDIR)/netbeans.o: netbeans.c $(INCL) version.h
 
 $(OUTDIR)/version.o: version.c $(INCL) version.h
 
@@ -1347,8 +1339,6 @@ $(OUTDIR)/iscygpty.o:	iscygpty.c $(CUI_INCL)
 $(OUTDIR)/main.o:	main.c $(INCL) $(CUI_INCL)
 	$(CC) -c $(CFLAGS) main.c -o $@
 
-$(OUTDIR)/netbeans.o:	netbeans.c $(INCL) $(NBDEBUG_INCL) $(NBDEBUG_SRC)
-	$(CC) -c $(CFLAGS) netbeans.c -o $@
 
 $(OUTDIR)/os_w32exec.o:	os_w32exe.c $(INCL)
 	$(CC) -c $(CFLAGS) -UFEAT_GUI_MSWIN $(EXECFLAGS) os_w32exe.c -o $@
