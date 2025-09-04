@@ -21,9 +21,8 @@
 extern void rs_ui_write(char *msg, int len);
 
     void
-ui_write(char_u *s, int len, int console UNUSED)
+ui_write(char_u *s, int len)
 {
-    (void)console;
     rs_ui_write((char *)s, len);
 }
 
@@ -866,7 +865,7 @@ trash_input_buf(void)
 read_from_input_buf(char_u *buf, long maxlen)
 {
     if (inbufcount == 0)	// if the buffer is empty, fill it
-	fill_input_buf(TRUE);
+	fill_input_buf();
     if (maxlen > inbufcount)
 	maxlen = inbufcount;
     mch_memmove(buf, inbuf, (size_t)maxlen);
@@ -878,7 +877,7 @@ read_from_input_buf(char_u *buf, long maxlen)
 }
 
     void
-fill_input_buf(int exit_on_error UNUSED)
+fill_input_buf(void)
 {
 #if defined(UNIX) || defined(VMS) || defined(MACOS_X)
     int		len;

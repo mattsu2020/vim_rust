@@ -1,5 +1,5 @@
 /* ui.c */
-void ui_write(char_u *s, int len, int console);
+void ui_write(char_u *s, int len);
 void ui_inchar_undo(char_u *s, int len);
 int ui_inchar(char_u *buf, int maxlen, long wtime, int tb_change_cnt);
 int inchar_loop(char_u *buf, int maxlen, long wtime, int tb_change_cnt, int (*wait_func)(long wtime, int *interrupted, int ignore_input), int (*resize_func)(int check_only));
@@ -24,7 +24,7 @@ void add_to_input_buf(char_u *s, int len);
 void add_to_input_buf_csi(char_u *str, int len);
 void trash_input_buf(void);
 int read_from_input_buf(char_u *buf, long maxlen);
-void fill_input_buf(int exit_on_error);
+void fill_input_buf(void);
 void read_error_exit(void);
 void ui_cursor_shape_forced(int forced);
 void ui_cursor_shape(void);
