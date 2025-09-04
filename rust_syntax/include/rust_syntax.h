@@ -13,6 +13,8 @@ int rs_eval_line(const char *line);
 void rs_add_rule(int id, const char *pattern);
 void rs_clear_rules(void);
 
+#define HL_MATCHCONT 0x8000
+
 #ifdef __cplusplus
 }
 #endif
