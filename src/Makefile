@@ -1223,39 +1223,33 @@ LINKIT = @echo >/dev/null
 # Without a GUI install the normal way.
 NONE_INSTALL = install_normal
 
-### GTK GUI
-GTK_SRC		= gui.c gui_gtk.c gui_gtk_x11.c gui_gtk_f.c \
-			gui_beval.c $(GRESOURCE_SRC)
-GTK_OBJ		= objects/gui.o objects/gui_gtk.o objects/gui_gtk_x11.o \
-			objects/gui_gtk_f.o \
-			objects/gui_beval.o $(GRESOURCE_OBJ)
-GTK_DEFS	= -DFEAT_GUI_GTK $(NARROW_PROTO)
-GTK_IPATH	= $(GUI_INC_LOC)
-GTK_LIBS_DIR	= $(GUI_LIB_LOC)
-GTK_LIBS1	=
-GTK_LIBS2	= $(GTK_LIBNAME)
-GTK_INSTALL     = install_normal install_gui_extra
-GTK_TARGETS	= installglinks
-GTK_MAN_TARGETS = yes
-GTK_TESTTARGET  = gui
-GTK_BUNDLE	=
+### GTK GUI now implemented via the `rust_gui_gtk` crate
+GTK_SRC         =
+GTK_OBJ         =
+GTK_DEFS        =
+GTK_IPATH       =
+GTK_LIBS_DIR    =
+GTK_LIBS1       =
+GTK_LIBS2       =
+GTK_INSTALL     =
+GTK_TARGETS     =
+GTK_MAN_TARGETS =
+GTK_TESTTARGET  =
+GTK_BUNDLE      =
 
-### Motif GUI
-MOTIF_SRC	= gui.c gui_motif.c gui_x11.c gui_beval.c \
-			gui_xmdlg.c gui_xmebw.c
-MOTIF_OBJ	= objects/gui.o objects/gui_motif.o objects/gui_x11.o \
-			objects/gui_beval.o \
-			objects/gui_xmdlg.o objects/gui_xmebw.o
-MOTIF_DEFS	= -DFEAT_GUI_MOTIF $(NARROW_PROTO)
-MOTIF_IPATH	= $(GUI_INC_LOC)
-MOTIF_LIBS_DIR	= $(GUI_LIB_LOC)
-MOTIF_LIBS1	=
-MOTIF_LIBS2	= $(MOTIF_LIBNAME) -lXt
-MOTIF_INSTALL   = install_normal install_gui_extra
-MOTIF_TARGETS	= installglinks
-MOTIF_MAN_TARGETS = yes
-MOTIF_TESTTARGET = gui
-MOTIF_BUNDLE	=
+### Motif GUI handled by `rust_gui_motif`
+MOTIF_SRC       =
+MOTIF_OBJ       =
+MOTIF_DEFS      =
+MOTIF_IPATH     =
+MOTIF_LIBS_DIR  =
+MOTIF_LIBS1     =
+MOTIF_LIBS2     =
+MOTIF_INSTALL   =
+MOTIF_TARGETS   =
+MOTIF_MAN_TARGETS =
+MOTIF_TESTTARGET =
+MOTIF_BUNDLE    =
 
 ### (J)  Sun OpenWindows 3.2 (SunOS 4.1.x) or earlier that produce these ld
 #	 errors:  ld: Undefined symbol
@@ -1268,37 +1262,37 @@ MOTIF_BUNDLE	=
 # too:
 #EXTRA_LIBS = /usr/openwin/lib/libXmu.sa -lm
 
-# PHOTON GUI
-PHOTONGUI_SRC	= gui.c gui_photon.c
-PHOTONGUI_OBJ	= objects/gui.o objects/gui_photon.o
-PHOTONGUI_DEFS	= -DFEAT_GUI_PHOTON
-PHOTONGUI_IPATH	=
+# PHOTON GUI now handled by `rust_gui_photon`
+PHOTONGUI_SRC   =
+PHOTONGUI_OBJ   =
+PHOTONGUI_DEFS  =
+PHOTONGUI_IPATH =
 PHOTONGUI_LIBS_DIR =
-PHOTONGUI_LIBS1	= -lph -lphexlib
-PHOTONGUI_LIBS2	=
-PHOTONGUI_INSTALL = install_normal install_gui_extra
-PHOTONGUI_TARGETS = installglinks
-PHOTONGUI_MAN_TARGETS = yes
-PHOTONGUI_TESTTARGET = gui
+PHOTONGUI_LIBS1 =
+PHOTONGUI_LIBS2 =
+PHOTONGUI_INSTALL =
+PHOTONGUI_TARGETS =
+PHOTONGUI_MAN_TARGETS =
+PHOTONGUI_TESTTARGET =
 PHOTONGUI_BUNDLE =
 
-### Haiku GUI
-HAIKUGUI_SRC	= gui.c gui_haiku.cc
-HAIKUGUI_OBJ	= objects/gui.o objects/gui_haiku.o
-HAIKUGUI_DEFS	= -DFEAT_GUI_HAIKU
-HAIKUGUI_IPATH	=
+### Haiku GUI handled by `rust_gui_haiku`
+HAIKUGUI_SRC    =
+HAIKUGUI_OBJ    =
+HAIKUGUI_DEFS   =
+HAIKUGUI_IPATH  =
 HAIKUGUI_LIBS_DIR =
-HAIKUGUI_LIBS1	= -lbe -lroot -ltracker -ltranslation -lsupc++ -lstdc++
-HAIKUGUI_LIBS2	=
-HAIKUGUI_INSTALL = install_normal install_haiku_extra
-HAIKUGUI_TARGETS	= installglinks_haiku
+HAIKUGUI_LIBS1  =
+HAIKUGUI_LIBS2  =
+HAIKUGUI_INSTALL =
+HAIKUGUI_TARGETS        =
 HAIKUGUI_MAN_TARGETS =
-HAIKUGUI_TESTTARGET = gui
+HAIKUGUI_TESTTARGET =
 HAIKUGUI_BUNDLE =
 
-# All GUI files
-ALL_GUI_SRC  = gui.c gui_rust.c gui_gtk.c gui_gtk_f.c gui_motif.c gui_xmdlg.c gui_xmebw.c gui_gtk_x11.c gui_x11.c gui_haiku.cc
-ALL_GUI_PRO  = gui.pro gui_rust.pro gui_gtk.pro gui_motif.pro gui_xmdlg.pro gui_gtk_x11.pro gui_x11.pro gui_w32.pro gui_photon.pro
+# All GUI files now provided by Rust crates
+ALL_GUI_SRC  =
+ALL_GUI_PRO  =
 
 # }}}
 
