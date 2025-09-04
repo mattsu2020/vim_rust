@@ -1,3 +1,4 @@
+use core::ffi::c_void;
 use libc::{c_char, c_int};
 use std::collections::VecDeque;
 use std::ffi::{CStr, CString};
@@ -35,6 +36,10 @@ static MSG_QUEUE: LazyLock<Mutex<VecDeque<QueuedMsg>>> =
 
 // Last error message recorded, if any.
 static LAST_ERROR: LazyLock<Mutex<Option<CString>>> = LazyLock::new(|| Mutex::new(None));
+
+extern "C" {
+    fn vsnprintf(s: *mut c_char, n: usize, fmt: *const c_char, ap: *mut c_void) -> c_int;
+}
 
 // Very small translation table for demonstration purposes.
 fn translate(msg: &str) -> String {
@@ -76,13 +81,26 @@ fn enqueue_message(text: CString, level: LogLevel) {
     });
 }
 
-/// Enqueue a message with the given log level.
+/// Enqueue a NUL-terminated string with the given log level.
 #[no_mangle]
-pub unsafe extern "C" fn rs_queue_message(msg: *const c_char, level: c_int) {
+pub unsafe extern "C" fn rs_msg_cstr(msg: *const c_char, level: c_int) {
     if msg.is_null() {
         return;
     }
     let cstr = CStr::from_ptr(msg);
+    enqueue_message(cstr.to_owned(), LogLevel::from(level));
+}
+
+/// Format a message using a `va_list` and enqueue it.
+#[no_mangle]
+pub unsafe extern "C" fn rs_msg_vprintf(level: c_int, fmt: *const c_char, ap: *mut c_void) {
+    if fmt.is_null() {
+        return;
+    }
+    let mut buf = [0 as c_char; 2048];
+    // SAFETY: `ap` comes from a C caller and is valid for `vsnprintf`.
+    vsnprintf(buf.as_mut_ptr(), buf.len(), fmt, ap);
+    let cstr = CStr::from_ptr(buf.as_ptr());
     enqueue_message(cstr.to_owned(), LogLevel::from(level));
 }
 
@@ -148,7 +166,7 @@ mod tests {
             rs_clear_messages();
             std::env::set_var("LANG", "ja_JP.UTF-8");
             let msg = CString::new("Hello").unwrap();
-            rs_queue_message(msg.as_ptr(), LogLevel::Info as c_int);
+            rs_msg_cstr(msg.as_ptr(), LogLevel::Info as c_int);
             let mut lvl = -1;
             let ptr = rs_pop_message(&mut lvl as *mut c_int);
             let rust_str = CStr::from_ptr(ptr).to_str().unwrap().to_string();
@@ -159,7 +177,7 @@ mod tests {
             rs_clear_messages();
             std::env::set_var("LANG", "C");
             let err = CString::new("failure").unwrap();
-            rs_queue_message(err.as_ptr(), LogLevel::Error as c_int);
+            rs_msg_cstr(err.as_ptr(), LogLevel::Error as c_int);
             let mut lvl2 = -1;
             let ptr2 = rs_pop_message(&mut lvl2 as *mut c_int);
             let last_err = CStr::from_ptr(rs_get_last_error()).to_str().unwrap();
@@ -194,7 +212,7 @@ mod tests {
             let saved = libc::dup(libc::STDERR_FILENO);
             libc::dup2(fd, libc::STDERR_FILENO);
             let msg = CString::new("warn").unwrap();
-            rs_queue_message(msg.as_ptr(), LogLevel::Warn as c_int);
+            rs_msg_cstr(msg.as_ptr(), LogLevel::Warn as c_int);
             libc::fflush(std::ptr::null_mut());
             libc::dup2(saved, libc::STDERR_FILENO);
             libc::close(saved);

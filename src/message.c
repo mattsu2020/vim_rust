@@ -4,22 +4,15 @@
 #include <string.h>
 
 // FFI bridge to Rust message handling
-extern void rs_queue_message(char *msg, int level);
-
-static void
-send_formatted(int level, const char *fmt, va_list ap)
-{
-    char buf[2048];
-    vsnprintf(buf, sizeof(buf), fmt, ap);
-    rs_queue_message(buf, level);
-}
+extern void rs_msg_cstr(const char *msg, int level);
+extern void rs_msg_vprintf(int level, const char *fmt, va_list ap);
 
 int
 smsg(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    send_formatted(0, fmt, ap);
+    rs_msg_vprintf(0, fmt, ap);
     va_end(ap);
     return 0;
 }
@@ -29,7 +22,7 @@ semsg(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    send_formatted(2, fmt, ap);
+    rs_msg_vprintf(2, fmt, ap);
     va_end(ap);
     return 0;
 }
@@ -39,7 +32,7 @@ siemsg(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    send_formatted(2, fmt, ap);
+    rs_msg_vprintf(2, fmt, ap);
     va_end(ap);
 }
 
@@ -47,21 +40,21 @@ void
 emsg(const char_u *msg)
 {
     if (msg != NULL)
-        rs_queue_message((char *)msg, 2);
+        rs_msg_cstr((char *)msg, 2);
 }
 
 void
 msg_putchar(int c)
 {
     char buf[2] = { (char)c, '\0' };
-    rs_queue_message(buf, 0);
+    rs_msg_cstr(buf, 0);
 }
 
 void
 msg_puts(const char *s)
 {
     if (s != NULL)
-        rs_queue_message((char *)s, 0);
+        rs_msg_cstr((char *)s, 0);
 }
 
 void
@@ -75,14 +68,14 @@ void
 msg_puts_title(const char *s)
 {
     if (s != NULL)
-        rs_queue_message((char *)s, 0);
+        rs_msg_cstr((char *)s, 0);
 }
 
 void
 msg_outtrans(char_u *s)
 {
     if (s != NULL)
-        rs_queue_message((char *)s, 0);
+        rs_msg_cstr((char *)s, 0);
 }
 
 int
@@ -91,7 +84,7 @@ msg_outtrans_attr(char_u *s, int attr)
     (void)attr;
     if (s == NULL)
         return 0;
-    rs_queue_message((char *)s, 0);
+    rs_msg_cstr((char *)s, 0);
     return (int)strlen((const char *)s);
 }
 
@@ -100,7 +93,7 @@ msg_outtrans_long_attr(char *s, int attr)
 {
     (void)attr;
     if (s != NULL)
-        rs_queue_message(s, 0);
+        rs_msg_cstr(s, 0);
     return s;
 }
 
@@ -109,14 +102,14 @@ give_warning(char_u *msg, int hl)
 {
     (void)hl;
     if (msg != NULL)
-        rs_queue_message((char *)msg, 1);
+        rs_msg_cstr((char *)msg, 1);
 }
 
 int
 msg(char_u *s)
 {
     if (s != NULL)
-        rs_queue_message((char *)s, 0);
+        rs_msg_cstr((char *)s, 0);
     return 0;
 }
 
@@ -125,14 +118,14 @@ msg_prt_line(char_u *s, int list)
 {
     (void)list;
     if (s != NULL)
-        rs_queue_message((char *)s, 0);
+        rs_msg_cstr((char *)s, 0);
 }
 
 void
 verb_msg(char *s)
 {
     if (s != NULL)
-        rs_queue_message(s, 0);
+        rs_msg_cstr(s, 0);
 }
 
 // Basic implementations for previously empty stubs -----------------------
@@ -141,7 +134,7 @@ void
 msg_clr_eos(void)
 {
     // Use a simple ANSI escape sequence to clear to the end of the screen.
-    rs_queue_message("\033[J", 0);
+    rs_msg_cstr("\033[J", 0);
 }
 
 // Mark the start of a message.  For this minimal implementation we only
@@ -227,14 +220,14 @@ verbose_leave_scroll(void)
 void
 msg_warn_missing_clipboard(void)
 {
-    rs_queue_message("missing clipboard support", 1);
+    rs_msg_cstr("missing clipboard support", 1);
 }
 int
 msg_outnum(long n)
 {
     char buf[64];
     snprintf(buf, sizeof(buf), "%ld", n);
-    rs_queue_message(buf, 0);
+    rs_msg_cstr(buf, 0);
     return 0;
 }
 void
@@ -242,13 +235,13 @@ emsg_invreg(int c)
 {
     char buf[64];
     snprintf(buf, sizeof(buf), "Invalid register: %c", c);
-    rs_queue_message(buf, 2);
+    rs_msg_cstr(buf, 2);
 }
 void
 internal_error(const char *where)
 {
     if (where)
-        rs_queue_message((char *)where, 2);
+        rs_msg_cstr((char *)where, 2);
 }
 void
 internal_error_no_abort(const char *where)
@@ -265,7 +258,7 @@ void
 iemsg(const char *s)
 {
     if (s)
-        rs_queue_message((char *)s, 2);
+        rs_msg_cstr((char *)s, 2);
 }
 void
 wait_return(int redraw)
@@ -280,7 +273,7 @@ vim_dialog_yesno(int type, char_u *title, char_u *message, int buttons)
     (void)title;
     (void)buttons;
     if (message)
-        rs_queue_message((char *)message, 0);
+        rs_msg_cstr((char *)message, 0);
     return VIM_YES;
 }
 void
@@ -308,7 +301,7 @@ do_dialog(int type,
     (void)textfield;
     (void)ex_cmd;
     if (message)
-        rs_queue_message((char *)message, 0);
+        rs_msg_cstr((char *)message, 0);
     return dfltbutton <= 0 ? 1 : dfltbutton;
 }
 char_u *

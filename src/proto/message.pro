@@ -46,10 +46,10 @@ char_u *str2special_save(char_u *src, int do_special, int keep_screen_char);
 void msg_source(int attr);
 void windgoto(int row, int col);
 /* Optional Rust helpers if available */
-char *rs_pop_message(int *level);
-void rs_queue_message(char *msg, int level);
-void rs_ui_write(char *msg, int len);
-char *rs_get_last_error(void);
-void rs_clear_messages(void);
-void rs_free_cstring(char *s);
+ char *rs_pop_message(int *level);
+ void rs_msg_cstr(char *msg, int level);
+ void rs_ui_write(char *msg, int len);
+ char *rs_get_last_error(void);
+ void rs_clear_messages(void);
+ void rs_free_cstring(char *s);
 /* vim: set ft=c : */
