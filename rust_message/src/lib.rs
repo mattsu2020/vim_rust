@@ -1,4 +1,5 @@
 use libc::{c_char, c_int};
+use rust_log::{ch_error, ch_log};
 use std::collections::VecDeque;
 use std::ffi::{CStr, CString};
 use std::io::Write;
@@ -56,6 +57,7 @@ fn enqueue_message(text: CString, level: LogLevel) {
         Ok(cs) => cs,
         Err(_) => return,
     };
+    let log_str = cstring.to_string_lossy().into_owned();
     if level == LogLevel::Error {
         *LAST_ERROR.lock().unwrap() = Some(cstring.clone());
     }
@@ -69,6 +71,18 @@ fn enqueue_message(text: CString, level: LogLevel) {
     let _ = stderr.write_all(prefix.as_bytes());
     let _ = stderr.write_all(cstring.as_bytes());
     let _ = stderr.write_all(b"\n");
+    // Mirror to channel log.
+    match level {
+        LogLevel::Error => {
+            let _ = ch_error(&log_str);
+        }
+        LogLevel::Warn => {
+            let _ = ch_log(&format!("W: {}", log_str));
+        }
+        LogLevel::Info => {
+            let _ = ch_log(&log_str);
+        }
+    }
 
     MSG_QUEUE.lock().unwrap().push_back(QueuedMsg {
         text: cstring,
@@ -85,7 +99,6 @@ pub unsafe extern "C" fn rs_queue_message(msg: *const c_char, level: c_int) {
     let cstr = CStr::from_ptr(msg);
     enqueue_message(cstr.to_owned(), LogLevel::from(level));
 }
-
 
 /// Pop the next queued message.  Returns a newly allocated C string that must be
 /// freed with `rs_free_cstring`.  When `level` is not NULL the log level is
@@ -179,6 +192,18 @@ mod tests {
             let mut out = String::new();
             reader.read_to_string(&mut out).unwrap();
             assert_eq!(out, "W: warn\n");
+        }
+    }
+    #[test]
+    fn writes_to_logfile() {
+        unsafe {
+            rs_clear_messages();
+            let file = tempfile::NamedTempFile::new().unwrap();
+            rust_log::ch_logfile(file.path().to_str().unwrap(), "w").unwrap();
+            let msg = CString::new("logged").unwrap();
+            rs_queue_message(msg.as_ptr(), LogLevel::Error as c_int);
+            let content = std::fs::read_to_string(file.path()).unwrap();
+            assert!(content.contains("ERR logged"));
         }
     }
 }
