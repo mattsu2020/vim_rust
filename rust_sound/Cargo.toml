@@ -1,0 +1,13 @@
+[package]
+name = "rust_sound"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+libc = "0.2"
+once_cell = "1"
+rodio = { version = "0.17", default-features = true }
+
+[lib]
+name = "rust_sound"
+crate-type = ["staticlib", "rlib"]
