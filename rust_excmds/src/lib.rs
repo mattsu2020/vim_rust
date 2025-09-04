@@ -96,19 +96,42 @@ pub extern "C" fn do_one_cmd(
         if cmdline.is_null() || *cmdline == 0 {
             return ptr::null_mut();
         }
+        // Find the end of the command, delimited by '|' or '\n'.
         let mut p = cmdline;
         while *p != 0 && *p != b'|' && *p != b'\n' {
             p = p.add(1);
         }
-        if *p == 0 {
-            *cmdlinep = p;
-            ptr::null_mut()
-        } else {
+
+        // Separate the current command from the rest of the line.
+        let mut next = ptr::null_mut();
+        if *p != 0 {
             *p = 0;
             p = p.add(1);
-            *cmdlinep = p;
-            p
+            next = p;
         }
+        *cmdlinep = next;
+
+        // Skip leading whitespace.
+        let mut start = cmdline;
+        while *start == b' ' || *start == b'\t' {
+            start = start.add(1);
+        }
+
+        // Isolate the command name.
+        let mut end = start;
+        while *end != 0 && *end != b' ' && *end != b'\t' {
+            end = end.add(1);
+        }
+        let save = *end;
+        *end = 0;
+
+        // Execute the command if it exists in the table.
+        rs_cmd_execute(start as *const c_char);
+
+        // Restore the character after the command name.
+        *end = save;
+
+        next
     }
 }
 

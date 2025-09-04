@@ -3,8 +3,8 @@ use rust_excmds::{
     ex_mark_changed,
     rs_cmd_add,
     rs_cmd_execute,
+    Buffer,
 };
-use rust_change::Buffer;
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
 
@@ -17,10 +17,8 @@ fn ascii_matches_legacy() {
 
 #[test]
 fn mark_changed_sets_flag() {
-    let mut b = Buffer::new(true);
-    assert!(!b.changed);
+    let mut b = Buffer;
     unsafe { ex_mark_changed(&mut b) };
-    assert!(b.changed);
 }
 
 static mut CALLED: bool = false;

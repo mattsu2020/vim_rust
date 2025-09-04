@@ -68,6 +68,14 @@ pub extern "C" fn rs_exeval_execute(line: *const c_char) -> c_int {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rust_excmds::rs_cmd_add;
+    use std::os::raw::c_char;
+
+    static mut CALLED: i32 = 0;
+
+    unsafe extern "C" fn dummy() {
+        CALLED += 1;
+    }
 
     #[test]
     fn execute_non_empty() {
@@ -83,5 +91,21 @@ mod tests {
     fn eval_multiple_lines() {
         let cmds = vec!["cmd1".to_string(), "cmd2".to_string()];
         assert!(eval_from_iter(cmds).is_ok());
+    }
+
+    #[test]
+    fn executes_registered_command() {
+        unsafe { CALLED = 0 };
+        rs_cmd_add(b"dummy\0".as_ptr() as *const c_char, dummy);
+        assert!(execute_command("dummy").is_ok());
+        assert_eq!(unsafe { CALLED }, 1);
+    }
+
+    #[test]
+    fn executes_multiple_commands() {
+        unsafe { CALLED = 0 };
+        rs_cmd_add(b"dummy\0".as_ptr() as *const c_char, dummy);
+        assert!(execute_command("dummy|dummy").is_ok());
+        assert_eq!(unsafe { CALLED }, 2);
     }
 }
