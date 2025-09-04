@@ -217,7 +217,6 @@ void mbyte_im_set_active(int active_arg);
 /* testing.c もビルド対象外のため除外 */
 /* # include "testing.pro" */
 # include "textobject.pro"
-# include "textformat.pro"
 # include "time.pro"
 # include "tuple.pro"
 # include "typval.pro"

@@ -84,7 +84,7 @@ syntax.c	| syntax and other highlighting
 tag.c		| tags
 term.c		| terminal handling, termcap codes
 testing.c	| testing: assert and test functions
-textformat.c	| text formatting
+rust_textformat/ | text formatting
 textobject.c	| text objects
 textprop.c	| text properties
 time.c		| time and timer functions

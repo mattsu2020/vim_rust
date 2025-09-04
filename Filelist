@@ -125,10 +125,9 @@ SRC_ALL =	\
                 src/terminal.c \
 		src/termdefs.h \
 		src/termlib.c \
-		src/testing.c \
-		src/textformat.c \
-		src/time.c \
-		src/tuple.c \
+                src/testing.c \
+                src/time.c \
+                src/tuple.c \
 		src/typval.c \
 		src/ui.c \
                 src/userfunc.c \
@@ -295,10 +294,9 @@ SRC_ALL =	\
                 src/proto/term.pro \
 		src/proto/terminal.pro \
 		src/proto/termlib.pro \
-		src/proto/testing.pro \
-		src/proto/textformat.pro \
-		src/proto/textobject.pro \
-		src/proto/textprop.pro \
+                src/proto/testing.pro \
+                src/proto/textobject.pro \
+                src/proto/textprop.pro \
 		src/proto/time.pro \
 		src/proto/tuple.pro \
 		src/proto/typval.pro \
