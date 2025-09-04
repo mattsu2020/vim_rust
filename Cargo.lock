@@ -2401,6 +2401,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_highlight"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "once_cell",
+]
+
+[[package]]
 name = "rust_indent"
 version = "0.1.0"
 dependencies = [
@@ -2680,6 +2688,7 @@ dependencies = [
  "libc",
  "once_cell",
  "regex",
+ "rust_highlight",
  "tempfile",
 ]
 
@@ -2727,6 +2736,9 @@ dependencies = [
 [[package]]
 name = "rust_syntax"
 version = "0.1.0"
+dependencies = [
+ "rust_highlight",
+]
 
 [[package]]
 name = "rust_tag"

@@ -1,6 +1,7 @@
 use std::ffi::{c_void, CStr};
 use std::os::raw::{c_char, c_short};
 use std::sync::Mutex;
+use rust_highlight::register_rule;
 
 /// State tracking for syntax highlighting.
 ///
@@ -118,6 +119,7 @@ pub extern "C" fn rs_add_rule(id: i32, pattern: *const c_char) {
     if let Ok(pat) = cstr.to_str() {
         let mut state = SYNTAX_STATE.lock().unwrap();
         state.rules.push(SyntaxRule { id, pattern: pat.to_string() });
+        register_rule(id, pat);
     }
 }
 

@@ -705,7 +705,6 @@ OBJ = \
 	$(OUTDIR)\hardcopy.obj \
 	$(OUTDIR)\hashtab.obj \
 	$(OUTDIR)\help.obj \
-	$(OUTDIR)\highlight.obj \
 	$(OUTDIR)\if_cscope.obj \
 	$(OUTDIR)\indent.obj \
 	$(OUTDIR)\insexpand.obj \
@@ -715,8 +714,6 @@ OBJ = \
 	$(OUTDIR)\logfile.obj \
 	$(OUTDIR)\main.obj \
 	$(OUTDIR)\map.obj \
-	$(OUTDIR)\mark.obj \
-	$(OUTDIR)\match.obj \
 	$(OUTDIR)\mbyte.obj \
 	$(OUTDIR)\memfile.obj \
 	$(OUTDIR)\memline.obj \
@@ -1526,8 +1523,6 @@ $(OUTDIR)/hashtab.obj: $(OUTDIR) hashtab.c $(INCL)
 
 $(OUTDIR)/help.obj: $(OUTDIR) help.c $(INCL)
 
-$(OUTDIR)/highlight.obj: $(OUTDIR) highlight.c $(INCL)
-
 $(OUTDIR)/indent.obj: $(OUTDIR) indent.c $(INCL)
 
 $(OUTDIR)/insexpand.obj: $(OUTDIR) insexpand.c $(INCL)
@@ -1591,10 +1586,6 @@ $(OUTDIR)/logfile.obj: $(OUTDIR) logfile.c $(INCL)
 $(OUTDIR)/main.obj: $(OUTDIR) main.c $(INCL) $(CUI_INCL)
 
 $(OUTDIR)/map.obj: $(OUTDIR) map.c $(INCL)
-
-$(OUTDIR)/mark.obj: $(OUTDIR) mark.c $(INCL)
-
-$(OUTDIR)/match.obj: $(OUTDIR) match.c $(INCL)
 
 $(OUTDIR)/memfile.obj: $(OUTDIR) memfile.c $(INCL)
 
