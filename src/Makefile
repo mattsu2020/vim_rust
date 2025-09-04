@@ -1789,7 +1789,6 @@ BASIC_SRC = \
         dict.c \
         diff.c \
         digraph.c \
-        drawline.c \
         drawscreen.c \
         edit.c \
         eval.c \
@@ -1808,7 +1807,6 @@ BASIC_SRC = \
         hardcopy.c \
         hashtab.c \
         \
-        highlight.c \
         if_cscope.c \
         indent.c \
         insexpand.c \
@@ -1849,7 +1847,6 @@ BASIC_SRC = \
         tag.c \
         term.c \
     \
-        textformat.c \
         textobject.c \
         textprop.c \
         time.c \
@@ -3318,9 +3315,6 @@ objects/diff.o: diff.c $(XDIFF_INCL)
 objects/digraph.o: digraph.c
 	$(CCC) -o $@ digraph.c
 
-objects/drawline.o: drawline.c
-	$(CCC) -o $@ drawline.c
-
 objects/drawscreen.o: drawscreen.c
 	$(CCC) -o $@ drawscreen.c
 
@@ -3411,9 +3405,6 @@ objects/gui_xim.o: gui_xim.c
 
 objects/gui_photon.o: gui_photon.c
 	$(CCC) -o $@ gui_photon.c
-
-objects/highlight.o: highlight.c
-	$(CCC) -o $@ highlight.c
 
 objects/if_cscope.o: if_cscope.c
 	$(CCC) -o $@ if_cscope.c
@@ -3587,9 +3578,6 @@ objects/terminal.o: terminal.c $(TERM_DEPS)
 
 objects/testing.o: testing.c
 	$(CCC) -o $@ testing.c
-
-objects/textformat.o: textformat.c
-	$(CCC) -o $@ textformat.c
 
 objects/textobject.o: textobject.c
 	$(CCC) -o $@ textobject.c
@@ -3833,11 +3821,6 @@ objects/digraph.o: digraph.c vim.h protodef.h auto/config.h feature.h os_unix.h 
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/drawline.o: drawline.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
 objects/drawscreen.o: drawscreen.c vim.h protodef.h auto/config.h feature.h \
  os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
@@ -3930,11 +3913,6 @@ objects/help.o: help.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
 	$(CCC) -o $@ help.c
-objects/highlight.o: highlight.c vim.h protodef.h auto/config.h feature.h \
- os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
- beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h errors.h
 objects/if_cscope.o: if_cscope.c vim.h protodef.h auto/config.h feature.h \
  os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
@@ -4143,9 +4121,6 @@ objects/testing.o: testing.c vim.h protodef.h auto/config.h feature.h os_unix.h 
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/textformat.o: textformat.c vim.h protodef.h auto/config.h feature.h \
- os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
- beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
  ex_cmds.h spell.h proto.h globals.h errors.h
 objects/textobject.o: textobject.c vim.h protodef.h auto/config.h feature.h \

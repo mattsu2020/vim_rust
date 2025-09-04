@@ -51,7 +51,6 @@ SRC_ALL =	\
                 src/diff.c \
 		src/linematch.c \
 		src/digraph.c \
-		src/drawline.c \
 		src/edit.c \
 		src/errors.h \
 		src/eval.c \
@@ -75,7 +74,6 @@ SRC_ALL =	\
 		src/hardcopy.c \
 		src/hashtab.c \
 		src/help.c \
-		src/highlight.c \
 		src/indent.c \
 		src/insexpand.c \
                 src/job.c \
@@ -127,7 +125,6 @@ SRC_ALL =	\
 		src/termdefs.h \
 		src/termlib.c \
 		src/testing.c \
-		src/textformat.c \
 		src/time.c \
 		src/tuple.c \
 		src/typval.c \
