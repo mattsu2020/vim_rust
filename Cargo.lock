@@ -2647,6 +2647,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_pixmaps"
+version = "0.1.0"
+
+[[package]]
 name = "rust_popupmenu"
 version = "0.1.0"
 dependencies = [
