@@ -34,6 +34,7 @@ extern char_u *skip_to_option_part(char_u *p);
 // FFI: implemented in rust_misc1 crate
 extern int vim_append_digit_long(long *value, int digit);
 extern int trim_to_int(vimlong_T x);
+extern int vim_append_digit_int(int *value, int digit);
 
 /*
  * get_leader_len() returns the length in bytes of the prefix of the given
@@ -969,17 +970,6 @@ get_keystroke(void)
 
     mapped_ctrl_c = save_mapped_ctrl_c;
     return n;
-}
-
-// For overflow detection, add a digit safely to an int value.
-    static int
-vim_append_digit_int(int *value, int digit)
-{
-    int x = *value;
-    if (x > ((INT_MAX - digit) / 10))
-	return FAIL;
-    *value = x * 10 + digit;
-    return OK;
 }
 
 /*

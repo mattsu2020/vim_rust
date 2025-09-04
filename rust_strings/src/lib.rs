@@ -55,6 +55,16 @@ pub unsafe extern "C" fn copy_option_part(
     len
 }
 
+/// Vim's own isspace() to handle characters above ASCII 128.
+#[no_mangle]
+pub extern "C" fn vim_isspace(x: c_int) -> c_int {
+    if (x >= 9 && x <= 13) || x == b' ' as c_int {
+        1
+    } else {
+        0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -84,5 +94,12 @@ mod tests {
         };
         assert_eq!(len, 5);
         assert_eq!(unsafe { std::ffi::CStr::from_ptr(buf.as_ptr() as *const c_char).to_str().unwrap() }, "part1");
+    }
+
+    #[test]
+    fn test_vim_isspace() {
+        assert_eq!(vim_isspace(b' ' as c_int), 1);
+        assert_eq!(vim_isspace(9), 1); // tab
+        assert_eq!(vim_isspace(b'a' as c_int), 0);
     }
 }
