@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 windows = { version = "0.52", features = ["Win32_System_SystemInformation", "Win32_System_Console"] }
+rust_os_api = { path = "../rust_os_api" }
 
 [lib]
 name = "rust_os_win32"

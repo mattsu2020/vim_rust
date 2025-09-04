@@ -43,6 +43,7 @@ rust_evalwindow = { path = "rust_evalwindow" }
 rust_fuzzy = { path = "rust_fuzzy" }
 rust_gc = { path = "rust_gc" }
 rust_clipboard = { path = "rust_clipboard" }
+rust_sound = { path = "rust_sound" }
 regex = "1"
 blowfish = "0.8"
 pbkdf2 = "0.12"

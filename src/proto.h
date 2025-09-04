@@ -193,7 +193,6 @@ void mbyte_im_set_active(int active_arg);
 # endif
 # include "fuzzy.pro"
 # include "search.pro"
-# include "sound.pro"
 # include "spell.pro"
 # include "strings.pro"
 # include "syntax.pro"
