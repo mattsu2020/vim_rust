@@ -2315,9 +2315,9 @@ if test "$enable_channel" = "yes"; then
 fi
 if test "$enable_netbeans" = "yes"; then
   AC_DEFINE(FEAT_NETBEANS_INTG)
-  NETBEANS_SRC="netbeans.c"
+  NETBEANS_SRC=""
   AC_SUBST(NETBEANS_SRC)
-  NETBEANS_OBJ="objects/netbeans.o"
+  NETBEANS_OBJ=""
   AC_SUBST(NETBEANS_OBJ)
 fi
 if test "$enable_channel" = "yes"; then

@@ -100,13 +100,10 @@ SRC_ALL =	\
 		src/mouse.c \
 		src/move.c \
 		src/mysign \
-		src/nbdebug.c \
-		src/nbdebug.h \
-		src/netbeans.c \
-		src/normal.c \
-		src/nv_cmdidxs.h \
-		src/nv_cmds.h \
-		src/ops.c \
+                src/normal.c \
+                src/nv_cmdidxs.h \
+                src/nv_cmds.h \
+                src/ops.c \
 		src/option.c \
 		src/option.h \
 		src/optiondefs.h \
