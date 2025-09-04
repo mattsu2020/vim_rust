@@ -92,6 +92,17 @@ to run the tests.  Legacy Makefile based build scripts have been removed.
 For historical C sources see the [`src`](./src/) directory and
 [`src/INSTALL`](./src/INSTALL).
 
+Developer utilities that previously lived in shell or batch scripts now
+reside in a small Rust helper.  Use `cargo xtask` to access them, e.g.
+
+```
+# Adjust auto/pathdef.c using auto/link.sed if present
+cargo xtask pathdef
+
+# Locate an executable in $PATH
+cargo xtask which vim
+```
+
 ## Installation
 
 See one of these files for system-specific instructions.  Either in the
