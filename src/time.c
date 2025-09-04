@@ -60,60 +60,8 @@ vim_localtime(
 
 // `vim_time` is now implemented in the Rust `rust_time` crate.
 
-/*
- * Replacement for ctime(), which is not safe to use.
- * Requires strftime(), otherwise returns "(unknown)".
- * If "thetime" is invalid returns "(invalid)".  Never returns NULL.
- * When "add_newline" is TRUE add a newline like ctime() does.
- * Uses a static buffer.
- */
-    char *
-get_ctime(time_t thetime, int add_newline)
-{
-    static char buf[100];  // hopefully enough for every language
-#ifdef HAVE_STRFTIME
-    struct tm	tmval;
-    struct tm	*curtime;
+// `get_ctime` is now implemented in the Rust `rust_time` crate.
 
-    curtime = vim_localtime(&thetime, &tmval);
-    // MSVC returns NULL for an invalid value of seconds.
-    if (curtime == NULL)
-	vim_strncpy((char_u *)buf, (char_u *)_("(Invalid)"), sizeof(buf) - 2);
-    else
-    {
-	// xgettext:no-c-format
-	if (strftime(buf, sizeof(buf) - 2, _("%a %b %d %H:%M:%S %Y"), curtime)
-									  == 0)
-	{
-	    // Quoting "man strftime":
-	    // > If the length of the result string (including the terminating
-	    // > null byte) would exceed max bytes, then strftime() returns 0,
-	    // > and the contents of the array are undefined.
-	    vim_strncpy((char_u *)buf, (char_u *)_("(Invalid)"),
-							      sizeof(buf) - 2);
-	}
-# ifdef MSWIN
-	if (enc_codepage >= 0 && (int)GetACP() != enc_codepage)
-	{
-	    char_u	*to_free = NULL;
-	    int		len;
-
-	    acp_to_enc((char_u *)buf, (int)strlen(buf), &to_free, &len);
-	    if (to_free != NULL)
-	    {
-		STRNCPY(buf, to_free, sizeof(buf) - 2);
-		vim_free(to_free);
-	    }
-	}
-# endif
-    }
-#else
-    STRCPY(buf, "(unknown)");
-#endif
-    if (add_newline)
-	STRCAT(buf, "\n");
-    return buf;
-}
 
 #if defined(FEAT_EVAL) || defined(PROTO)
 
