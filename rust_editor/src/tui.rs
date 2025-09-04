@@ -36,6 +36,9 @@ enum SplitLayout { Horizontal, Vertical }
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum ViewKind { Normal, BuffersList, Help }
 
+#[derive(Clone)]
+struct UndoSnap { buf: Option<usize>, lines: Vec<String>, cx: usize, cy: usize }
+
 struct SearchState {
     regex: Option<Regex>,
     pattern: String,
@@ -52,6 +55,88 @@ enum Register { Charwise(String), Linewise(Vec<String>) }
 
 #[derive(Clone)]
 struct Buffer { lines: Vec<String>, filename: Option<PathBuf>, modified: bool }
+
+// 単語モーション用の簡易ヘルパ
+fn is_word_char(c: char) -> bool { c.is_alphanumeric() || c == '_' }
+
+fn motion_w(lines: &Vec<String>, mut cx: usize, mut cy: usize, mut n: usize) -> (usize, usize) {
+    while n > 0 {
+        let line = &lines[cy];
+        let mut x = cx;
+        // 1) 現在の単語末尾まで進む
+        if x < line.len() {
+            let mut in_word = is_word_char(line.chars().nth(x).unwrap_or(' '));
+            while x < line.len() {
+                let ch = line.chars().nth(x).unwrap_or(' ');
+                if in_word { if !is_word_char(ch) { break; } }
+                else { if is_word_char(ch) { break; } }
+                x += 1;
+            }
+        }
+        // 2) 次の単語開始へ（改行越え含む）
+        loop {
+            if x < lines[cy].len() {
+                let ch = lines[cy].chars().nth(x).unwrap_or(' ');
+                if is_word_char(ch) { break; }
+                x += 1;
+            } else {
+                if cy + 1 >= lines.len() { cx = x.min(lines[cy].len()); cy = cy; n = 1; break; }
+                cy += 1; x = 0;
+            }
+        }
+        cx = x; n -= 1;
+    }
+    (cx, cy)
+}
+
+fn motion_e(lines: &Vec<String>, mut cx: usize, mut cy: usize, mut n: usize) -> (usize, usize) {
+    while n > 0 {
+        // 先に次の単語に入る
+        let (mut x, mut y) = (cx, cy);
+        loop {
+            if x >= lines[y].len() {
+                if y + 1 >= lines.len() { cx = lines[y].len().saturating_sub(1); cy = y; n = 1; break; }
+                y += 1; x = 0; continue;
+            }
+            let ch = lines[y].chars().nth(x).unwrap_or(' ');
+            if is_word_char(ch) { break; }
+            x += 1;
+        }
+        // 単語の末尾へ
+        while x + 1 <= lines[y].len() {
+            let ch = lines[y].chars().nth(x).unwrap_or(' ');
+            if !is_word_char(ch) { if x > 0 { x -= 1; } break; }
+            if x + 1 == lines[y].len() { break; }
+            let nch = lines[y].chars().nth(x + 1).unwrap_or(' ');
+            if !is_word_char(nch) { break; }
+            x += 1;
+        }
+        cx = x; cy = y; n -= 1;
+    }
+    (cx, cy)
+}
+
+fn motion_b(lines: &Vec<String>, mut cx: usize, mut cy: usize, mut n: usize) -> (usize, usize) {
+    while n > 0 {
+        let mut x = cx; let mut y = cy;
+        if x == 0 { if y == 0 { return (0,0); } y -= 1; x = lines[y].len(); }
+        // 直前の単語境界へ
+        let mut seen_word = false;
+        while x > 0 {
+            x -= 1;
+            let ch = lines[y].chars().nth(x).unwrap_or(' ');
+            if is_word_char(ch) { seen_word = true; }
+            else if seen_word { x += 1; break; }
+            if x == 0 { break; }
+        }
+        cx = x; cy = y; n -= 1;
+    }
+    (cx, cy)
+}
+
+fn prev_char_pos(lines: &Vec<String>, x: usize, y: usize) -> Option<(usize, usize)> {
+    if x > 0 { Some((x - 1, y)) } else if y > 0 { let py = y - 1; let plen = lines[py].len(); if plen == 0 { None } else { Some((plen - 1, py)) } } else { None }
+}
 
 pub fn run(args: &[String]) -> std::io::Result<()> {
     // initial state
@@ -73,10 +158,21 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
     // visual/select + clipboard for basic y/d/p
     let mut visual_anchor: Option<(usize, usize)> = None; // (cx, cy)
     let mut clipboard: Option<Register> = None;
+    // 2キーオペレーター待ち（例: dd）
+    let mut pending_op: Option<char> = None;
+    // オペレーター起点（cx, cy）
+    let mut op_anchor: Option<(usize, usize)> = None;
+    // 数値カウント (Normal のプレフィックス)
+    let mut count: Option<usize> = None;
+    // 直前の挿入を記録（'.' の繰り返し用）
+    let mut last_insert: String = String::new();
+    let mut insert_record: String = String::new();
     // last substitute
     let mut last_pat: String = String::new();
     let mut last_repl: String = String::new();
     let mut last_flags: String = String::new();
+    // 単純な1段階のUndo
+    let mut undo_snap: Option<UndoSnap> = None;
 
     // window splits (logical only for now; rendering is single view)
     #[derive(Clone)]
@@ -194,7 +290,7 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                             ":%s/pat/repl/[g][i]  (:& / :&& で再実行)",
                             "検索: /pattern (?pattern) / n / N  (\\c:ignore, \\C:match)",
                             "モード: Normal / Insert / Visual(v/V) / Command(:)",
-                            "操作: h j k l / 0 $ gg G / i a I A / o O / x J / p / u",
+                            "操作: h j k l / 0 $ gg G / i a I A / o O / x J / dd yy cc / p P / D Y / u / .",
                             "q でこのウィンドウを閉じる",
                         ];
                         for s in help.iter().skip(v.scroll) {
@@ -416,35 +512,247 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                         continue;
                     }
 
+                    // Normalモードの数値カウントを先に処理
+                    if matches!(mode, Mode::Normal) {
+                        if let KeyCode::Char(ch) = code {
+                            if ch.is_ascii_digit() {
+                                if ch == '0' {
+                                    if count.is_some() {
+                                        let v = count.get_or_insert(0);
+                                        *v = v.saturating_mul(10);
+                                        continue;
+                                    }
+                                } else {
+                                    let v = count.get_or_insert(0);
+                                    *v = v.saturating_mul(10).saturating_add((ch as u8 - b'0') as usize);
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+
+                    // まず 2キーオペレーター処理（dd/yy/cc）を先に判定
+                    if matches!(mode, Mode::Normal) {
+                        if let Some('d') = pending_op {
+                            match code {
+                                KeyCode::Char('d') => {
+                                    // dd: 現在行を削除（ヤンクはLinewiseに入れる）
+                                    let n = count.take().unwrap_or(1);
+                                    if let Some(bi) = views[cur_view].buf {
+                                        if let Some(b) = buffers.get_mut(bi) {
+                                            undo_snap = Some(UndoSnap { buf: Some(bi), lines: b.lines.clone(), cx, cy });
+                                            let mut taken: Vec<String> = Vec::new();
+                                            for _ in 0..n { if cy < b.lines.len() { taken.push(b.lines.remove(cy)); } }
+                                            if taken.is_empty() { taken.push(String::new()); }
+                                            clipboard = Some(Register::Linewise(taken));
+                                            if cy >= b.lines.len() { if b.lines.is_empty() { b.lines.push(String::new()); } cy = b.lines.len().saturating_sub(1); }
+                                            cx = cx.min(b.lines[cy].len());
+                                            b.modified = true;
+                                        }
+                                    } else {
+                                        undo_snap = Some(UndoSnap { buf: None, lines: lines.clone(), cx, cy });
+                                        let mut taken: Vec<String> = Vec::new();
+                                        for _ in 0..n { if cy < lines.len() { taken.push(lines.remove(cy)); } }
+                                        if taken.is_empty() { taken.push(String::new()); }
+                                        clipboard = Some(Register::Linewise(taken));
+                                        if cy >= lines.len() { if lines.is_empty() { lines.push(String::new()); } cy = lines.len().saturating_sub(1); }
+                                        cx = cx.min(lines[cy].len());
+                                        modified = true;
+                                    }
+                                    pending_op = None; op_anchor=None;
+                                    continue;
+                                }
+                                KeyCode::Char('w') | KeyCode::Char('e') | KeyCode::Char('b') | KeyCode::Char('$') => {
+                                    if let Some((ax, ay)) = op_anchor.take() {
+                                        let n = count.take().unwrap_or(1);
+                                        let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines };
+                                        let (tx, ty, include_target) = match code {
+                                            KeyCode::Char('w') => { let (tx,ty)=motion_w(src, ax, ay, n); (tx,ty,false) }
+                                            ,KeyCode::Char('e') => { let (tx,ty)=motion_e(src, ax, ay, n); (tx,ty,true) }
+                                            ,KeyCode::Char('b') => { let (tx,ty)=motion_b(src, ax, ay, n); (tx,ty,true) }
+                                            ,_ => { let (tx,ty) = (src[ay].len(), ay); (tx,ty,true) }
+                                        };
+                                        // 決定範囲（charwise）
+                                        let (mut sx, mut sy, mut ex, mut ey) = if (ty < ay) || (ty == ay && tx <= ax) {
+                                            // 後方方向
+                                            let end = prev_char_pos(src, ax, ay).unwrap_or((ax, ay));
+                                            (tx, ty, end.0, end.1)
+                                        } else {
+                                            // 前方方向
+                                            let end = if include_target { (tx, ty) } else { prev_char_pos(src, tx, ty).unwrap_or((ax, ay)) };
+                                            (ax, ay, end.0, end.1)
+                                        };
+                                        // 正規化: 範囲が無効なら何もしない
+                                        if sy > ey || (sy == ey && sx > ex) { pending_op=None; continue; }
+                                        // 実行
+                                        if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){
+                                            undo_snap = Some(UndoSnap { buf: Some(bi), lines: b.lines.clone(), cx, cy });
+                                            clipboard = Some(yank_selection(&b.lines, sx, sy, ex, ey, true));
+                                            delete_selection(&mut b.lines, sx, sy, ex, ey, true);
+                                            b.modified = true;
+                                        } }
+                                        else { undo_snap = Some(UndoSnap { buf: None, lines: lines.clone(), cx, cy }); clipboard = Some(yank_selection(&lines, sx, sy, ex, ey, true)); delete_selection(&mut lines, sx, sy, ex, ey, true); modified = true; }
+                                        cx = sx; cy = sy; pending_op=None; continue;
+                                    }
+                                }
+                                _ => { pending_op = None; }
+                            }
+                        } else if let Some('y') = pending_op {
+                            match code {
+                                KeyCode::Char('y') => {
+                                    // yy: 行ヤンク（変更なし）
+                                    let n = count.take().unwrap_or(1);
+                                    if let Some(bi) = views[cur_view].buf { if let Some(b) = buffers.get(bi) { let mut v=Vec::new(); for i in 0..n { let li=cy.saturating_add(i); if li < b.lines.len() { v.push(b.lines[li].clone()); } } if v.is_empty(){ v.push(String::new()); } clipboard = Some(Register::Linewise(v)); } }
+                                    else { let mut v=Vec::new(); for i in 0..n { let li=cy.saturating_add(i); if li < lines.len() { v.push(lines[li].clone()); } } if v.is_empty(){ v.push(String::new()); } clipboard = Some(Register::Linewise(v)); }
+                                    pending_op = None; op_anchor=None; continue;
+                                }
+                                KeyCode::Char('w') | KeyCode::Char('e') | KeyCode::Char('b') | KeyCode::Char('$') => {
+                                    if let Some((ax, ay)) = op_anchor.take() {
+                                        let n = count.take().unwrap_or(1);
+                                        let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines };
+                                        let (tx, ty, include_target) = match code {
+                                            KeyCode::Char('w') => { let (tx,ty)=motion_w(src, ax, ay, n); (tx,ty,false) }
+                                            ,KeyCode::Char('e') => { let (tx,ty)=motion_e(src, ax, ay, n); (tx,ty,true) }
+                                            ,KeyCode::Char('b') => { let (tx,ty)=motion_b(src, ax, ay, n); (tx,ty,true) }
+                                            ,_ => { let (tx,ty) = (src[ay].len(), ay); (tx,ty,true) }
+                                        };
+                                        let (mut sx, mut sy, mut ex, mut ey) = if (ty < ay) || (ty == ay && tx <= ax) {
+                                            let end = prev_char_pos(src, ax, ay).unwrap_or((ax, ay));
+                                            (tx, ty, end.0, end.1)
+                                        } else {
+                                            let end = if include_target { (tx, ty) } else { prev_char_pos(src, tx, ty).unwrap_or((ax, ay)) };
+                                            (ax, ay, end.0, end.1)
+                                        };
+                                        if sy > ey || (sy == ey && sx > ex) { pending_op=None; continue; }
+                                        let reg = yank_selection(src, sx, sy, ex, ey, true);
+                                        clipboard = Some(reg);
+                                        pending_op=None; continue;
+                                    }
+                                }
+                                _ => { pending_op = None; }
+                            }
+                        } else if let Some('c') = pending_op {
+                            match code {
+                                KeyCode::Char('c') => {
+                                    // cc: 行変更（空行にしてInsert, 削除前をヤンク）
+                                    let n = count.take().unwrap_or(1);
+                                    if let Some(bi) = views[cur_view].buf { if let Some(b) = buffers.get_mut(bi) {
+                                        undo_snap = Some(UndoSnap { buf: Some(bi), lines: b.lines.clone(), cx, cy });
+                                        let mut taken: Vec<String> = Vec::new();
+                                        taken.push(std::mem::replace(&mut b.lines[cy], String::new()));
+                                        for _ in 1..n { if cy + 1 < b.lines.len() { taken.push(b.lines.remove(cy + 1)); } }
+                                        clipboard = Some(Register::Linewise(taken));
+                                        b.modified = true;
+                                    } }
+                                    else {
+                                        undo_snap = Some(UndoSnap { buf: None, lines: lines.clone(), cx, cy });
+                                        let mut taken: Vec<String> = Vec::new();
+                                        taken.push(std::mem::replace(&mut lines[cy], String::new()));
+                                        for _ in 1..n { if cy + 1 < lines.len() { taken.push(lines.remove(cy + 1)); } }
+                                        clipboard = Some(Register::Linewise(taken));
+                                        modified = true;
+                                    }
+                                    cx = 0; mode = Mode::Insert; pending_op = None; visual_anchor=None; op_anchor=None; continue;
+                                }
+                                KeyCode::Char('w') | KeyCode::Char('e') | KeyCode::Char('b') | KeyCode::Char('$') => {
+                                    if let Some((ax, ay)) = op_anchor.take() {
+                                        let n = count.take().unwrap_or(1);
+                                        let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines };
+                                        // Vimのcwはce相当
+                                        let (tx, ty, include_target) = match code {
+                                            KeyCode::Char('w') => { let (tx,ty)=motion_e(src, ax, ay, n); (tx,ty,true) }
+                                            ,KeyCode::Char('e') => { let (tx,ty)=motion_e(src, ax, ay, n); (tx,ty,true) }
+                                            ,KeyCode::Char('b') => { let (tx,ty)=motion_b(src, ax, ay, n); (tx,ty,true) }
+                                            ,_ => { let (tx,ty) = (src[ay].len(), ay); (tx,ty,true) }
+                                        };
+                                        let (mut sx, mut sy, mut ex, mut ey) = if (ty < ay) || (ty == ay && tx <= ax) {
+                                            let end = prev_char_pos(src, ax, ay).unwrap_or((ax, ay));
+                                            (tx, ty, end.0, end.1)
+                                        } else {
+                                            let end = if include_target { (tx, ty) } else { prev_char_pos(src, tx, ty).unwrap_or((ax, ay)) };
+                                            (ax, ay, end.0, end.1)
+                                        };
+                                        if sy > ey || (sy == ey && sx > ex) { pending_op=None; continue; }
+                                        if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){
+                                            undo_snap = Some(UndoSnap { buf: Some(bi), lines: b.lines.clone(), cx, cy });
+                                            clipboard = Some(yank_selection(&b.lines, sx, sy, ex, ey, true));
+                                            delete_selection(&mut b.lines, sx, sy, ex, ey, true);
+                                            b.modified = true;
+                                        } }
+                                        else { undo_snap = Some(UndoSnap { buf: None, lines: lines.clone(), cx, cy }); clipboard = Some(yank_selection(&lines, sx, sy, ex, ey, true)); delete_selection(&mut lines, sx, sy, ex, ey, true); modified = true; }
+                                        cx = sx; cy = sy; mode = Mode::Insert; pending_op=None; continue;
+                                    }
+                                }
+                                _ => { pending_op = None; }
+                            }
+                        }
+                    }
+
                     // Normal/Insert modes
                     match (code, modifiers, mode) {
                         (KeyCode::Char(':'), _, Mode::Normal) => { mode = Mode::Command; cmdline.clear(); }
                         ,(KeyCode::Char('/'), _, Mode::Normal) => { mode = Mode::SearchFwd; cmdline.clear(); }
                         ,(KeyCode::Char('?'), _, Mode::Normal) => { mode = Mode::SearchBwd; cmdline.clear(); }
-                        ,(KeyCode::Char('v'), _, Mode::Normal) => { if matches!(mode, Mode::VisualChar) { mode = Mode::Normal; visual_anchor=None; } else { mode = Mode::VisualChar; visual_anchor = Some((cx, cy)); } }
-                        ,(KeyCode::Char('V'), _, Mode::Normal) => { if matches!(mode, Mode::VisualLine) { mode = Mode::Normal; visual_anchor=None; } else { mode = Mode::VisualLine; visual_anchor = Some((cx, cy)); } }
-                        ,(KeyCode::Char('i'), _, Mode::Normal) => { mode = Mode::Insert; }
-                        ,(KeyCode::Esc, _, Mode::Insert) => { mode = Mode::Normal; }
+                        ,(KeyCode::Char('v'), _, Mode::Normal) => { count=None; if matches!(mode, Mode::VisualChar) { mode = Mode::Normal; visual_anchor=None; } else { mode = Mode::VisualChar; visual_anchor = Some((cx, cy)); } }
+                        ,(KeyCode::Char('V'), _, Mode::Normal) => { count=None; if matches!(mode, Mode::VisualLine) { mode = Mode::Normal; visual_anchor=None; } else { mode = Mode::VisualLine; visual_anchor = Some((cx, cy)); } }
+                        ,(KeyCode::Char('i'), _, Mode::Normal) => { count=None; insert_record.clear(); mode = Mode::Insert; }
+                        ,(KeyCode::Char('a'), _, Mode::Normal) => { count=None; let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines }; if cx < src[cy].len() { cx += 1; } insert_record.clear(); mode = Mode::Insert; }
+                        ,(KeyCode::Char('A'), _, Mode::Normal) => { count=None; let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines }; cx = src[cy].len(); insert_record.clear(); mode = Mode::Insert; }
+                        ,(KeyCode::Char('I'), _, Mode::Normal) => { count=None; let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines }; let line = &src[cy]; let first_nb = line.chars().position(|ch| ch != ' ' && ch != '\t').unwrap_or(0); cx = first_nb; insert_record.clear(); mode = Mode::Insert; }
+                        ,(KeyCode::Char('o'), _, Mode::Normal) => {
+                            count=None; if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ undo_snap = Some(UndoSnap { buf: Some(bi), lines: b.lines.clone(), cx, cy }); b.lines.insert(cy+1, String::new()); cy += 1; cx = 0; b.modified = true; } }
+                            else { undo_snap = Some(UndoSnap { buf: None, lines: lines.clone(), cx, cy }); lines.insert(cy+1, String::new()); cy += 1; cx = 0; modified = true; }
+                            insert_record.clear(); mode = Mode::Insert;
+                        }
+                        ,(KeyCode::Char('O'), _, Mode::Normal) => {
+                            count=None; if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ undo_snap = Some(UndoSnap { buf: Some(bi), lines: b.lines.clone(), cx, cy }); b.lines.insert(cy, String::new()); cx = 0; b.modified = true; } }
+                            else { undo_snap = Some(UndoSnap { buf: None, lines: lines.clone(), cx, cy }); lines.insert(cy, String::new()); cx = 0; modified = true; }
+                            insert_record.clear(); mode = Mode::Insert;
+                        }
+                        ,(KeyCode::Esc, _, Mode::Insert) => { mode = Mode::Normal; last_insert = insert_record.clone(); insert_record.clear(); }
                         ,(KeyCode::Char('h'), _, Mode::Normal) | (KeyCode::Left, _, _) => {
                             let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines };
-                            if cx>0 { cx-=1; } else if cy>0 { cy-=1; cx = src[cy].len(); }
+                            let n = count.take().unwrap_or(1);
+                            for _ in 0..n { if cx>0 { cx-=1; } else if cy>0 { cy-=1; cx = src[cy].len(); } }
                         }
                         ,(KeyCode::Char('l'), _, Mode::Normal) | (KeyCode::Right, _, _) => {
                             let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines };
-                            if cx < src[cy].len() { cx+=1; } else if cy+1 < src.len() { cy+=1; cx=0; }
+                            let n = count.take().unwrap_or(1);
+                            for _ in 0..n { if cx < src[cy].len() { cx+=1; } else if cy+1 < src.len() { cy+=1; cx=0; } }
                         }
                         ,(KeyCode::Char('k'), _, Mode::Normal) | (KeyCode::Up, _, _) => {
                             let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines };
-                            if cy>0 { cy-=1; cx = cx.min(src[cy].len()); }
+                            let n = count.take().unwrap_or(1);
+                            for _ in 0..n { if cy>0 { cy-=1; cx = cx.min(src[cy].len()); } }
                         }
                         ,(KeyCode::Char('j'), _, Mode::Normal) | (KeyCode::Down, _, _) => {
                             let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines };
-                            if cy+1 < src.len() { cy+=1; cx = cx.min(src[cy].len()); }
+                            let n = count.take().unwrap_or(1);
+                            for _ in 0..n { if cy+1 < src.len() { cy+=1; cx = cx.min(src[cy].len()); } }
                         }
                         ,(KeyCode::Home, _, _) | (KeyCode::Char('0'), _, Mode::Normal) => { cx = 0; }
                         ,(KeyCode::End, _, _) | (KeyCode::Char('$'), _, Mode::Normal) => { let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines }; cx = src[cy].len(); }
-                        ,(KeyCode::Char('G'), _, Mode::Normal) => { let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines }; cy = src.len().saturating_sub(1); cx = 0; }
+                        ,(KeyCode::Char('G'), _, Mode::Normal) => {
+                            let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines };
+                            if let Some(nv) = count.take() { cy = nv.saturating_sub(1).min(src.len().saturating_sub(1)); cx = 0; }
+                            else { cy = src.len().saturating_sub(1); cx = 0; }
+                        }
                         ,(KeyCode::Char('g'), _, Mode::Normal) => { cy = 0; cx = 0; }
+                        ,(KeyCode::Char('x'), _, Mode::Normal) => {
+                            // カーソル位置の1文字削除（カウント対応）
+                            let n = count.take().unwrap_or(1);
+                            if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ let len=b.lines[cy].len(); let to_del = n.min(len.saturating_sub(cx)); if to_del>0 { let snapshot=b.lines.clone(); undo_snap = Some(UndoSnap { buf: Some(bi), lines: snapshot, cx, cy }); for _ in 0..to_del { b.lines[cy].remove(cx); } b.modified=true; } } }
+                            else { let len=lines[cy].len(); let to_del = n.min(len.saturating_sub(cx)); if to_del>0 { let snapshot=lines.clone(); undo_snap = Some(UndoSnap { buf: None, lines: snapshot, cx, cy }); for _ in 0..to_del { lines[cy].remove(cx); } modified=true; } }
+                        }
+                        ,(KeyCode::Char('J'), _, Mode::Normal) => {
+                            // 次の行と結合（カウント対応）
+                            let times = count.take().unwrap_or(1);
+                            if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ if cy+1 < b.lines.len() { undo_snap = Some(UndoSnap { buf: Some(bi), lines: b.lines.clone(), cx, cy }); for _ in 0..times { if cy+1 < b.lines.len() { let next=b.lines.remove(cy+1); b.lines[cy].push_str(&next); } } b.modified=true; } } }
+                            else { if cy+1 < lines.len() { undo_snap = Some(UndoSnap { buf: None, lines: lines.clone(), cx, cy }); for _ in 0..times { if cy+1 < lines.len() { let next=lines.remove(cy+1); lines[cy].push_str(&next); } } modified=true; } }
+                        }
+                        ,(KeyCode::Char('y'), _, Mode::Normal) => { pending_op = Some('y'); op_anchor = Some((cx, cy)); }
+                        ,(KeyCode::Char('c'), _, Mode::Normal) => { pending_op = Some('c'); op_anchor = Some((cx, cy)); }
+                        ,(KeyCode::Char('d'), _, Mode::Normal) => { pending_op = Some('d'); op_anchor = Some((cx, cy)); }
                         ,(KeyCode::Char('d'), _, m) if matches!(m, Mode::VisualChar | Mode::VisualLine) => {
                             if let Some((ax, ay)) = visual_anchor {
                                 let (sx, sy, ex, ey) = ordered_region(ax, ay, cx, cy);
@@ -472,14 +780,40 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                             }
                         }
                         ,(KeyCode::Char('p'), _, Mode::Normal) => {
-                            if let Some(reg) = clipboard.clone() {
-                                if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ match reg { Register::Charwise(s)=>{ for ch in s.chars(){ b.lines[cy].insert(cx, ch); cx+=1; } }, Register::Linewise(mut ls)=>{ let insert_at=cy+1; for (i,l) in ls.drain(..).enumerate(){ b.lines.insert(insert_at+i, l);} cy=insert_at; cx=0; } } b.modified=true; } }
-                                else { match reg { Register::Charwise(s)=>{ for ch in s.chars(){ lines[cy].insert(cx, ch); cx+=1; } }, Register::Linewise(mut ls)=>{ let insert_at=cy+1; for (i,l) in ls.drain(..).enumerate(){ lines.insert(insert_at+i, l);} cy=insert_at; cx=0; } } modified=true; }
+                            let times = count.take().unwrap_or(1);
+                            if let Some(orig) = clipboard.clone() {
+                                if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ undo_snap = Some(UndoSnap { buf: Some(bi), lines: b.lines.clone(), cx, cy }); for _ in 0..times { let reg = orig.clone(); match reg { Register::Charwise(s)=>{ for ch in s.chars(){ b.lines[cy].insert(cx, ch); cx+=1; } }, Register::Linewise(mut ls)=>{ let insert_at=cy+1; for (i,l) in ls.drain(..).enumerate(){ b.lines.insert(insert_at+i, l);} cy=insert_at; cx=0; } } } b.modified=true; } }
+                                else { undo_snap = Some(UndoSnap { buf: None, lines: lines.clone(), cx, cy }); for _ in 0..times { let reg = orig.clone(); match reg { Register::Charwise(s)=>{ for ch in s.chars(){ lines[cy].insert(cx, ch); cx+=1; } }, Register::Linewise(mut ls)=>{ let insert_at=cy+1; for (i,l) in ls.drain(..).enumerate(){ lines.insert(insert_at+i, l);} cy=insert_at; cx=0; } } } modified=true; }
+                            }
+                        }
+                        ,(KeyCode::Char('P'), _, Mode::Normal) => {
+                            let times = count.take().unwrap_or(1);
+                            if let Some(orig) = clipboard.clone() {
+                                if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ undo_snap = Some(UndoSnap { buf: Some(bi), lines: b.lines.clone(), cx, cy }); for _ in 0..times { let reg = orig.clone(); match reg { Register::Charwise(s)=>{ let mut off=0; for ch in s.chars(){ b.lines[cy].insert(cx.saturating_sub(off+1), ch); off+=1; } }, Register::Linewise(mut ls)=>{ let insert_at=cy; for (i,l) in ls.drain(..).enumerate(){ b.lines.insert(insert_at+i, l);} cy=insert_at; cx=0; } } } b.modified=true; } }
+                                else { undo_snap = Some(UndoSnap { buf: None, lines: lines.clone(), cx, cy }); for _ in 0..times { let reg = orig.clone(); match reg { Register::Charwise(s)=>{ let mut off=0; for ch in s.chars(){ lines[cy].insert(cx.saturating_sub(off+1), ch); off+=1; } }, Register::Linewise(mut ls)=>{ let insert_at=cy; for (i,l) in ls.drain(..).enumerate(){ lines.insert(insert_at+i, l);} cy=insert_at; cx=0; } } } modified=true; }
+                            }
+                        }
+                        ,(KeyCode::Char('D'), _, Mode::Normal) => {
+                            // 行末まで削除（d$ 相当）
+                            if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ if cx < b.lines[cy].len() { undo_snap = Some(UndoSnap { buf: Some(bi), lines: b.lines.clone(), cx, cy }); b.lines[cy].replace_range(cx.., ""); b.modified = true; } } }
+                            else { if cx < lines[cy].len() { undo_snap = Some(UndoSnap { buf: None, lines: lines.clone(), cx, cy }); lines[cy].replace_range(cx.., ""); modified = true; } }
+                        }
+                        ,(KeyCode::Char('Y'), _, Mode::Normal) => {
+                            // 行ヤンク（yy 相当、カウント対応）
+                            let n = count.take().unwrap_or(1);
+                            if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get(bi){ let mut v=Vec::new(); for i in 0..n { let li = cy.saturating_add(i); if li < b.lines.len() { v.push(b.lines[li].clone()); } } if v.is_empty(){ v.push(String::new()); } clipboard = Some(Register::Linewise(v)); } }
+                            else { let mut v=Vec::new(); for i in 0..n { let li = cy.saturating_add(i); if li < lines.len() { v.push(lines[li].clone()); } } if v.is_empty(){ v.push(String::new()); } clipboard = Some(Register::Linewise(v)); }
+                        }
+                        ,(KeyCode::Char('u'), _, Mode::Normal) => {
+                            if let Some(snap) = undo_snap.clone() {
+                                if let Some(bi) = snap.buf { if let Some(b) = buffers.get_mut(bi) { b.lines = snap.lines; cx = snap.cx; cy = snap.cy; b.modified = true; } }
+                                else { lines = snap.lines; cx = snap.cx; cy = snap.cy; modified = true; }
                             }
                         }
                         ,(KeyCode::Enter, _, Mode::Insert) => {
                             if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ let cur = b.lines[cy].clone(); let (l,r)=cur.split_at(cx); b.lines[cy]=l.to_string(); b.lines.insert(cy+1, r.to_string()); cy+=1; cx=0; b.modified=true; } }
                             else { let cur = lines[cy].clone(); let (l,r)=cur.split_at(cx); lines[cy]=l.to_string(); lines.insert(cy+1, r.to_string()); cy+=1; cx=0; modified=true; }
+                            insert_record.push('\n');
                         }
                         ,(KeyCode::Enter, _, Mode::Normal) => {
                             // If buffers list is active, select and switch
@@ -503,12 +837,18 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                             }
                         }
                         ,(KeyCode::Backspace, _, Mode::Insert) => {
-                            if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ if cx>0 { b.lines[cy].remove(cx-1); cx-=1; b.modified=true; } else if cy>0 { let prev_len=b.lines[cy-1].len(); let line=b.lines.remove(cy); b.lines[cy-1].push_str(&line); cy-=1; cx=prev_len; b.modified=true; } } }
-                            else { if cx>0 { lines[cy].remove(cx-1); cx-=1; modified=true; } else if cy>0 { let prev_len=lines[cy-1].len(); let line=lines.remove(cy); lines[cy-1].push_str(&line); cy-=1; cx=prev_len; modified=true; } }
+                            if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ if cx>0 { b.lines[cy].remove(cx-1); cx-=1; b.modified=true; if !insert_record.is_empty() { insert_record.pop(); } } else if cy>0 { let prev_len=b.lines[cy-1].len(); let line=b.lines.remove(cy); b.lines[cy-1].push_str(&line); cy-=1; cx=prev_len; b.modified=true; } } }
+                            else { if cx>0 { lines[cy].remove(cx-1); cx-=1; modified=true; if !insert_record.is_empty() { insert_record.pop(); } } else if cy>0 { let prev_len=lines[cy-1].len(); let line=lines.remove(cy); lines[cy-1].push_str(&line); cy-=1; cx=prev_len; modified=true; } }
                         }
                         ,(KeyCode::Char(c), KeyModifiers::NONE, Mode::Insert) => {
-                            if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ if c=='\t' { let spaces = " ".repeat(tabstop); for ch in spaces.chars(){ b.lines[cy].insert(cx, ch); cx+=1; } } else { b.lines[cy].insert(cx, c); cx+=1; } b.modified=true; } }
-                            else { if c=='\t' { let spaces = " ".repeat(tabstop); for ch in spaces.chars(){ lines[cy].insert(cx, ch); cx+=1; } } else { lines[cy].insert(cx, c); cx+=1; } modified=true; }
+                            if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ if c=='\t' { let spaces = " ".repeat(tabstop); for ch in spaces.chars(){ b.lines[cy].insert(cx, ch); cx+=1; insert_record.push(' ');} } else { b.lines[cy].insert(cx, c); cx+=1; insert_record.push(c); } b.modified=true; } }
+                            else { if c=='\t' { let spaces = " ".repeat(tabstop); for ch in spaces.chars(){ lines[cy].insert(cx, ch); cx+=1; insert_record.push(' ');} } else { lines[cy].insert(cx, c); cx+=1; insert_record.push(c); } modified=true; }
+                        }
+                        ,(KeyCode::Char('.'), _, Mode::Normal) => {
+                            if !last_insert.is_empty() {
+                                if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ undo_snap = Some(UndoSnap { buf: Some(bi), lines: b.lines.clone(), cx, cy }); for ch in last_insert.chars(){ if ch=='\n' { let cur=b.lines[cy].clone(); let (l,r)=cur.split_at(cx); b.lines[cy]=l.to_string(); b.lines.insert(cy+1, r.to_string()); cy+=1; cx=0; } else { b.lines[cy].insert(cx, ch); cx+=1; } } b.modified=true; } }
+                                else { undo_snap = Some(UndoSnap { buf: None, lines: lines.clone(), cx, cy }); for ch in last_insert.chars(){ if ch=='\n' { let cur=lines[cy].clone(); let (l,r)=cur.split_at(cx); lines[cy]=l.to_string(); lines.insert(cy+1, r.to_string()); cy+=1; cx=0; } else { lines[cy].insert(cx, ch); cx+=1; } } modified=true; }
+                            }
                         }
                         ,(KeyCode::Char('s'), KeyModifiers::CONTROL, _) => {
                             // save active buffer or global
@@ -525,6 +865,9 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                         ,(KeyCode::Char('n'), _, Mode::Normal) => { if let Some(_) = &search.regex { let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines }; if let Some((ny,nx))=find_next(src, cy, cx, &search, search.last_dir){ cy=ny; cx=nx; } } }
                         ,(KeyCode::Char('N'), _, Mode::Normal) => { if let Some(_) = &search.regex { let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines }; if let Some((ny,nx))=find_next(src, cy, cx, &search, -search.last_dir){ cy=ny; cx=nx; } } }
                         ,(KeyCode::Char('w'), KeyModifiers::CONTROL, Mode::Normal) => { if !views.is_empty() { let k = views[cur_view].kind; let b = views[cur_view].buf; views[cur_view] = View { kind: k, cx, cy, scroll, buf: b }; cur_view = (cur_view + 1) % views.len(); let v = views[cur_view].clone(); cx = v.cx; cy = v.cy; scroll = v.scroll; } }
+                        ,(KeyCode::Char('w'), KeyModifiers::NONE, Mode::Normal) => { let n=count.take().unwrap_or(1); let src= if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines }; let (nx,ny)=motion_w(src,cx,cy,n); cx=nx; cy=ny; }
+                        ,(KeyCode::Char('e'), KeyModifiers::NONE, Mode::Normal) => { let n=count.take().unwrap_or(1); let src= if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines }; let (nx,ny)=motion_e(src,cx,cy,n); cx=nx; cy=ny; }
+                        ,(KeyCode::Char('b'), KeyModifiers::NONE, Mode::Normal) => { let n=count.take().unwrap_or(1); let src= if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines }; let (nx,ny)=motion_b(src,cx,cy,n); cx=nx; cy=ny; }
                         ,(KeyCode::Char('q'), KeyModifiers::CONTROL, _) => { if modified { status = Some("No write since last change (:q! to quit)".into()); } else { break; } }
                         ,_ => {}
                     }
