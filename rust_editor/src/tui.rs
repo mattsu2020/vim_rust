@@ -298,34 +298,17 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                                     } else { status = Some("badd: missing file".into()); }
                                 }
                                 else if cmd == ":bn" || cmd == "bn" {
-                                    if !buffers.is_empty() {
-                                        buffers.push(Buffer{ lines: lines.clone(), filename: filename.clone(), modified });
-                                        let b = buffers.remove(0);
-                                        lines = b.lines; filename = b.filename; modified = b.modified; cx=0; cy=0; scroll=0;
-                                    } else { status = Some("no buffers".into()); }
+                                    if buffers.is_empty() { status = Some("no buffers".into()); } else { let v=&mut views[cur_view]; let idx=v.buf.unwrap_or(usize::MAX); v.buf=Some(if idx==usize::MAX {0} else {(idx+1)%buffers.len()}); cx=0; cy=0; scroll=0; }
                                 }
                                 else if cmd == ":bp" || cmd == "bp" {
-                                    if !buffers.is_empty() {
-                                        buffers.insert(0, Buffer{ lines: lines.clone(), filename: filename.clone(), modified });
-                                        let b = buffers.pop().unwrap();
-                                        lines = b.lines; filename = b.filename; modified = b.modified; cx=0; cy=0; scroll=0;
-                                    } else { status = Some("no buffers".into()); }
+                                    if buffers.is_empty() { status = Some("no buffers".into()); } else { let v=&mut views[cur_view]; let idx=v.buf.unwrap_or(0); v.buf=Some((idx+buffers.len()-1)%buffers.len()); cx=0; cy=0; scroll=0; }
                                 }
                                 else if cmd.starts_with(":buffer ") || cmd.starts_with("buffer ") || cmd.starts_with(":b ") || cmd.starts_with("b ") {
-                                    let parts: Vec<&str> = cmd.split_whitespace().collect();
-                                    if parts.len() >= 2 {
-                                        if let Ok(n) = parts[1].parse::<usize>() {
-                                            if n < buffers.len() {
-                                                let cur = Buffer{ lines: lines.clone(), filename: filename.clone(), modified };
-                                                let b = buffers.swap_remove(n);
-                                                lines = b.lines; filename = b.filename; modified = b.modified;
-                                                buffers.push(cur);
-                                                cx=0; cy=0; scroll=0;
-                                            } else { status = Some("buffer: out of range".into()); }
-                                        }
-                                    }
+                                    let parts: Vec<&str> = cmd.split_whitespace().collect(); if parts.len()>=2 { if let Ok(n)=parts[1].parse::<usize>() { if n<buffers.len() { views[cur_view].buf=Some(n); cx=0; cy=0; scroll=0; } else { status=Some("buffer: out of range".into()); } } }
                                 }
                                 else if cmd == ":buffers" || cmd == "buffers" || cmd == ":ls" || cmd == "ls" {
+                                    // 記録: 呼び出し元のビュー
+                                    last_normal_view = cur_view;
                                     views.push(View { kind: ViewKind::BuffersList, cx: 1, cy: 1, scroll: 0, buf: None });
                                     cur_view = views.len() - 1;
                                 }
@@ -333,21 +316,15 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                                     if last_pat.is_empty() {
                                         status = Some("no previous substitute".into());
                                     } else {
-                                        let range = if cmd.ends_with("&&") { (1, lines.len()) } else { (cy+1, cy+1) };
-                                        match substitute_lines(&mut lines, range, &last_pat, &last_repl, &last_flags) {
-                                            Ok(n) => { if n>0 { modified=true; } status = Some(format!("substitutions: {}", n)); }
-                                            Err(e) => status = Some(e),
-                                        }
+                                        if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ let len=b.lines.len(); let range= if cmd.ends_with("&&") {(1,len)} else {(cy+1,cy+1)}; match substitute_lines(&mut b.lines, range, &last_pat, &last_repl, &last_flags){ Ok(n)=>{ if n>0 { b.modified=true; } status=Some(format!("substitutions: {}", n)); }, Err(e)=> status=Some(e) } } else { let len=lines.len(); let range= if cmd.ends_with("&&") {(1,len)} else {(cy+1,cy+1)}; match substitute_lines(&mut lines, range, &last_pat, &last_repl, &last_flags){ Ok(n)=>{ if n>0 { modified=true; } status=Some(format!("substitutions: {}", n)); }, Err(e)=> status=Some(e) } } }
+                                        else { let len=lines.len(); let range= if cmd.ends_with("&&") {(1,len)} else {(cy+1,cy+1)}; match substitute_lines(&mut lines, range, &last_pat, &last_repl, &last_flags){ Ok(n)=>{ if n>0 { modified=true; } status=Some(format!("substitutions: {}", n)); }, Err(e)=> status=Some(e) } }
                                     }
                                 }
                                 else if cmd.starts_with('s') || cmd.starts_with(":s") || cmd.contains('s') && cmd.find('s').unwrap_or(usize::MAX) < 6 {
                                     if let Some((range_str, pat, repl_raw, flags)) = parse_substitute(cmd) {
-                                        let (start,end) = if let Some(rs)=range_str { parse_range(&rs, lines.len(), cy).unwrap_or((cy+1, cy+1)) } else { (cy+1, cy+1) };
                                         let repl = convert_repl_to_rust(&repl_raw, &last_repl);
-                                        match substitute_lines(&mut lines, (start,end), &pat, &repl, &flags) {
-                                            Ok(n) => { if n>0 { modified=true; } status = Some(format!("substitutions: {}", n)); last_pat = pat; last_repl = repl_raw; last_flags = flags; }
-                                            Err(e) => status = Some(e),
-                                        }
+                                        if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ let (start,end)= if let Some(rs)=range_str { parse_range(&rs, b.lines.len(), cy).unwrap_or((cy+1,cy+1)) } else { (cy+1,cy+1) }; match substitute_lines(&mut b.lines, (start,end), &pat, &repl, &flags){ Ok(n)=>{ if n>0 { b.modified=true; } status=Some(format!("substitutions: {}", n)); last_pat=pat; last_repl=repl_raw; last_flags=flags; }, Err(e)=> status=Some(e) } } else { let (start,end)= if let Some(rs)=range_str { parse_range(&rs, lines.len(), cy).unwrap_or((cy+1,cy+1)) } else { (cy+1,cy+1) }; match substitute_lines(&mut lines, (start,end), &pat, &repl, &flags){ Ok(n)=>{ if n>0 { modified=true; } status=Some(format!("substitutions: {}", n)); last_pat=pat; last_repl=repl_raw; last_flags=flags; }, Err(e)=> status=Some(e) } } }
+                                        else { let (start,end)= if let Some(rs)=range_str { parse_range(&rs, lines.len(), cy).unwrap_or((cy+1,cy+1)) } else { (cy+1,cy+1) }; match substitute_lines(&mut lines, (start,end), &pat, &repl, &flags){ Ok(n)=>{ if n>0 { modified=true; } status=Some(format!("substitutions: {}", n)); last_pat=pat; last_repl=repl_raw; last_flags=flags; }, Err(e)=> status=Some(e) } }
                                     }
                                 }
                                 else if cmd.starts_with("e!") || cmd.starts_with(":e!") {
@@ -355,8 +332,9 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                                     if parts.len() >= 2 {
                                         let p = PathBuf::from(parts[1]);
                                         let new_lines = open_file(&p);
-                                        lines = if new_lines.is_empty() { vec![String::new()] } else { new_lines };
-                                        filename = Some(p); cx = 0; cy = 0; scroll = 0; modified = false; status = Some("reloaded".into());
+                                        if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ b.lines = if new_lines.is_empty(){ vec![String::new()] } else { new_lines }; b.filename=Some(p); b.modified=false; } }
+                                        else { lines = if new_lines.is_empty() { vec![String::new()] } else { new_lines }; filename=Some(p); modified=false; }
+                                        cx = 0; cy = 0; scroll = 0; status = Some("reloaded".into());
                                     }
                                 }
                                 else if cmd.starts_with("e ") || cmd.starts_with(":e ") {
@@ -365,8 +343,9 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                                         let p = PathBuf::from(cmd.split_whitespace().nth(1).unwrap_or(""));
                                         if !p.as_os_str().is_empty() {
                                             let new_lines = open_file(&p);
-                                            lines = if new_lines.is_empty() { vec![String::new()] } else { new_lines };
-                                            filename = Some(p); cx = 0; cy = 0; scroll = 0; modified = false; status = Some("edited".into());
+                                            if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ b.lines = if new_lines.is_empty(){ vec![String::new()] } else { new_lines }; b.filename=Some(p); b.modified=false; } }
+                                            else { lines = if new_lines.is_empty() { vec![String::new()] } else { new_lines }; filename=Some(p); modified=false; }
+                                            cx = 0; cy = 0; scroll = 0; status = Some("edited".into());
                                         }
                                     }
                                 }
@@ -421,40 +400,74 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                         ,(KeyCode::Char('V'), _, Mode::Normal) => { if matches!(mode, Mode::VisualLine) { mode = Mode::Normal; visual_anchor=None; } else { mode = Mode::VisualLine; visual_anchor = Some((cx, cy)); } }
                         ,(KeyCode::Char('i'), _, Mode::Normal) => { mode = Mode::Insert; }
                         ,(KeyCode::Esc, _, Mode::Insert) => { mode = Mode::Normal; }
-                        ,(KeyCode::Char('h'), _, Mode::Normal) | (KeyCode::Left, _, _) => { if cx>0 { cx-=1; } else if cy>0 { cy-=1; cx = lines[cy].len(); } }
-                        ,(KeyCode::Char('l'), _, Mode::Normal) | (KeyCode::Right, _, _) => { if cx < lines[cy].len() { cx+=1; } else if cy+1 < lines.len() { cy+=1; cx=0; } }
-                        ,(KeyCode::Char('k'), _, Mode::Normal) | (KeyCode::Up, _, _) => { if cy>0 { cy-=1; cx = cx.min(lines[cy].len()); } }
-                        ,(KeyCode::Char('j'), _, Mode::Normal) | (KeyCode::Down, _, _) => { if cy+1 < lines.len() { cy+=1; cx = cx.min(lines[cy].len()); } }
+                        ,(KeyCode::Char('h'), _, Mode::Normal) | (KeyCode::Left, _, _) => {
+                            let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines };
+                            if cx>0 { cx-=1; } else if cy>0 { cy-=1; cx = src[cy].len(); }
+                        }
+                        ,(KeyCode::Char('l'), _, Mode::Normal) | (KeyCode::Right, _, _) => {
+                            let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines };
+                            if cx < src[cy].len() { cx+=1; } else if cy+1 < src.len() { cy+=1; cx=0; }
+                        }
+                        ,(KeyCode::Char('k'), _, Mode::Normal) | (KeyCode::Up, _, _) => {
+                            let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines };
+                            if cy>0 { cy-=1; cx = cx.min(src[cy].len()); }
+                        }
+                        ,(KeyCode::Char('j'), _, Mode::Normal) | (KeyCode::Down, _, _) => {
+                            let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines };
+                            if cy+1 < src.len() { cy+=1; cx = cx.min(src[cy].len()); }
+                        }
                         ,(KeyCode::Home, _, _) | (KeyCode::Char('0'), _, Mode::Normal) => { cx = 0; }
-                        ,(KeyCode::End, _, _) | (KeyCode::Char('$'), _, Mode::Normal) => { cx = lines[cy].len(); }
-                        ,(KeyCode::Char('G'), _, Mode::Normal) => { cy = lines.len().saturating_sub(1); cx = 0; }
+                        ,(KeyCode::End, _, _) | (KeyCode::Char('$'), _, Mode::Normal) => { let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines }; cx = src[cy].len(); }
+                        ,(KeyCode::Char('G'), _, Mode::Normal) => { let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines }; cy = src.len().saturating_sub(1); cx = 0; }
                         ,(KeyCode::Char('g'), _, Mode::Normal) => { cy = 0; cx = 0; }
                         ,(KeyCode::Char('d'), _, m) if matches!(m, Mode::VisualChar | Mode::VisualLine) => {
-                            if let Some((ax, ay)) = visual_anchor { let (sx, sy, ex, ey) = ordered_region(ax, ay, cx, cy); delete_selection(&mut lines, sx, sy, ex, ey, matches!(m, Mode::VisualChar)); modified = true; mode = Mode::Normal; visual_anchor=None; cx = sx; cy = sy; }
+                            if let Some((ax, ay)) = visual_anchor {
+                                let (sx, sy, ex, ey) = ordered_region(ax, ay, cx, cy);
+                                if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ delete_selection(&mut b.lines, sx, sy, ex, ey, matches!(m, Mode::VisualChar)); b.modified=true; } }
+                                else { delete_selection(&mut lines, sx, sy, ex, ey, matches!(m, Mode::VisualChar)); modified = true; }
+                                mode = Mode::Normal; visual_anchor=None; cx = sx; cy = sy;
+                            }
                         }
                         ,(KeyCode::Char('y'), _, m) if matches!(m, Mode::VisualChar | Mode::VisualLine) => {
-                            if let Some((ax, ay)) = visual_anchor { let (sx, sy, ex, ey) = ordered_region(ax, ay, cx, cy); clipboard = Some(yank_selection(&lines, sx, sy, ex, ey, matches!(m, Mode::VisualChar))); mode = Mode::Normal; visual_anchor=None; }
+                            if let Some((ax, ay)) = visual_anchor {
+                                let (sx, sy, ex, ey) = ordered_region(ax, ay, cx, cy);
+                                let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines };
+                                clipboard = Some(yank_selection(src, sx, sy, ex, ey, matches!(m, Mode::VisualChar)));
+                                mode = Mode::Normal; visual_anchor=None;
+                            }
                         }
                         ,(KeyCode::Char('c'), _, m) if matches!(m, Mode::VisualChar | Mode::VisualLine) => {
-                            if let Some((ax, ay)) = visual_anchor { let (sx, sy, ex, ey) = ordered_region(ax, ay, cx, cy); clipboard = Some(yank_selection(&lines, sx, sy, ex, ey, matches!(m, Mode::VisualChar))); delete_selection(&mut lines, sx, sy, ex, ey, matches!(m, Mode::VisualChar)); modified = true; mode = Mode::Insert; visual_anchor=None; cx = sx; cy = sy; }
+                            if let Some((ax, ay)) = visual_anchor {
+                                let (sx, sy, ex, ey) = ordered_region(ax, ay, cx, cy);
+                                let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines };
+                                clipboard = Some(yank_selection(src, sx, sy, ex, ey, matches!(m, Mode::VisualChar)));
+                                if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ delete_selection(&mut b.lines, sx, sy, ex, ey, matches!(m, Mode::VisualChar)); b.modified=true; } }
+                                else { delete_selection(&mut lines, sx, sy, ex, ey, matches!(m, Mode::VisualChar)); modified=true; }
+                                mode = Mode::Insert; visual_anchor=None; cx = sx; cy = sy;
+                            }
                         }
                         ,(KeyCode::Char('p'), _, Mode::Normal) => {
-                            if let Some(reg) = clipboard.clone() { match reg { Register::Charwise(s) => { for ch in s.chars() { lines[cy].insert(cx, ch); cx+=1; } }, Register::Linewise(mut ls) => { let insert_at = cy+1; for (i,l) in ls.drain(..).enumerate(){ lines.insert(insert_at+i, l);} cy = insert_at; cx = 0; } } modified = true; }
+                            if let Some(reg) = clipboard.clone() {
+                                if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ match reg { Register::Charwise(s)=>{ for ch in s.chars(){ b.lines[cy].insert(cx, ch); cx+=1; } }, Register::Linewise(mut ls)=>{ let insert_at=cy+1; for (i,l) in ls.drain(..).enumerate(){ b.lines.insert(insert_at+i, l);} cy=insert_at; cx=0; } } b.modified=true; } }
+                                else { match reg { Register::Charwise(s)=>{ for ch in s.chars(){ lines[cy].insert(cx, ch); cx+=1; } }, Register::Linewise(mut ls)=>{ let insert_at=cy+1; for (i,l) in ls.drain(..).enumerate(){ lines.insert(insert_at+i, l);} cy=insert_at; cx=0; } } modified=true; }
+                            }
                         }
-                        ,(KeyCode::Enter, _, Mode::Insert) => { let cur = lines[cy].clone(); let (l, r) = cur.split_at(cx); lines[cy] = l.to_string(); lines.insert(cy+1, r.to_string()); cy+=1; cx=0; modified = true; }
+                        ,(KeyCode::Enter, _, Mode::Insert) => {
+                            if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ let cur = b.lines[cy].clone(); let (l,r)=cur.split_at(cx); b.lines[cy]=l.to_string(); b.lines.insert(cy+1, r.to_string()); cy+=1; cx=0; b.modified=true; } }
+                            else { let cur = lines[cy].clone(); let (l,r)=cur.split_at(cx); lines[cy]=l.to_string(); lines.insert(cy+1, r.to_string()); cy+=1; cx=0; modified=true; }
+                        }
                         ,(KeyCode::Enter, _, Mode::Normal) => {
                             // If buffers list is active, select and switch
                             if !views.is_empty() && matches!(views[cur_view].kind, ViewKind::BuffersList) {
                                 let sel_row = views[cur_view].cy.saturating_sub(1); // row 0 is header
                                 if sel_row < buffers.len() {
-                                    // swap current content with chosen buffer
-                                    let cur = Buffer{ lines: lines.clone(), filename: filename.clone(), modified };
-                                    let chosen = buffers.swap_remove(sel_row);
-                                    lines = chosen.lines; filename = chosen.filename; modified = chosen.modified;
-                                    buffers.push(cur);
-                                    // close buffers view
-                                    views.remove(cur_view);
-                                    cur_view = 0;
+                                    // 割当: 呼び出し元のビューに選択バッファを割当
+                                    let caller = last_normal_view.min(views.len().saturating_sub(1));
+                                    if caller < views.len() { views[caller].buf = Some(sel_row); }
+                                    // 一覧ビューを閉じて呼出元へ戻る
+                                    let list_idx = cur_view;
+                                    views.remove(list_idx);
+                                    cur_view = caller.min(views.len().saturating_sub(1));
                                     status = Some("buffer switched".into());
                                 }
                             }
@@ -464,8 +477,14 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                                 views.remove(cur_view); cur_view = 0;
                             }
                         }
-                        ,(KeyCode::Backspace, _, Mode::Insert) => { if cx>0 { lines[cy].remove(cx-1); cx-=1; modified = true; } else if cy>0 { let prev_len = lines[cy-1].len(); let line = lines.remove(cy); lines[cy-1].push_str(&line); cy-=1; cx=prev_len; modified=true; } }
-                        ,(KeyCode::Char(c), KeyModifiers::NONE, Mode::Insert) => { if c == '\t' { let spaces = " ".repeat(tabstop); for ch in spaces.chars() { lines[cy].insert(cx, ch); cx+=1; } } else { lines[cy].insert(cx, c); cx+=1; } modified = true; }
+                        ,(KeyCode::Backspace, _, Mode::Insert) => {
+                            if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ if cx>0 { b.lines[cy].remove(cx-1); cx-=1; b.modified=true; } else if cy>0 { let prev_len=b.lines[cy-1].len(); let line=b.lines.remove(cy); b.lines[cy-1].push_str(&line); cy-=1; cx=prev_len; b.modified=true; } } }
+                            else { if cx>0 { lines[cy].remove(cx-1); cx-=1; modified=true; } else if cy>0 { let prev_len=lines[cy-1].len(); let line=lines.remove(cy); lines[cy-1].push_str(&line); cy-=1; cx=prev_len; modified=true; } }
+                        }
+                        ,(KeyCode::Char(c), KeyModifiers::NONE, Mode::Insert) => {
+                            if let Some(bi)=views[cur_view].buf { if let Some(b)=buffers.get_mut(bi){ if c=='\t' { let spaces = " ".repeat(tabstop); for ch in spaces.chars(){ b.lines[cy].insert(cx, ch); cx+=1; } } else { b.lines[cy].insert(cx, c); cx+=1; } b.modified=true; } }
+                            else { if c=='\t' { let spaces = " ".repeat(tabstop); for ch in spaces.chars(){ lines[cy].insert(cx, ch); cx+=1; } } else { lines[cy].insert(cx, c); cx+=1; } modified=true; }
+                        }
                         ,(KeyCode::Char('s'), KeyModifiers::CONTROL, _) => {
                             // save active buffer or global
                             let active_bi = views[cur_view].buf;
@@ -478,8 +497,8 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                                 if let Some(ref p) = filename { if save_file(p, &lines).is_ok() { modified = false; status = Some("written".into()); } else { status = Some("write error".into()); } } else { status = Some("No file name".into()); }
                             }
                         }
-                        ,(KeyCode::Char('n'), _, Mode::Normal) => { if let Some(_) = &search.regex { if let Some((ny, nx)) = find_next(&lines, cy, cx, &search, search.last_dir) { cy = ny; cx = nx; } } }
-                        ,(KeyCode::Char('N'), _, Mode::Normal) => { if let Some(_) = &search.regex { if let Some((ny, nx)) = find_next(&lines, cy, cx, &search, -search.last_dir) { cy = ny; cx = nx; } } }
+                        ,(KeyCode::Char('n'), _, Mode::Normal) => { if let Some(_) = &search.regex { let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines }; if let Some((ny,nx))=find_next(src, cy, cx, &search, search.last_dir){ cy=ny; cx=nx; } } }
+                        ,(KeyCode::Char('N'), _, Mode::Normal) => { if let Some(_) = &search.regex { let src = if let Some(bi)=views[cur_view].buf { buffers.get(bi).map(|b| &b.lines).unwrap_or(&lines) } else { &lines }; if let Some((ny,nx))=find_next(src, cy, cx, &search, -search.last_dir){ cy=ny; cx=nx; } } }
                         ,(KeyCode::Char('w'), KeyModifiers::CONTROL, Mode::Normal) => { if !views.is_empty() { let k = views[cur_view].kind; let b = views[cur_view].buf; views[cur_view] = View { kind: k, cx, cy, scroll, buf: b }; cur_view = (cur_view + 1) % views.len(); let v = views[cur_view].clone(); cx = v.cx; cy = v.cy; scroll = v.scroll; } }
                         ,(KeyCode::Char('q'), KeyModifiers::CONTROL, _) => { if modified { status = Some("No write since last change (:q! to quit)".into()); } else { break; } }
                         ,_ => {}
