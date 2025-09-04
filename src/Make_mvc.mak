@@ -687,9 +687,8 @@ OBJ = \
 	$(OUTDIR)\edit.obj \
 	$(OUTDIR)\eval.obj \
 	$(OUTDIR)\evalbuffer.obj \
-	$(OUTDIR)\evalfunc.obj \
-	$(OUTDIR)\evalvars.obj \
-	$(OUTDIR)\evalwindow.obj \
+        $(OUTDIR)\evalvars.obj \
+        $(OUTDIR)\evalwindow.obj \
 	$(OUTDIR)\ex_cmds.obj \
 	$(OUTDIR)\ex_cmds2.obj \
 	$(OUTDIR)\ex_docmd.obj \
@@ -1488,8 +1487,6 @@ $(OUTDIR)/eval.obj: $(OUTDIR) eval.c $(INCL)
 
 $(OUTDIR)/evalbuffer.obj: $(OUTDIR) evalbuffer.c $(INCL)
 
-$(OUTDIR)/evalfunc.obj: $(OUTDIR) evalfunc.c $(INCL) version.h
-
 $(OUTDIR)/evalvars.obj: $(OUTDIR) evalvars.c $(INCL) version.h
 
 $(OUTDIR)/evalwindow.obj: $(OUTDIR) evalwindow.c $(INCL)
@@ -1815,9 +1812,8 @@ proto.h: \
 	proto/drawscreen.pro \
 	proto/edit.pro \
 	proto/eval.pro \
-	proto/evalbuffer.pro \
-	proto/evalfunc.pro \
-	proto/evalvars.pro \
+        proto/evalbuffer.pro \
+        proto/evalvars.pro \
 	proto/evalwindow.pro \
 	proto/ex_cmds.pro \
 	proto/ex_cmds2.pro \

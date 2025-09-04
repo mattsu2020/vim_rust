@@ -90,7 +90,6 @@ extern int _stricoll(char *a, char *b);
 # include "edit.pro"
 # include "eval.pro"
 # include "evalbuffer.pro"
-# include "evalfunc.pro"
 # include "evalvars.pro"
 # include "evalwindow.pro"
 # include "ex_cmds.pro"

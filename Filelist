@@ -54,10 +54,9 @@ SRC_ALL =	\
 		src/edit.c \
 		src/errors.h \
 		src/eval.c \
-		src/evalbuffer.c \
-		src/evalfunc.c \
-		src/evalvars.c \
-		src/evalwindow.c \
+                src/evalbuffer.c \
+                src/evalvars.c \
+                src/evalwindow.c \
 		src/ex_cmdidxs.h \
 		src/ex_cmds.h \
 		src/ex_eval.c \
@@ -221,9 +220,8 @@ SRC_ALL =	\
 		src/proto/edit.pro \
 		src/proto/eval.pro \
 		src/proto/evalbuffer.pro \
-		src/proto/evalfunc.pro \
-		src/proto/evalvars.pro \
-		src/proto/evalwindow.pro \
+                src/proto/evalvars.pro \
+                src/proto/evalwindow.pro \
 		src/proto/ex_cmds.pro \
 		src/proto/ex_cmds2.pro \
 		src/proto/ex_docmd.pro \
