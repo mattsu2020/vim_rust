@@ -3,8 +3,7 @@ name = "rust_version"
 version = "0.1.0"
 edition = "2021"
 
-[dependencies]
-
 [lib]
 name = "rust_version"
 crate-type = ["staticlib", "rlib"]
+

@@ -1466,6 +1466,8 @@ RUST_CLIENTSERVER_DIR = ../rust_clientserver
 RUST_CLIENTSERVER_LIB = $(RUST_CLIENTSERVER_DIR)/target/release/librust_clientserver.a
 RUST_ENTRY_DIR = ../rust_entry
 RUST_ENTRY_LIB = $(RUST_ENTRY_DIR)/target/release/librust_entry.a
+RUST_VERSION_DIR = ../rust_version
+RUST_VERSION_LIB = $(RUST_VERSION_DIR)/target/release/librust_version.a
 
 # Additional Rust crates used by this configuration
 RUST_CHANGE_DIR = ../rust_change
@@ -1629,6 +1631,10 @@ $(RUST_CLIENTSERVER_LIB):
 
 $(RUST_ENTRY_LIB):
 	cd $(RUST_ENTRY_DIR) && CARGO_TARGET_DIR=target cargo build --release
+
+$(RUST_VERSION_LIB):
+	@mkdir -p $(RUST_VERSION_DIR)/target/release
+	rustc --crate-type staticlib -O -o $(RUST_VERSION_LIB) $(RUST_VERSION_DIR)/src/lib.rs
 
 # Additional Rust libraries providing rs_* APIs used across the C codebase
 RUST_ARGLIST_DIR = ../rust_arglist
@@ -2132,8 +2138,11 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 
 # Link the target for normal use or debugging.
 # A shell script is used to try linking without unnecessary libraries.
-$(VIMTARGET): auto/config.mk $(OBJ)
-	$(CClink) $(LDFLAGS) -o $(VIMTARGET) $(OBJ)
+RUST_VERSION_DIR = ../rust_version
+RUST_VERSION_LIB = $(RUST_VERSION_DIR)/target/release/librust_version.a
+
+$(VIMTARGET): auto/config.mk $(OBJ) $(RUST_VERSION_LIB)
+	$(CClink) $(LDFLAGS) -o $(VIMTARGET) $(OBJ) $(RUST_VERSION_LIB)
 
 
 # Build the language specific files if they were unpacked.
