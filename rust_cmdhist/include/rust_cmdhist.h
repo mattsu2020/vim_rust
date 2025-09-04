@@ -7,6 +7,9 @@ extern "C" {
 
 void rs_cmd_history_add(const char *cmd);
 const char *rs_cmd_history_get(int idx);
+void rs_cmd_history_init(int len);
+int rs_cmd_history_len(void);
+void rs_cmd_history_clear(void);
 
 #ifdef __cplusplus
 }
