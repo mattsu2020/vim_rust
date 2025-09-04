@@ -131,9 +131,11 @@ SRC_UNIX =	\
 		pixmaps/*.xpm \
 		pixmaps/*.png \
 		pixmaps/gen-inline-pixbufs.sh \
-		pixmaps/stock_icons.h \
-		src/INSTALL \
-		src/INSTALLx.txt \		src/auto/configure \
+
+                src/INSTALL \
+		src/INSTALLx.txt \
+		src/Makefile \
+		src/auto/configure \
 		src/config.h.in \
 		src/config.mk.dist \
 		src/config.mk.in \
