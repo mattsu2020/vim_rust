@@ -1,4 +1,53 @@
 use rust_screen::ScreenBuffer;
+use libc::{c_char, c_int};
+use std::collections::VecDeque;
+use std::sync::{LazyLock, Mutex};
+
+static INPUT_BUF: LazyLock<Mutex<VecDeque<u8>>> = LazyLock::new(|| Mutex::new(VecDeque::new()));
+static OUTPUT_BUF: LazyLock<Mutex<Vec<String>>> = LazyLock::new(|| Mutex::new(Vec::new()));
+
+/// Write UI text directly from Rust, bypassing any C shim.
+#[no_mangle]
+pub unsafe extern "C" fn ui_write(msg: *const c_char, len: c_int) {
+    if msg.is_null() || len <= 0 {
+        return;
+    }
+    let slice = std::slice::from_raw_parts(msg as *const u8, len as usize);
+    if let Ok(text) = std::str::from_utf8(slice) {
+        OUTPUT_BUF.lock().unwrap().push(text.to_string());
+    }
+}
+
+/// Simplified input reader backed by an internal buffer.
+pub fn ui_inchar(buf: &mut [u8]) -> usize {
+    let mut input = INPUT_BUF.lock().unwrap();
+    let n = buf.len().min(input.len());
+    for i in 0..n {
+        buf[i] = input.pop_front().unwrap();
+    }
+    n
+}
+
+/// Push characters back to the start of the input buffer.
+pub fn ui_inchar_undo(data: &[u8]) {
+    let mut input = INPUT_BUF.lock().unwrap();
+    for &b in data.iter().rev() {
+        input.push_front(b);
+    }
+}
+
+/// Helper for tests: append data to the input buffer.
+pub fn push_input(data: &str) {
+    INPUT_BUF.lock().unwrap().extend(data.as_bytes());
+}
+
+/// Helper for tests: take all pending output.
+pub fn take_output() -> Vec<String> {
+    let mut out = OUTPUT_BUF.lock().unwrap();
+    let res = out.clone();
+    out.clear();
+    res
+}
 
 /// Trait implemented by rendering backends.
 pub trait Renderer {
@@ -50,6 +99,7 @@ impl<R: Renderer> Ui<R> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::ffi::CString;
 
     struct CollectRenderer(pub Vec<String>);
 
@@ -78,5 +128,27 @@ mod tests {
         let ui = Ui::new(5, 1, CollectRenderer(Vec::new()));
         assert_eq!(ui.format_text("abc", 5), "abc  ");
         assert_eq!(ui.format_text("abcdef", 3), "abc");
+    }
+
+    #[test]
+    fn input_buffer_roundtrip() {
+        push_input("ab");
+        let mut buf = [0u8; 2];
+        assert_eq!(ui_inchar(&mut buf), 2);
+        assert_eq!(buf, [b'a', b'b']);
+        ui_inchar_undo(&buf);
+        let mut buf2 = [0u8; 2];
+        assert_eq!(ui_inchar(&mut buf2), 2);
+        assert_eq!(buf2, [b'a', b'b']);
+    }
+
+    #[test]
+    fn ui_write_captures_output() {
+        unsafe {
+            let msg = CString::new("hello").unwrap();
+            ui_write(msg.as_ptr(), 5);
+        }
+        let out = take_output();
+        assert_eq!(out, vec!["hello".to_string()]);
     }
 }
