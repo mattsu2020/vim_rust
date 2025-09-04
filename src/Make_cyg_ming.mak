@@ -812,8 +812,7 @@ OBJ = \
 	$(OUTDIR)/indent.o \
 	$(OUTDIR)/insexpand.o \
 	$(OUTDIR)/json.o \
-	$(OUTDIR)/linematch.o \
-	$(OUTDIR)/list.o \
+        $(OUTDIR)/list.o \
 	$(OUTDIR)/locale.o \
 	$(OUTDIR)/logfile.o \
 	$(OUTDIR)/main.o \

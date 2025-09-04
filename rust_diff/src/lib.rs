@@ -1,4 +1,6 @@
 use core::ffi::{c_char, c_int, c_long, c_uchar, c_void};
+use rust_linematch as lm;
+use rust_linematch::mmfile_t as lm_mmfile_t;
 use similar::{ChangeTag, TextDiff};
 
 #[repr(C)]
@@ -182,6 +184,35 @@ pub unsafe extern "C" fn xdiff_out_indices(
     *data.add(dout.dout_ga.ga_len as usize) = p;
     dout.dout_ga.ga_len += 1;
     0
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn linematch_nbuffers(
+    diff_blk: *const *const mmfile_t,
+    diff_len: *const c_int,
+    ndiffs: usize,
+    decisions: *mut *mut c_int,
+    iwhite: c_int,
+) -> usize {
+    if diff_blk.is_null() || diff_len.is_null() || decisions.is_null() {
+        return 0;
+    }
+    let blk = std::slice::from_raw_parts(diff_blk, ndiffs);
+    let lens = std::slice::from_raw_parts(diff_len, ndiffs);
+    let mut refs: Vec<&lm_mmfile_t> = Vec::with_capacity(ndiffs);
+    for &p in blk {
+        refs.push(&*(p as *const lm_mmfile_t));
+    }
+    let vec = lm::linematch_nbuffers(&refs, lens, iwhite != 0);
+    let size = vec.len() * std::mem::size_of::<c_int>();
+    let ptr = alloc(size) as *mut c_int;
+    if ptr.is_null() {
+        *decisions = core::ptr::null_mut();
+        return 0;
+    }
+    std::ptr::copy_nonoverlapping(vec.as_ptr(), ptr, vec.len());
+    *decisions = ptr;
+    vec.len()
 }
 
 #[no_mangle]

@@ -2175,6 +2175,7 @@ dependencies = [
 name = "rust_diff"
 version = "0.1.0"
 dependencies = [
+ "rust_linematch",
  "similar",
 ]
 
@@ -2430,6 +2431,10 @@ dependencies = [
  "serde_json",
  "tokio",
 ]
+
+[[package]]
+name = "rust_linematch"
+version = "0.1.0"
 
 [[package]]
 name = "rust_list"

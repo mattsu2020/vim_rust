@@ -84,7 +84,6 @@ extern int _stricoll(char *a, char *b);
 # include "debugger.pro"
 # include "dict.pro"
 # include "diff.pro"
-# include "linematch.pro"
 # include "digraph.pro"
 # include "drawline.pro"
 # include "drawscreen.pro"
