@@ -11,9 +11,6 @@ echo &winblend &winhighlight
 
 
 call api_info()
-call buffer_exists()
-call buffer_name()
-call buffer_number()
 call chanclose()
 call chansend()
 call ctxget()

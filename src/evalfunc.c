@@ -2039,12 +2039,6 @@ static const funcentry_T global_functions[] =
 			ret_number,	    f_bufadd},
     {"bufexists",	1, 1, FEARG_1,	    arg1_buffer,
 			ret_number_bool,    f_bufexists},
-    {"buffer_exists",	1, 1, FEARG_1,	    arg1_buffer,	// obsolete
-			ret_number_bool,    f_bufexists},
-    {"buffer_name",	0, 1, FEARG_1,	    arg1_buffer,	// obsolete
-			ret_string,	    f_bufname},
-    {"buffer_number",	0, 1, FEARG_1,	    arg1_buffer,	// obsolete
-			ret_number,	    f_bufnr},
     {"buflisted",	1, 1, FEARG_1,	    arg1_buffer,
 			ret_number_bool,    f_buflisted},
     {"bufload",		1, 1, FEARG_1,	    arg1_buffer,

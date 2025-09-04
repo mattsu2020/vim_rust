@@ -1218,8 +1218,6 @@ commands.
 Line wrapping for 'tw' was done one character off for insert expansion
 inserts.
 
-buffer_exists() function didn't work properly for buffer names with a symbolic
-link in them (e.g. when using buffer_exists(#)).
 
 Removed the "MOTIF_COMMENT" construction from Makefile.  It now works with
 FreeBSD make, and probably with NeXT make too.
@@ -1726,9 +1724,7 @@ Added							*added-5.1*
 status line of not-current window.  Default is to use bold for current
 window.
 
-Added buffer_name() and buffer_number() functions (Aaron).
 Added flags argument "g" to substitute() function (Aaron).
-Added winheight() function.
 
 Win32: When an external command starts with "start ", no console is opened
 for it (Aaron).
@@ -2258,13 +2254,8 @@ Changed							*changed-5.2*
 -------
 
 Renamed functions:
-		buffer_exists()	   -> bufexists()
-		buffer_name()      -> bufname()
-		buffer_number()    -> bufnr()
-		file_readable()    -> filereadable()
-		highlight_exists() -> hlexists()
-		highlightID()      -> hlID()
-		last_buffer_nr()   -> bufnr("$")
+               file_readable()    -> filereadable()
+               highlight_exists() -> hlexists()
 The old ones are still there, for backwards compatibility.
 
 The CTRL-_ command in Insert and Command-line mode is only available when the
