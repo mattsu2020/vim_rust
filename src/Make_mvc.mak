@@ -1882,12 +1882,10 @@ proto.h: \
 	proto/match.pro \
 	proto/memfile.pro \
 	proto/memline.pro \
-	proto/menu.pro \
-	proto/message.pro \
-	proto/misc1.pro \
-	proto/misc2.pro \
-	proto/mouse.pro \
-	proto/move.pro \
+        proto/menu.pro \
+        proto/message.pro \
+        proto/mouse.pro \
+        proto/move.pro \
 	proto/mbyte.pro \
 	proto/normal.pro \
 	proto/ops.pro \

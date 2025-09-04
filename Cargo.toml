@@ -48,6 +48,7 @@ blowfish = "0.8"
 pbkdf2 = "0.12"
 ring = "0.17"
 rust_vim9class = { path = "rust_vim9class" }
+rust_misc = { path = "rust_misc" }
 
 [features]
 default = []
