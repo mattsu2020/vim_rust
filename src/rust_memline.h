@@ -8,13 +8,15 @@
 extern "C" {
 #endif
 
-void *rs_ml_buffer_new(void);
-void rs_ml_buffer_free(void *buf);
-bool rs_ml_append(void *buf, size_t lnum, const char *line);
-bool rs_ml_delete(void *buf, size_t lnum);
-bool rs_ml_replace(void *buf, size_t lnum, const char *line);
-unsigned char *rs_ml_get_line(void *buf, size_t lnum, int for_change, size_t *out_len);
-size_t rs_ml_line_count(void *buf);
+typedef struct MemBuffer MemBuffer;
+
+MemBuffer *ml_buffer_new(void);
+void ml_buffer_free(MemBuffer *buf);
+bool ml_append(MemBuffer *buf, size_t lnum, const char *line);
+bool ml_delete(MemBuffer *buf, size_t lnum);
+bool ml_replace(MemBuffer *buf, size_t lnum, const char *line);
+unsigned char *ml_get_line(MemBuffer *buf, size_t lnum, int for_change, size_t *out_len);
+size_t ml_line_count(MemBuffer *buf);
 
 #ifdef __cplusplus
 }

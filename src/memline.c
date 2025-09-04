@@ -9,14 +9,14 @@ int ml_open(buf_T *buf)
     // Allocate a fresh Rust memline buffer and store the opaque pointer in
     // b_ml.ml_mfp.  The rest of the memline_T fields are unused by the Rust
     // backend but keeping them allows existing code to keep working.
-    buf->b_ml.ml_mfp = (memfile_T *)rs_ml_buffer_new();
+    buf->b_ml.ml_mfp = (memfile_T *)ml_buffer_new();
     if (buf->b_ml.ml_mfp == NULL)
         return FAIL;
 
     // Initialize with one empty line, as Vim expects buffers to have at least
     // one line.
-    (void)rs_ml_append((void *)buf->b_ml.ml_mfp, 0, "");
-    buf->b_ml.ml_line_count = (linenr_T)rs_ml_line_count((void *)buf->b_ml.ml_mfp);
+    (void)ml_append((MemBuffer *)buf->b_ml.ml_mfp, 0, "");
+    buf->b_ml.ml_line_count = (linenr_T)ml_line_count((MemBuffer *)buf->b_ml.ml_mfp);
     return OK;
 }
 
@@ -24,39 +24,39 @@ void ml_close(buf_T *buf, int del_file UNUSED)
 {
     if (buf != NULL && buf->b_ml.ml_mfp != NULL)
     {
-        rs_ml_buffer_free((void *)buf->b_ml.ml_mfp);
+        ml_buffer_free((MemBuffer *)buf->b_ml.ml_mfp);
         buf->b_ml.ml_mfp = NULL;
     }
 }
 
 int ml_append(linenr_T lnum, char_u *line, colnr_T len UNUSED, int newfile UNUSED)
 {
-    void *rs_buffer = (void *)curbuf->b_ml.ml_mfp;
-    if (!rs_ml_append(rs_buffer, (size_t)lnum, (const char *)line))
+    MemBuffer *rs_buffer = (MemBuffer *)curbuf->b_ml.ml_mfp;
+    if (!ml_append(rs_buffer, (size_t)lnum, (const char *)line))
         return FAIL;
-    curbuf->b_ml.ml_line_count = (linenr_T)rs_ml_line_count(rs_buffer);
+    curbuf->b_ml.ml_line_count = (linenr_T)ml_line_count(rs_buffer);
     return OK;
 }
 
 int ml_delete(linenr_T lnum)
 {
-    void *rs_buffer = (void *)curbuf->b_ml.ml_mfp;
-    if (!rs_ml_delete(rs_buffer, (size_t)lnum))
+    MemBuffer *rs_buffer = (MemBuffer *)curbuf->b_ml.ml_mfp;
+    if (!ml_delete(rs_buffer, (size_t)lnum))
         return FAIL;
-    curbuf->b_ml.ml_line_count = (linenr_T)rs_ml_line_count(rs_buffer);
+    curbuf->b_ml.ml_line_count = (linenr_T)ml_line_count(rs_buffer);
     return OK;
 }
 
 int ml_replace(linenr_T lnum, char_u *line, int copy UNUSED)
 {
-    void *rs_buffer = (void *)curbuf->b_ml.ml_mfp;
-    return rs_ml_replace(rs_buffer, (size_t)lnum, (const char *)line) ? OK : FAIL;
+    MemBuffer *rs_buffer = (MemBuffer *)curbuf->b_ml.ml_mfp;
+    return ml_replace(rs_buffer, (size_t)lnum, (const char *)line) ? OK : FAIL;
 }
 
 char_u *ml_get(linenr_T lnum)
 {
     size_t len = 0;
-    char_u *p = (char_u *)rs_ml_get_line((void *)curbuf->b_ml.ml_mfp, (size_t)lnum, 0, &len);
+    char_u *p = (char_u *)ml_get_line((MemBuffer *)curbuf->b_ml.ml_mfp, (size_t)lnum, 0, &len);
     curbuf->b_ml.ml_line_ptr = p;
     curbuf->b_ml.ml_line_lnum = lnum;
     curbuf->b_ml.ml_line_len = (colnr_T)(len + 1);
@@ -84,7 +84,7 @@ char_u *ml_get_cursor(void)
 colnr_T ml_get_len(linenr_T lnum)
 {
     size_t len = 0;
-    (void)rs_ml_get_line((void *)curbuf->b_ml.ml_mfp, (size_t)lnum, 0, &len);
+    (void)ml_get_line((MemBuffer *)curbuf->b_ml.ml_mfp, (size_t)lnum, 0, &len);
     return (colnr_T)len;
 }
 
@@ -107,14 +107,14 @@ colnr_T ml_get_cursor_len(void)
 colnr_T ml_get_buf_len(buf_T *buf, linenr_T lnum)
 {
     size_t len = 0;
-    (void)rs_ml_get_line((void *)buf->b_ml.ml_mfp, (size_t)lnum, 0, &len);
+    (void)ml_get_line((MemBuffer *)buf->b_ml.ml_mfp, (size_t)lnum, 0, &len);
     return (colnr_T)len;
 }
 
 char_u *ml_get_buf(buf_T *buf, linenr_T lnum, int will_change)
 {
     size_t len = 0;
-    char_u *p = (char_u *)rs_ml_get_line((void *)buf->b_ml.ml_mfp, (size_t)lnum, will_change ? 1 : 0, &len);
+    char_u *p = (char_u *)ml_get_line((MemBuffer *)buf->b_ml.ml_mfp, (size_t)lnum, will_change ? 1 : 0, &len);
     curbuf->b_ml.ml_line_ptr = p;
     curbuf->b_ml.ml_line_lnum = lnum;
     curbuf->b_ml.ml_line_len = (colnr_T)(len + 1);
