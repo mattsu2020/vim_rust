@@ -1,8 +1,38 @@
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int, c_long, c_void};
 
+use once_cell::sync::Lazy;
 use regex::Regex;
 use regex::RegexBuilder;
+use serde::Deserialize;
+
+#[derive(Deserialize)]
+struct RegexConfig {
+    max_braces: usize,
+    max_states: usize,
+    max_submatches: usize,
+}
+
+static CONFIG: Lazy<RegexConfig> = Lazy::new(|| {
+    let text = std::fs::read_to_string("regex_config.toml").unwrap_or_default();
+    toml::from_str(&text).unwrap_or(RegexConfig {
+        max_braces: 20,
+        max_states: 100000,
+        max_submatches: 10,
+    })
+});
+
+pub fn max_braces() -> usize {
+    CONFIG.max_braces
+}
+
+pub fn max_states() -> usize {
+    CONFIG.max_states
+}
+
+pub fn max_submatches() -> usize {
+    CONFIG.max_submatches
+}
 
 // Flag bit 1 enables case-insensitive matching.
 
@@ -42,8 +72,9 @@ pub extern "C" fn vim_regfree(prog: *mut RegProg) {
 #[repr(C)]
 pub struct RegMatch {
     pub regprog: *mut RegProg,
-    pub startp: [*const c_char; 10],
-    pub endp: [*const c_char; 10],
+    pub startp: *mut *const c_char,
+    pub endp: *mut *const c_char,
+    pub len: c_int,
     pub rm_matchcol: c_int,
     pub rm_ic: c_int,
 }
@@ -58,8 +89,9 @@ pub struct Lpos {
 #[repr(C)]
 pub struct RegMMMatch {
     pub regprog: *mut RegProg,
-    pub startpos: [Lpos; 10],
-    pub endpos: [Lpos; 10],
+    pub startpos: *mut Lpos,
+    pub endpos: *mut Lpos,
+    pub len: c_int,
     pub rmm_matchcol: c_int,
     pub rmm_ic: c_int,
     pub rmm_maxcol: c_int,
@@ -84,16 +116,18 @@ fn regexec_internal(rmp: *mut RegMatch, line: *const c_char, col: c_int) -> c_in
     let slice = &line_str[(col as usize)..];
     if let Some(caps) = prog.regex.captures(slice) {
         let m = unsafe { &mut *rmp };
-        for i in 0..10 {
-            m.startp[i] = std::ptr::null();
-            m.endp[i] = std::ptr::null();
+        let rm_len = m.len as usize;
+        let startp = unsafe { std::slice::from_raw_parts_mut(m.startp, rm_len) };
+        let endp = unsafe { std::slice::from_raw_parts_mut(m.endp, rm_len) };
+        for i in 0..rm_len {
+            startp[i] = std::ptr::null();
+            endp[i] = std::ptr::null();
         }
-        for (i, cap) in caps.iter().enumerate().take(10) {
+        let limit = max_submatches().min(rm_len);
+        for (i, cap) in caps.iter().enumerate().take(limit) {
             if let Some(mat) = cap {
-                unsafe {
-                    m.startp[i] = line.add(col as usize + mat.start());
-                    m.endp[i] = line.add(col as usize + mat.end());
-                }
+                startp[i] = unsafe { line.add(col as usize + mat.start()) };
+                endp[i] = unsafe { line.add(col as usize + mat.end()) };
             }
         }
         return 1;
@@ -132,30 +166,36 @@ pub extern "C" fn vim_regexec_multi(
         if line_ptr.is_null() {
             return 0;
         }
+        let len = (*rmp).len as usize;
+        let mut startp = vec![std::ptr::null(); len];
+        let mut endp = vec![std::ptr::null(); len];
         let mut rm = RegMatch {
             regprog: (*rmp).regprog,
-            startp: [std::ptr::null(); 10],
-            endp: [std::ptr::null(); 10],
+            startp: startp.as_mut_ptr(),
+            endp: endp.as_mut_ptr(),
+            len: len as c_int,
             rm_matchcol: 0,
             rm_ic: (*rmp).rmm_ic,
         };
         if regexec_internal(&mut rm, line_ptr, col) == 1 {
             let m = &mut *rmp;
-            for i in 0..10 {
-                m.startpos[i] = Lpos { lnum: 0, col: 0 };
-                m.endpos[i] = Lpos { lnum: 0, col: 0 };
+            let startpos = std::slice::from_raw_parts_mut(m.startpos, len);
+            let endpos = std::slice::from_raw_parts_mut(m.endpos, len);
+            for i in 0..len {
+                startpos[i] = Lpos { lnum: 0, col: 0 };
+                endpos[i] = Lpos { lnum: 0, col: 0 };
             }
-            for i in 0..10 {
-                if !rm.startp[i].is_null() {
-                    m.startpos[i] = Lpos {
+            for i in 0..len {
+                if !startp[i].is_null() {
+                    startpos[i] = Lpos {
                         lnum,
-                        col: rm.startp[i].offset_from(line_ptr) as c_int,
+                        col: startp[i].offset_from(line_ptr) as c_int,
                     };
                 }
-                if !rm.endp[i].is_null() {
-                    m.endpos[i] = Lpos {
+                if !endp[i].is_null() {
+                    endpos[i] = Lpos {
                         lnum,
-                        col: rm.endp[i].offset_from(line_ptr) as c_int,
+                        col: endp[i].offset_from(line_ptr) as c_int,
                     };
                 }
             }
@@ -186,4 +226,14 @@ pub extern "C" fn vim_regsub(
     };
     let result = prog.regex.replace(text_str, sub_str);
     CString::new(result.into_owned()).unwrap().into_raw()
+}
+
+#[no_mangle]
+pub extern "C" fn vim_regex_max_braces() -> c_int {
+    max_braces() as c_int
+}
+
+#[no_mangle]
+pub extern "C" fn vim_regex_max_states() -> c_int {
+    max_states() as c_int
 }

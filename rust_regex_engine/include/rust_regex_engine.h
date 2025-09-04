@@ -19,16 +19,18 @@ typedef struct {
 
 typedef struct {
     RegProg *regprog;
-    const char *startp[10];
-    const char *endp[10];
+    const char **startp;  // dynamically sized array
+    const char **endp;    // dynamically sized array
+    int len;              // number of entries in startp/endp
     int rm_matchcol;
     int rm_ic;
 } RegMatch;
 
 typedef struct {
     RegProg *regprog;
-    Lpos startpos[10];
-    Lpos endpos[10];
+    Lpos *startpos;       // dynamically sized array
+    Lpos *endpos;         // dynamically sized array
+    int len;              // number of entries in startpos/endpos
     int rmm_matchcol;
     int rmm_ic;
     int rmm_maxcol;
@@ -42,6 +44,9 @@ long vim_regexec_multi(RegMMMatch *rmp, void *win,
                        void *buf, long lnum, int col,
                        int *timed_out);
 char* vim_regsub(RegProg *prog, const char *text, const char *sub);
+
+int vim_regex_max_braces(void);
+int vim_regex_max_states(void);
 
 #ifdef __cplusplus
 }

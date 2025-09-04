@@ -1,6 +1,6 @@
 use rust_regex_engine::{
-    vim_regcomp, vim_regexec, vim_regexec_multi, vim_regexec_nl, vim_regfree, vim_regsub, Lpos,
-    RegMMMatch, RegMatch,
+    max_submatches, vim_regcomp, vim_regexec, vim_regexec_multi, vim_regexec_nl, vim_regfree,
+    vim_regsub, Lpos, RegMMMatch, RegMatch,
 };
 use std::ffi::{CStr, CString};
 use std::os::raw::c_void;
@@ -11,10 +11,14 @@ fn basic_match_and_exec_nl() {
     let text = CString::new("foo bar").unwrap();
     let prog = vim_regcomp(pat.as_ptr(), 0);
     assert!(!prog.is_null());
+    let len = max_submatches();
+    let mut startp = vec![std::ptr::null(); len];
+    let mut endp = vec![std::ptr::null(); len];
     let mut rm = RegMatch {
         regprog: prog,
-        startp: [std::ptr::null(); 10],
-        endp: [std::ptr::null(); 10],
+        startp: startp.as_mut_ptr(),
+        endp: endp.as_mut_ptr(),
+        len: len as i32,
         rm_matchcol: 0,
         rm_ic: 0,
     };
@@ -48,18 +52,24 @@ fn capture_offsets() {
     let text = CString::new("zabc").unwrap();
     let prog = vim_regcomp(pat.as_ptr(), 0);
     assert!(!prog.is_null());
+    let len = max_submatches();
+    let mut startp = vec![std::ptr::null(); len];
+    let mut endp = vec![std::ptr::null(); len];
     let mut rm = RegMatch {
         regprog: prog,
-        startp: [std::ptr::null(); 10],
-        endp: [std::ptr::null(); 10],
+        startp: startp.as_mut_ptr(),
+        endp: endp.as_mut_ptr(),
+        len: len as i32,
         rm_matchcol: 0,
         rm_ic: 0,
     };
     assert_eq!(vim_regexec(&mut rm, text.as_ptr(), 0), 1);
-    assert!(!rm.startp[0].is_null());
-    assert!(!rm.endp[0].is_null());
-    assert!(!rm.startp[1].is_null());
-    assert!(!rm.endp[1].is_null());
+    let start_slice = unsafe { std::slice::from_raw_parts(rm.startp, len) };
+    let end_slice = unsafe { std::slice::from_raw_parts(rm.endp, len) };
+    assert!(!start_slice[0].is_null());
+    assert!(!end_slice[0].is_null());
+    assert!(!start_slice[1].is_null());
+    assert!(!end_slice[1].is_null());
     vim_regfree(prog);
 }
 
@@ -71,10 +81,14 @@ fn regexec_multi_single_line() {
     let lines = [line1.as_ptr(), line2.as_ptr()];
     let prog = vim_regcomp(pat.as_ptr(), 0);
     assert!(!prog.is_null());
+    let len = max_submatches();
+    let mut startpos = vec![Lpos { lnum: 0, col: 0 }; len];
+    let mut endpos = vec![Lpos { lnum: 0, col: 0 }; len];
     let mut rmm = RegMMMatch {
         regprog: prog,
-        startpos: [Lpos { lnum: 0, col: 0 }; 10],
-        endpos: [Lpos { lnum: 0, col: 0 }; 10],
+        startpos: startpos.as_mut_ptr(),
+        endpos: endpos.as_mut_ptr(),
+        len: len as i32,
         rmm_matchcol: 0,
         rmm_ic: 0,
         rmm_maxcol: 0,
@@ -88,8 +102,9 @@ fn regexec_multi_single_line() {
         std::ptr::null_mut(),
     );
     assert_eq!(matched, 2);
-    assert_eq!(rmm.startpos[0].lnum, 2);
-    assert_eq!(rmm.startpos[0].col, 0);
+    let start_slice = unsafe { std::slice::from_raw_parts(rmm.startpos, len) };
+    assert_eq!(start_slice[0].lnum, 2);
+    assert_eq!(start_slice[0].col, 0);
     vim_regfree(prog);
 }
 
@@ -100,10 +115,14 @@ fn regexec_multi_no_match() {
     let lines = [line.as_ptr()];
     let prog = vim_regcomp(pat.as_ptr(), 0);
     assert!(!prog.is_null());
+    let len = max_submatches();
+    let mut startpos = vec![Lpos { lnum: 0, col: 0 }; len];
+    let mut endpos = vec![Lpos { lnum: 0, col: 0 }; len];
     let mut rmm = RegMMMatch {
         regprog: prog,
-        startpos: [Lpos { lnum: 0, col: 0 }; 10],
-        endpos: [Lpos { lnum: 0, col: 0 }; 10],
+        startpos: startpos.as_mut_ptr(),
+        endpos: endpos.as_mut_ptr(),
+        len: len as i32,
         rmm_matchcol: 0,
         rmm_ic: 0,
         rmm_maxcol: 0,
@@ -133,10 +152,14 @@ fn non_match_returns_zero() {
     let text = CString::new("bar").unwrap();
     let prog = vim_regcomp(pat.as_ptr(), 0);
     assert!(!prog.is_null());
+    let len = max_submatches();
+    let mut startp = vec![std::ptr::null(); len];
+    let mut endp = vec![std::ptr::null(); len];
     let mut rm = RegMatch {
         regprog: prog,
-        startp: [std::ptr::null(); 10],
-        endp: [std::ptr::null(); 10],
+        startp: startp.as_mut_ptr(),
+        endp: endp.as_mut_ptr(),
+        len: len as i32,
         rm_matchcol: 0,
         rm_ic: 0,
     };
