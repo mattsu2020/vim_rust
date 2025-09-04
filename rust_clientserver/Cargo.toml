@@ -3,5 +3,9 @@ name = "rust_clientserver"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "rust_clientserver"
+crate-type = ["staticlib", "rlib"]
+
 [dependencies]
 tokio = { version = "1", features = ["net", "io-util", "rt", "macros"] }

@@ -1,8 +1,6 @@
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
-use std::ffi::CStr;
-#[cfg(test)]
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
 use std::iter::Peekable;
 use std::os::raw::c_char;
 use std::str::Chars;
@@ -527,6 +525,23 @@ pub extern "C" fn eval_script_rs(script: *const c_char, out: *mut typval_T) -> b
         Ok(None) => true,
         Err(_) => false,
     }
+}
+
+// Minimal C-ABI replacement for Vim's eval_to_string().
+// For now this returns a copy of the input expression as a newly allocated C string.
+#[no_mangle]
+pub extern "C" fn eval_to_string(
+    expr: *const u8,
+    _use_sandbox: i32,
+    _remove_quotes: i32,
+) -> *mut u8 {
+    if expr.is_null() {
+        return std::ptr::null_mut();
+    }
+    let cstr = unsafe { CStr::from_ptr(expr as *const c_char) };
+    let s = cstr.to_string_lossy().into_owned();
+    let c = CString::new(s).unwrap();
+    c.into_raw() as *mut u8
 }
 
 #[cfg(test)]

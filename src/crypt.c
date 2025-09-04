@@ -10,8 +10,8 @@
 /*
  * crypt.c: Generic encryption support.
  */
-#include "crypt_rs.h"
 #include "vim.h"
+#include "crypt_rs.h"
 
 #if defined(FEAT_CRYPT) || defined(PROTO)
 /*

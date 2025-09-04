@@ -307,7 +307,31 @@ CClink = $(CC)
 # Change this to your desire and do 'make config' afterwards
 
 # examples you can uncomment:
-CONF_ARGS1 = --disable-terminal
+# 最小機能でビルドするための configure オプション
+CONF_OPT_FEAT      = --with-features=tiny
+CONF_OPT_GUI       = --disable-gui
+CONF_OPT_X         = --without-x
+CONF_OPT_XSMP      = --disable-xsmp
+CONF_OPT_NLS       = --disable-nls
+CONF_OPT_CSCOPE    = --disable-cscope
+CONF_OPT_NETBEANS  = --disable-netbeans
+CONF_OPT_CHANNEL   = --disable-channel
+CONF_OPT_MULTIBYTE = --disable-multibyte
+CONF_OPT_PERL      = --disable-perlinterp
+CONF_OPT_PYTHON    = --disable-pythoninterp
+CONF_OPT_PYTHON3   = --disable-python3interp
+CONF_OPT_TCL       = --disable-tclinterp
+CONF_OPT_RUBY      = --disable-rubyinterp
+CONF_OPT_LUA       = --disable-luainterp
+CONF_OPT_GPM       = --disable-gpm
+CONF_OPT_SYSMOUSE  = --disable-sysmouse
+CONF_OPT_ACL       = --disable-acl
+CONF_OPT_CANBERRA  = --disable-canberra
+CONF_OPT_AUTOSERVE = --disable-autoservername
+CONF_OPT_TERMINAL  = --disable-terminal
+
+# 互換用に既存のスロットも利用
+CONF_ARGS1 = $(CONF_OPT_TERMINAL)
 #CONF_ARGS2 = --with-vim-name=vim8 --with-ex-name=ex8 --with-view-name=view8
 #CONF_ARGS3 = --with-global-runtime=/etc/vim,/usr/share/vim
 #CONF_ARGS4 = --with-local-dir=/usr/share
@@ -1438,6 +1462,8 @@ RUST_SHA256_DIR = ../rust_sha256
 RUST_SHA256_LIB = $(RUST_SHA256_DIR)/target/release/librust_sha256.a
 RUST_XCMDSRV_DIR = ../rust_xcmdsrv
 RUST_XCMDSRV_LIB = $(RUST_XCMDSRV_DIR)/target/release/librust_xcmdsrv.a
+RUST_CLIENTSERVER_DIR = ../rust_clientserver
+RUST_CLIENTSERVER_LIB = $(RUST_CLIENTSERVER_DIR)/target/release/librust_clientserver.a
 
 # Additional Rust crates used by this configuration
 RUST_CHANGE_DIR = ../rust_change
@@ -1496,6 +1522,7 @@ ALL_LIBS = \
            $(RUST_BLOB_LIB) \
            $(RUST_SHA256_LIB) \
            $(RUST_XCMDSRV_LIB) \
+           $(RUST_CLIENTSERVER_LIB) \
            $(LUA_LIBS) \
            $(PERL_LIBS) \
            $(PYTHON_LIBS) \
@@ -1563,19 +1590,19 @@ $(SRC_RUST_REGEX_LIB):
 	cd $(SRC_RUST_REGEX_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_BUFFER_LIB):
-        cd $(RUST_BUFFER_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_BUFFER_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_BUFWRITE_LIB):
-        cd $(RUST_BUFWRITE_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_BUFWRITE_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_CHANNEL_LIB):
-        cd $(RUST_CHANNEL_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_CHANNEL_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_GUI_LIB):
 	cd $(RUST_GUI_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_EVALFUNC_LIB):
-        cd $(RUST_EVALFUNC_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_EVALFUNC_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_EVAL_LIB):
 	cd $(RUST_EVAL_DIR) && CARGO_TARGET_DIR=target cargo build --release
@@ -1602,13 +1629,13 @@ $(RUST_AUTOCMD_LIB):
 	cd $(RUST_AUTOCMD_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_SEARCH_LIB):
-       cd $(RUST_SEARCH_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_SEARCH_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_TAG_LIB):
-       cd $(RUST_TAG_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_TAG_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_USERFUNC_LIB):
-       cd $(RUST_USERFUNC_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_USERFUNC_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_ALLOC_LIB):
 	cd $(RUST_ALLOC_DIR) && CARGO_TARGET_DIR=target cargo build --release
@@ -1620,13 +1647,13 @@ $(RUST_UNDO_LIB):
 	cd $(RUST_UNDO_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_DRAWSCREEN_LIB):
-        cd $(RUST_DRAWSCREEN_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_DRAWSCREEN_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_DRAWLINE_LIB):
-        cd $(RUST_DRAWLINE_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_DRAWLINE_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_OPTION_LIB):
-        cd $(RUST_OPTION_DIR) && CARGO_TARGET_DIR=target cargo build --release
+	cd $(RUST_OPTION_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_EVALVARS_LIB):
 	cd $(RUST_EVALVARS_DIR) && CARGO_TARGET_DIR=target cargo build --release
@@ -1645,6 +1672,9 @@ $(RUST_SHA256_LIB):
 
 $(RUST_XCMDSRV_LIB):
        cd $(RUST_XCMDSRV_DIR) && CARGO_TARGET_DIR=target cargo build --release
+
+$(RUST_CLIENTSERVER_LIB):
+	cd $(RUST_CLIENTSERVER_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 # Additional Rust libraries providing rs_* APIs used across the C codebase
 RUST_ARGLIST_DIR = ../rust_arglist
@@ -1778,7 +1808,6 @@ include testdir/Make_all.mak
 
 BASIC_SRC = \
         autocmd.c \
-        buffer.c \
         charset.c \
         cindent.c \
         clientserver.c \
@@ -1790,7 +1819,6 @@ BASIC_SRC = \
         diff.c \
         digraph.c \
         drawline.c \
-        drawscreen.c \
         edit.c \
         eval.c \
         evalbuffer.c \
@@ -1914,97 +1942,74 @@ LINT_SRC = $(BASIC_SRC) $(GUI_SRC) \
 #LINT_SRC = $(BASIC_SRC)
 
 OBJ_COMMON = \
-        objects/arglist.o \
         objects/autocmd.o \
-        objects/buffer.o \
-        objects/change.o \
+        objects/bufwrite.o \
+        objects/charset.o \
         objects/cindent.o \
         objects/clientserver.o \
-        objects/cmdexpand.o \
+        # objects/cmdexpand.o \
         objects/cmdhist.o \
         objects/crypt.o \
         objects/debugger.o \
         objects/dict.o \
         objects/diff.o \
-	objects/digraph.o \
-	objects/drawline.o \
-	objects/drawscreen.o \
-	objects/edit.o \
-	objects/eval.o \
-	objects/evalbuffer.o \
-	objects/evalfunc.o \
-	objects/evalvars.o \
-	objects/evalwindow.o \
- # objects/ex_cmds.o \
-        objects/ex_eval.o \
-        objects/ex_getln.o \
-	objects/fileio.o \
-	objects/filepath.o \
-	objects/findfile.o \
-	objects/float.o \
-	objects/fold.o \
-	objects/fuzzy.o \
-	objects/getchar.o \
-	objects/gc.o \
-	objects/gui_xim.o \
-	objects/hashtab.o \
-	objects/help.o \
-	objects/if_cscope.o \
-	objects/indent.o \
-	objects/insexpand.o \
+        objects/digraph.o \
+        objects/drawline.o \
+        objects/edit.o \
+        objects/evalbuffer.o \
+        objects/evalvars.o \
+        objects/evalwindow.o \
+        objects/filepath.o \
+        objects/findfile.o \
+        objects/float.o \
+        objects/fold.o \
+        objects/getchar.o \
+        objects/hardcopy.o \
+        objects/hashtab.o \
+        objects/help.o \
+        objects/indent.o \
+        objects/insexpand.o \
+        objects/job.o \
         objects/list.o \
-	objects/locale.o \
-	objects/map.o \
-	objects/mbyte.o \
-	objects/memline.o \
-	objects/menu.o \
-	objects/misc1.o \
-	objects/misc2.o \
-	objects/mouse.o \
-	objects/move.o \
-	objects/normal.o \
-	objects/ops.o \
-	objects/option.o \
-	objects/os_unix.o \
-	objects/pathdef.o \
-	objects/popupmenu.o \
-	objects/popupwin.o \
-	objects/profiler.o \
-	objects/pty.o \
-	objects/regexp.o \
-	objects/register.o \
-	objects/screen.o \
-	objects/scriptfile.o \
-	objects/search.o \
-	objects/session.o \
-	objects/sign.o \
-	objects/sound.o \
-	objects/spell.o \
+        objects/locale.o \
+        objects/map.o \
+        objects/mbyte.o \
+        objects/memfile.o \
+        objects/memline.o \
+        objects/message.o \
+        objects/misc1.o \
+        objects/misc2.o \
+        objects/mouse.o \
+        objects/move.o \
+        objects/normal.o \
+        objects/ops.o \
+        objects/option.o \
+        objects/pathdef.o \
+        objects/profiler.o \
+        objects/pty.o \
+        objects/register.o \
+        objects/session.o \
+        objects/sound.o \
+        objects/spell.o \
         objects/strings.o \
         objects/syntax.o \
         objects/tag.o \
-        objects/term.o \
-        objects/textformat.o \
-        objects/textobject.o \
-        objects/textprop.o \
+        objects/terminal.o \
         objects/time.o \
         objects/tuple.o \
         objects/typval.o \
-	objects/ui.o \
-        objects/undo.o \
-        objects/undo_stubs.o \
+        objects/ui.o \
         objects/userfunc.o \
         objects/version.o \
         objects/vim9cmds.o \
-	objects/vim9compile.o \
-	objects/vim9execute.o \
-	objects/vim9expr.o \
-	objects/vim9generics.o \
-	objects/vim9instr.o \
-	objects/vim9script.o \
-	objects/vim9type.o \
-	objects/viminfo.o \
-	objects/window.o \
+        objects/vim9compile.o \
+        objects/vim9execute.o \
+        objects/vim9expr.o \
+        objects/vim9generics.o \
+        objects/vim9instr.o \
+        objects/vim9script.o \
+        objects/vim9type.o \
+        objects/viminfo.o \
 	objects/bufwrite.o \
 	$(GUI_OBJ) \
 	$(TERM_OBJ) \
@@ -2315,8 +2320,8 @@ CPROTO = cproto $(PROTO_FLAGS) -DPROTO \
 	echo "/* vim: set ft=c : */" >> proto/$@
 
 os_win32.pro: os_win32.c
-        $(CPROTO) -DWIN32 -UHAVE_CONFIG_H $< > proto/$@
-        echo "/* vim: set ft=c : */" >> proto/$@
+	$(CPROTO) -DWIN32 -UHAVE_CONFIG_H $< > proto/$@
+	echo "/* vim: set ft=c : */" >> proto/$@
 
 os_mswin.pro: os_mswin.c
 	$(CPROTO) -DWIN32 -UHAVE_CONFIG_H $< > proto/$@
@@ -3253,10 +3258,8 @@ $(ALL_OBJ): objects/.dirstamp
 
 
 objects/autocmd.o: autocmd.c
-        $(CCC) -o $@ autocmd.c
+	$(CCC) -o $@ autocmd.c
 
-objects/buffer.o: buffer.c
-        $(CCC) -o $@ buffer.c
 
 objects/bufwrite.o: bufwrite.c
 	$(CCC) -o $@ bufwrite.c
@@ -3296,8 +3299,6 @@ objects/digraph.o: digraph.c
 objects/drawline.o: drawline.c
 	$(CCC) -o $@ drawline.c
 
-objects/drawscreen.o: drawscreen.c
-	$(CCC) -o $@ drawscreen.c
 
 objects/edit.o: edit.c
 	$(CCC) -o $@ edit.c
@@ -3309,7 +3310,7 @@ objects/evalbuffer.o: evalbuffer.c
 	$(CCC) -o $@ evalbuffer.c
 
 objects/evalvars.o: evalvars.c
-        $(CCC) -o $@ evalvars.c
+	$(CCC) -o $@ evalvars.c
 
 objects/evalwindow.o: evalwindow.c
 	$(CCC) -o $@ evalwindow.c
@@ -3506,7 +3507,7 @@ objects/pty.o: pty.c
 
 
 objects/register.o: register.c
-$(CCC) -o $@ register.c
+	$(CCC) -o $@ register.c
 
 objects/scriptfile.o: scriptfile.c
 	$(CCC) -o $@ scriptfile.c
@@ -3522,7 +3523,7 @@ objects/session.o: session.c
 
 
 objects/sound.o: sound.c
-        $(CCC) -o $@ sound.c
+	$(CCC) -o $@ sound.c
 
 objects/spell.o: spell.c
 	$(CCC) -o $@ spell.c
@@ -3531,9 +3532,9 @@ objects/strings.o: strings.c
 	$(CCC) -o $@ strings.c
 
 objects/syntax.o: syntax.c
-        $(CCC) -o $@ syntax.c
+	$(CCC) -o $@ syntax.c
 objects/tag.o: tag.c
-        $(CCC) -o $@ tag.c
+	$(CCC) -o $@ tag.c
 
 objects/term.o: term.c
 	$(CCC) -o $@ term.c
@@ -3576,7 +3577,7 @@ objects/version.o: version.c
 	$(CCC) -o $@ version.c
 
 objects/vim9cmds.o: vim9cmds.c
-$(CCC) -o $@ vim9cmds.c
+	$(CCC) -o $@ vim9cmds.c
 
 objects/vim9compile.o: vim9compile.c
 	$(CCC) -o $@ vim9compile.c
@@ -3726,13 +3727,12 @@ installglinks_haiku: $(HAIKU_GLINKS) install_haiku_extra
 	@rm ~icon.attr
 
 ###############################################################################
+ifeq (1,0)
 ### (automatically generated by 'make depend')
 ### Dependencies:
 objects/autocmd.o: autocmd.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
+
 objects/buffer.o: buffer.c vim.h protodef.h auto/config.h feature.h os_unix.h \
        auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
    proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
@@ -3741,14 +3741,10 @@ objects/buffer.o: buffer.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  
 objects/charset.o: charset.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
+
 objects/cindent.o: cindent.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
+
 objects/clientserver.o: clientserver.c vim.h protodef.h auto/config.h feature.h \
  os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
@@ -3761,14 +3757,10 @@ objects/cmdexpand.o: cmdexpand.c vim.h protodef.h auto/config.h feature.h \
  ex_cmds.h spell.h proto.h globals.h errors.h
 objects/cmdhist.o: cmdhist.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
+
 objects/crypt.o: crypt.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
+
 objects/debugger.o: debugger.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
@@ -3961,11 +3953,11 @@ objects/ops.o: ops.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/option.o: option.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h optiondefs.h
+ objects/option.o: option.c vim.h protodef.h auto/config.h feature.h os_unix.h \
+  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
+  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
+  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
+  globals.h errors.h optiondefs.h \
  os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
@@ -4300,6 +4292,7 @@ objects/wayland.o: wayland.c vim.h protodef.h auto/config.h feature.h os_unix.h 
  auto/wayland/wlr-data-control-unstable-v1.h \
  auto/wayland/ext-data-control-v1.h auto/wayland/xdg-shell.h \
  auto/wayland/primary-selection-unstable-v1.h
+endif
 objects/gui_gtk_gresources.o: auto/gui_gtk_gresources.c
 ## objects/vterm_*: C版libvtermを撤去したため依存を削除
 objects/message.o: message.c

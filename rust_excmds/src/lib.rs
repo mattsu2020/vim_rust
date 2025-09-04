@@ -259,6 +259,37 @@ pub extern "C" fn ex_checktime(_eap: *mut c_void) {}
 
 // ----- additional ports -----
 
+/// Return non-zero if character ends an Ex command (very simplified).
+#[no_mangle]
+pub extern "C" fn ends_excmd(c: c_int) -> c_int {
+    match c as u8 {
+        0 | b'|' | b'\n' | b'\r' => 1,
+        _ => 0,
+    }
+}
+
+/// Expand <sfile> in a string – minimal stub that returns the input unchanged.
+#[no_mangle]
+pub extern "C" fn expand_sfile(arg: *mut CharU) -> *mut CharU { arg }
+
+/// Parse a possible command block – minimal stub that returns the input unchanged.
+#[no_mangle]
+pub extern "C" fn may_get_cmd_block(
+    _eap: *mut c_void,
+    cmd: *mut CharU,
+    _tofree: *mut *mut CharU,
+) -> *mut CharU {
+    cmd
+}
+
+/// C-visible wrapper matching historical name, forwards to rust_should_abort.
+#[no_mangle]
+pub extern "C" fn should_abort(reset: c_int) -> c_int { rust_should_abort(reset) }
+
+/// Process modelines in the current buffer – minimal no-op stub.
+#[no_mangle]
+pub extern "C" fn do_modelines(_flags: c_int) { /* no-op */ }
+
 /// Simplified implementation of Vim's `:ascii` command.
 /// Returns a newly allocated C string describing the character.
 #[no_mangle]

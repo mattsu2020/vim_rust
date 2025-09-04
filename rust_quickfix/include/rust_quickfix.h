@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-typedef struct typval_T typval_T;
+struct typval_S;
 
 int qf_add_entry(void *qfl,
                  const char *dir,
@@ -24,7 +24,7 @@ int qf_add_entry(void *qfl,
                  const char *pattern,
                  int nr,
                  int typ,
-                 typval_T *user_data,
+                 struct typval_S *user_data,
                  int valid);
 
 void qf_list(void *eap);
