@@ -1,5 +1,5 @@
 [workspace]
-members = ["rust_*", "rust/*", "xtask"]
+members = ["rust_*", "rust/*", "xtask", "tui_vim"]
 exclude = [
     "rust_ruby",
     "rust_perl",
@@ -82,9 +82,9 @@ rust_wayland = { path = "rust_wayland" }
 name = "vim_channel"
 path = "src/channel.rs"
 
-[[bin]]
-name = "vim"
-path = "src/main.rs"
+
+
+ 
 
 [dev-dependencies]
 serde_json = "1"

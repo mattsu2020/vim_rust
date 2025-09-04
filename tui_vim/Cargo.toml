@@ -1,12 +1,10 @@
 [package]
-name = "rust_editor"
+name = "vim_tui"
 version = "0.1.0"
 edition = "2021"
 
-[lib]
-crate-type = ["staticlib", "rlib"]
-
 [dependencies]
-regex = "1"
+rust_editor = { path = "../rust_editor" }
 ratatui = { version = "0.26", default-features = false, features = ["crossterm"] }
 crossterm = "0.27"
+

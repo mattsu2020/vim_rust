@@ -1,2 +1,14 @@
 [alias]
 xtask = "run --package xtask --"
+
+# macOS の dyld で Homebrew の libiconv を解決するための RPATH を付与
+[target.aarch64-apple-darwin]
+rustflags = [
+    "-C", "link-arg=-Wl,-rpath,/opt/homebrew/opt/libiconv/lib",
+    "-C", "link-arg=-Wl,-rpath,/opt/homebrew/lib",
+]
+
+[target.x86_64-apple-darwin]
+rustflags = [
+    "-C", "link-arg=-Wl,-rpath,/usr/local/opt/libiconv/lib",
+]

@@ -269,6 +269,143 @@ fn fmt_brace_style(lines: &mut Vec<String>, indent_width: usize) -> usize {
     changed
 }
 
+fn take_undo_snapshot(buf: &Buffer, v: &View, store: &mut Option<UndoSnap>) {
+    *store = Some(UndoSnap { lines: buf.lines.clone(), cx: v.cx, cy: v.cy });
+}
+
+fn visual_compute_range(v: &View, anchor: (usize, usize), mode: Mode, lines: &Vec<String>) -> (usize, usize, usize, usize, bool) {
+    let (ax, ay) = anchor; let (bx, by) = (v.cx, v.cy);
+    let (mut sx, mut sy, mut ex, mut ey) = if (by < ay) || (by == ay && bx < ax) { (bx, by, ax, ay) } else { (ax, ay, bx, by) };
+    let charwise = match mode { Mode::VisualChar => true, _ => false };
+    if !charwise { sx = 0; ex = lines[ey].len(); }
+    (sx, sy, ex, ey, charwise)
+}
+
+fn yank_selection(lines: &Vec<String>, sx: usize, sy: usize, ex: usize, ey: usize, charwise: bool) -> Register {
+    if sy == ey {
+        if charwise {
+            let line = &lines[sy];
+            let start = sx.min(line.len());
+            let end = ex.min(line.len());
+            let s = if start <= end { line[start..end].to_string() } else { String::new() };
+            Register::Charwise(s)
+        } else {
+            Register::Linewise(vec![lines[sy].clone()])
+        }
+    } else {
+        if charwise {
+            let mut out = String::new();
+            let first = &lines[sy];
+            let start = sx.min(first.len());
+            out.push_str(&first[start..]);
+            out.push('\n');
+            for i in (sy + 1)..ey { out.push_str(&lines[i]); out.push('\n'); }
+            let last = &lines[ey];
+            let end = ex.min(last.len());
+            out.push_str(&last[..end]);
+            Register::Charwise(out)
+        } else {
+            let mut out = Vec::new();
+            for i in sy..=ey { out.push(lines[i].clone()); }
+            Register::Linewise(out)
+        }
+    }
+}
+
+fn delete_selection(lines: &mut Vec<String>, sx: usize, sy: usize, ex: usize, ey: usize, charwise: bool) {
+    if sy == ey {
+        if charwise {
+            let line = &mut lines[sy];
+            let start = sx.min(line.len());
+            let end = ex.min(line.len());
+            if start < end { line.replace_range(start..end, ""); }
+        } else {
+            lines.remove(sy);
+            if lines.is_empty() { lines.push(String::new()); }
+        }
+    } else {
+        if charwise {
+            let first_tail = {
+                let first = &lines[sy];
+                let start = sx.min(first.len());
+                first[..start].to_string()
+            };
+            let last_head = {
+                let last = &lines[ey];
+                let end = ex.min(last.len());
+                last[end..].to_string()
+            };
+            // remove middle lines
+            for _ in (sy + 1)..=ey { lines.remove(sy + 1); }
+            lines[sy] = first_tail + &last_head;
+        } else {
+            for _ in sy..=ey { lines.remove(sy); }
+            if lines.is_empty() { lines.push(String::new()); }
+        }
+    }
+}
+
+fn is_word_char(c: char) -> bool { c.is_alphanumeric() || c == '_' }
+
+fn move_w(lines: &Vec<String>, v: &mut View) {
+    let mut y = v.cy; let mut x = v.cx;
+    let mut in_word = false;
+    loop {
+        let line = &lines[y];
+        if x >= line.len() {
+            if y + 1 >= lines.len() { v.cy = y; v.cx = x.min(line.len()); return; }
+            y += 1; x = 0; in_word = false; continue;
+        }
+        let ch = line.chars().nth(x).unwrap();
+        if !in_word {
+            if is_word_char(ch) { in_word = true; } else { x += 1; continue; }
+        } else if !is_word_char(ch) {
+            // found end of current word, now skip non-word to next start
+            while x < line.len() {
+                let c2 = line.chars().nth(x).unwrap();
+                if is_word_char(c2) { v.cy = y; v.cx = x; return; }
+                x += 1;
+            }
+            // move to next line
+        }
+        x += 1;
+    }
+}
+
+fn move_b(lines: &Vec<String>, v: &mut View) {
+    let mut y = v.cy; let mut x = v.cx;
+    if x == 0 { if y == 0 { return; } y -= 1; x = lines[y].len(); }
+    loop {
+        if x == 0 { if y == 0 { v.cy = y; v.cx = 0; return; } y -= 1; x = lines[y].len(); }
+        x -= 1;
+        let line = &lines[y];
+        let ch = line.chars().nth(x).unwrap_or(' ');
+        if is_word_char(ch) {
+            // move back to the start of this word
+            while x > 0 { let c2 = line.chars().nth(x-1).unwrap_or(' '); if !is_word_char(c2) { break; } x -= 1; }
+            v.cy = y; v.cx = x; return;
+        }
+    }
+}
+
+fn move_e(lines: &Vec<String>, v: &mut View) {
+    let mut y = v.cy; let mut x = v.cx;
+    let mut in_word = false;
+    loop {
+        let line = &lines[y];
+        if x >= line.len() {
+            if y + 1 >= lines.len() { v.cy = y; v.cx = x.min(line.len()); return; }
+            y += 1; x = 0; in_word = false; continue;
+        }
+        let ch = line.chars().nth(x).unwrap();
+        if is_word_char(ch) { in_word = true; }
+        else if in_word { // previous was end of word
+            v.cy = y; v.cx = x.saturating_sub(1); return;
+        }
+        x += 1;
+    }
+}
+
 fn convert_repl_to_rust(repl: &str, last_repl: &str) -> String {
     // Convert Vim-style: \1 -> $1, & -> $0, ~ -> last replacement.
     let mut out = String::with_capacity(repl.len());
@@ -411,11 +548,20 @@ pub extern "C" fn rust_editor_main(argc: i32, argv: *const *const i8) -> i32 {
     let mut last_sub_repl: String = String::new();
     let mut last_sub_flags: String = String::new();
 
+    // モード・ヤンク・Undo等
+    let mut mode: Mode = Mode::Normal;
+    let mut visual_anchor: Option<(usize, usize)> = None; // (cx, cy)
+    let mut clipboard: Option<Register> = None; // unnamed register only
+    let mut undo_snap: Option<UndoSnap> = None; // 単一段のUndo
+    let mut last_insert: String = String::new();
+    let mut insert_record: String = String::new();
+    let mut pending_op: Option<char> = None; // 'd','y','c' 等の保留
+
     let saved = set_raw_mode();
     hide_cursor();
     clear_screen();
     // 初期描画
-    draw_all(&buffers, &mut views, cur_view, width, height, &status_msg, layout, Mode::Normal);
+    draw_all(&buffers, &mut views, cur_view, width, height, &status_msg, layout, mode);
 
     // 簡易raw入力: 1バイトずつ読み、':' でコマンド、Enterで改行、Backspace(0x7F)で削除
     let mut cmd_mode = false;
@@ -430,135 +576,113 @@ pub extern "C" fn rust_editor_main(argc: i32, argv: *const *const i8) -> i32 {
         if let Ok(n) = stdin.read(&mut buf) { if n == 0 { break; } } else { break; }
         let b = buf[0];
         if !cmd_mode {
-            match b {
-                b':' => { cmd_mode = true; cmd.clear(); },
-                b'\r' | b'\n' => {
-                    // split line at cursor
-                    let v = &mut views[cur_view];
-                    let bidx = v.buf;
-                    let b = &mut buffers[bidx];
-                    let current = b.lines[v.cy].clone();
-                    let (left, right) = current.split_at(v.cx);
-                    b.lines[v.cy] = left.to_string();
-                    b.lines.insert(v.cy + 1, right.to_string());
-                    v.cy += 1;
-                    v.cx = 0;
-                    b.modified = true;
-                },
-                0x7F => {
-                    let v = &mut views[cur_view];
-                    let b = &mut buffers[v.buf];
-                    if v.cx > 0 {
-                        b.lines[v.cy].remove(v.cx - 1);
-                        v.cx -= 1;
-                        b.modified = true;
-                    } else if v.cy > 0 {
-                        let prev_len = b.lines[v.cy - 1].len();
-                        let line = b.lines.remove(v.cy);
-                        b.lines[v.cy - 1].push_str(&line);
-                        v.cy -= 1;
-                        v.cx = prev_len;
-                        b.modified = true;
+            // Insertモード
+            if mode == Mode::Insert {
+                match b {
+                    0x1B | 0x03 => { // ESC or Ctrl-C
+                        mode = Mode::Normal;
+                        last_insert = insert_record.clone();
+                        insert_record.clear();
                     }
-                },
-                0x13 => { // Ctrl-S save
-                    let v = &views[cur_view];
-                    let b = &mut buffers[v.buf];
-                    if let Some(ref p) = b.filename { if save_file(p.as_path(), &b.lines).is_ok() { b.modified = false; status_msg = Some("written".to_string()); } else { status_msg = Some("write error".to_string()); } }
-                    else { status_msg = Some("No file name".to_string()); }
+                    b'\r' | b'\n' => {
+                        let v = &mut views[cur_view];
+                        let bidx = v.buf; let bufm = &mut buffers[bidx];
+                        let current = bufm.lines[v.cy].clone();
+                        let (left, right) = current.split_at(v.cx);
+                        bufm.lines[v.cy] = left.to_string();
+                        bufm.lines.insert(v.cy + 1, right.to_string());
+                        v.cy += 1; v.cx = 0; bufm.modified = true; insert_record.push('\n');
+                    }
+                    0x7F => {
+                        let v = &mut views[cur_view]; let bidx=v.buf; let bufm=&mut buffers[bidx];
+                        if v.cx > 0 { bufm.lines[v.cy].remove(v.cx - 1); v.cx -= 1; bufm.modified = true; if !insert_record.is_empty(){ insert_record.pop(); } }
+                        else if v.cy > 0 { let prev_len = bufm.lines[v.cy - 1].len(); let line = bufm.lines.remove(v.cy); bufm.lines[v.cy - 1].push_str(&line); v.cy -= 1; v.cx = prev_len; bufm.modified = true; }
+                    }
+                    _ => {
+                        if b == b'\t' { let v=&mut views[cur_view]; let bufm=&mut buffers[v.buf]; let spaces = " ".repeat(tab_width.max(1)); for ch in spaces.chars(){ bufm.lines[v.cy].insert(v.cx, ch); v.cx+=1; insert_record.push(' ');} bufm.modified=true; }
+                        else if (0x20..=0x7E).contains(&b) { let v=&mut views[cur_view]; let bufm=&mut buffers[v.buf]; bufm.lines[v.cy].insert(v.cx, b as char); v.cx+=1; bufm.modified=true; insert_record.push(b as char);}                        
+                    }
                 }
-                0x11 => { // Ctrl-Q quit (with check)
-                    let v = &views[cur_view];
-                    if buffers[v.buf].modified { status_msg = Some("No write since last change (:q! to quit)".to_string()); }
-                    else { break 'outer; }
-                }
-                _ => {
-                    if b == 0x1B { // ESC sequence
-                        // try to read two more bytes: [ A/B/C/D
-                        let mut first = [0u8; 1];
-                        let _ = stdin.read_exact(&mut first);
-                        if first[0] == b'[' {
-                            let mut second = [0u8; 1];
-                            let _ = stdin.read_exact(&mut second);
-                            let v = &mut views[cur_view];
-                            let b = &mut buffers[v.buf];
-                            match second[0] {
-                                b'A' => { // up
-                                    if v.cy > 0 { v.cy -= 1; v.cx = v.cx.min(b.lines[v.cy].len()); }
+            } else {
+                // Normal/Visual
+                match b {
+                    b':' => { cmd_mode = true; cmd.clear(); pending_op=None; },
+                    0x13 => { let v=&views[cur_view]; let bufm=&mut buffers[v.buf]; if let Some(ref p)=bufm.filename { if save_file(p.as_path(), &bufm.lines).is_ok(){ bufm.modified=false; status_msg=Some("written".into()); } else { status_msg=Some("write error".into()); } } else { status_msg=Some("No file name".into()); } }
+                    0x11 => { let v=&views[cur_view]; if buffers[v.buf].modified { status_msg=Some("No write since last change (:q! to quit)".into()); } else { break 'outer; } }
+                    0x17 => { let mut next=[0u8;1]; let _=stdin.read(&mut next); if next[0] as char=='w' || next[0] as char=='W' { if views.len()>1 { cur_view=(cur_view+1)%views.len(); } } }
+                    b => {
+                        // ESC sequences for arrows/home/end/page
+                        if b == 0x1B {
+                            let mut first = [0u8;1];
+                            if stdin.read_exact(&mut first).is_ok() && first[0] == b'[' {
+                                let mut second = [0u8;1];
+                                let _ = stdin.read_exact(&mut second);
+                                let v=&mut views[cur_view]; let bbuf=&mut buffers[v.buf];
+                                match second[0] {
+                                    b'A' => { if v.cy>0 { v.cy-=1; v.cx=v.cx.min(bbuf.lines[v.cy].len()); } }
+                                    ,b'B' => { if v.cy+1<bbuf.lines.len(){ v.cy+=1; v.cx=v.cx.min(bbuf.lines[v.cy].len()); } }
+                                    ,b'C' => { if v.cx<bbuf.lines[v.cy].len(){ v.cx+=1; } else if v.cy+1<bbuf.lines.len(){ v.cy+=1; v.cx=0; } }
+                                    ,b'D' => { if v.cx>0 { v.cx-=1; } else if v.cy>0 { v.cy-=1; v.cx=bbuf.lines[v.cy].len(); } }
+                                    ,b'H' => { views[cur_view].cx=0; }
+                                    ,b'F' => { let llen=bbuf.lines[v.cy].len(); views[cur_view].cx=llen; }
+                                    ,_ => {}
                                 }
-                                b'B' => { // down
-                                    if v.cy + 1 < b.lines.len() { v.cy += 1; v.cx = v.cx.min(b.lines[v.cy].len()); }
+                            } else {
+                                // plain ESC: Visualをキャンセル
+                                if matches!(mode, Mode::VisualChar | Mode::VisualLine) { mode = Mode::Normal; visual_anchor = None; }
+                            }
+                        } else {
+                            // handle normal keys
+                            match b as char {
+                                'h'=>{ let v=&mut views[cur_view]; let len=buffers[v.buf].lines[v.cy].len(); if v.cx>0 { v.cx-=1; } else if v.cy>0 { v.cy-=1; v.cx=len; } }
+                                ,'l'=>{ let v=&mut views[cur_view]; let blen=buffers[v.buf].lines.len(); let llen=buffers[v.buf].lines[v.cy].len(); if v.cx<llen { v.cx+=1; } else if v.cy+1<blen { v.cy+=1; v.cx=0; } }
+                                ,'k'=>{ let v=&mut views[cur_view]; v.cy=v.cy.saturating_sub(1); let llen=buffers[v.buf].lines[v.cy].len(); v.cx=v.cx.min(llen); }
+                                ,'j'=>{ let v=&mut views[cur_view]; let blen=buffers[v.buf].lines.len(); if v.cy+1<blen { v.cy+=1; let llen=buffers[v.buf].lines[v.cy].len(); v.cx=v.cx.min(llen); } }
+                                ,'0'=>{ views[cur_view].cx=0; }
+                                ,'$'=>{ let v=&mut views[cur_view]; let llen=buffers[v.buf].lines[v.cy].len(); v.cx=llen; }
+                                ,'w'=>{ let v=&mut views[cur_view]; let bbuf=&buffers[v.buf].lines.clone(); move_w(&bbuf, v); }
+                                ,'b'=>{ let v=&mut views[cur_view]; let bbuf=&buffers[v.buf].lines; move_b(&bbuf, v); }
+                                ,'e'=>{ let v=&mut views[cur_view]; let bbuf=&buffers[v.buf].lines; move_e(&bbuf, v); }
+                                ,'g'=>{ let mut n=[0u8;1]; let _=stdin.read(&mut n); if n[0]==b'g' { views[cur_view].cy=0; views[cur_view].cx=0; } }
+                                ,'G'=>{ let v=&mut views[cur_view]; let blen=buffers[v.buf].lines.len(); v.cy=blen.saturating_sub(1); v.cx=0; }
+                                ,'i'=>{ mode=Mode::Insert; insert_record.clear(); }
+                                ,'a'=>{ let v=&mut views[cur_view]; let llen=buffers[v.buf].lines[v.cy].len(); if v.cx<llen { v.cx+=1; } mode=Mode::Insert; insert_record.clear(); }
+                                ,'I'=>{ let v=&mut views[cur_view]; v.cx=0; mode=Mode::Insert; insert_record.clear(); }
+                                ,'A'=>{ let v=&mut views[cur_view]; v.cx=buffers[v.buf].lines[v.cy].len(); mode=Mode::Insert; insert_record.clear(); }
+                                ,'o'=>{ let v=&mut views[cur_view]; let bbuf=&mut buffers[v.buf]; take_undo_snapshot(bbuf, v, &mut undo_snap); bbuf.lines.insert(v.cy+1, String::new()); v.cy+=1; v.cx=0; bbuf.modified=true; mode=Mode::Insert; insert_record.clear(); }
+                                ,'O'=>{ let v=&mut views[cur_view]; let bbuf=&mut buffers[v.buf]; take_undo_snapshot(bbuf, v, &mut undo_snap); bbuf.lines.insert(v.cy, String::new()); v.cx=0; bbuf.modified=true; mode=Mode::Insert; insert_record.clear(); }
+                                ,'v'=>{ if mode==Mode::VisualChar { mode=Mode::Normal; visual_anchor=None; } else { mode=Mode::VisualChar; let v=&views[cur_view]; visual_anchor=Some((v.cx,v.cy)); } }
+                                ,'V'=>{ if mode==Mode::VisualLine { mode=Mode::Normal; visual_anchor=None; } else { mode=Mode::VisualLine; let v=&views[cur_view]; visual_anchor=Some((v.cx,v.cy)); } }
+                                ,'x'=>{ let v=&mut views[cur_view]; let bbuf=&mut buffers[v.buf]; if v.cx<bbuf.lines[v.cy].len(){ take_undo_snapshot(bbuf, v, &mut undo_snap); let ch=bbuf.lines[v.cy].remove(v.cx); clipboard=Some(Register::Charwise(ch.to_string())); bbuf.modified=true; } }
+                                ,'J'=>{ let v=&mut views[cur_view]; if join_current_with_next(&mut buffers[v.buf].lines, v.cy) { buffers[v.buf].modified = true; } }
+                                ,'p'=>{ if let Some(reg)=clipboard.clone(){ let v=&mut views[cur_view]; let bbuf=&mut buffers[v.buf]; match reg { Register::Charwise(s)=>{ take_undo_snapshot(bbuf, v, &mut undo_snap); for ch in s.chars(){ bbuf.lines[v.cy].insert(v.cx, ch); v.cx+=1;} bbuf.modified=true; }, Register::Linewise(mut ls)=>{ take_undo_snapshot(bbuf, v, &mut undo_snap); let at=v.cy+1; for (i,l) in ls.drain(..).enumerate(){ bbuf.lines.insert(at+i,l);} v.cy=at; v.cx=0; bbuf.modified=true; } } } }
+                                ,'P'=>{ if let Some(reg)=clipboard.clone(){ let v=&mut views[cur_view]; let bbuf=&mut buffers[v.buf]; match reg { Register::Charwise(s)=>{ take_undo_snapshot(bbuf, v, &mut undo_snap); for ch in s.chars(){ bbuf.lines[v.cy].insert(v.cx.saturating_sub(1), ch);} bbuf.modified=true; }, Register::Linewise(mut ls)=>{ take_undo_snapshot(bbuf, v, &mut undo_snap); let at=v.cy; for (i,l) in ls.drain(..).enumerate(){ bbuf.lines.insert(at+i,l);} bbuf.modified=true; } } } }
+                                ,'.'=>{ if !last_insert.is_empty(){ let v=&mut views[cur_view]; let bbuf=&mut buffers[v.buf]; take_undo_snapshot(bbuf, v, &mut undo_snap); for ch in last_insert.chars(){ if ch=='\n' { let cur=bbuf.lines[v.cy].clone(); let (l,r)=cur.split_at(v.cx); bbuf.lines[v.cy]=l.to_string(); bbuf.lines.insert(v.cy+1, r.to_string()); v.cy+=1; v.cx=0; } else { bbuf.lines[v.cy].insert(v.cx, ch); v.cx+=1; } } bbuf.modified=true; } }
+                                ,'u'=>{ if let Some(snap)=undo_snap.clone(){ let v=&mut views[cur_view]; let bbuf=&mut buffers[v.buf]; bbuf.lines=snap.lines; v.cx=snap.cx; v.cy=snap.cy; bbuf.modified=true; } }
+                                ,'d'=>{
+                                    if matches!(mode, Mode::VisualChar|Mode::VisualLine) {
+                                        if let Some(anchor)=visual_anchor { let v=&mut views[cur_view]; let bbuf=&mut buffers[v.buf]; let (sx,sy,ex,ey,charwise)=visual_compute_range(v, anchor, mode, &bbuf.lines); take_undo_snapshot(bbuf, v, &mut undo_snap); clipboard=Some(yank_selection(&bbuf.lines, sx,sy,ex,ey,charwise)); delete_selection(&mut bbuf.lines, sx,sy,ex,ey,charwise); bbuf.modified=true; mode=Mode::Normal; visual_anchor=None; v.cx=sx; v.cy=sy; }
+                                    } else { pending_op=Some('d'); }
                                 }
-                                b'C' => { // right
-                                    if v.cx < b.lines[v.cy].len() { v.cx += 1; }
-                                    else if v.cy + 1 < b.lines.len() { v.cy += 1; v.cx = 0; }
+                                ,'y'=>{
+                                    if matches!(mode, Mode::VisualChar|Mode::VisualLine) {
+                                        if let Some(anchor)=visual_anchor { let v=&views[cur_view]; let bbuf=&buffers[v.buf]; let (sx,sy,ex,ey,charwise)=visual_compute_range(v, anchor, mode, &bbuf.lines); clipboard=Some(yank_selection(&bbuf.lines, sx,sy,ex,ey,charwise)); mode=Mode::Normal; visual_anchor=None; }
+                                    } else { pending_op=Some('y'); }
                                 }
-                                b'D' => { // left
-                                    if v.cx > 0 { v.cx -= 1; }
-                                    else if v.cy > 0 { v.cy -= 1; v.cx = b.lines[v.cy].len(); }
-                                }
-                                b'H' => { // Home
-                                    v.cx = 0;
-                                }
-                                b'F' => { // End
-                                    v.cx = b.lines[v.cy].len();
-                                }
-                                b'0'..=b'9' => {
-                                    // Read until '~'
-                                    let mut digits = vec![second[0]];
-                                    let mut ch = [0u8;1];
-                                    loop {
-                                        if stdin.read(&mut ch).ok().unwrap_or(0) == 0 { break; }
-                                        if ch[0] == b'~' { break; }
-                                        digits.push(ch[0]);
-                                        if digits.len() > 3 { break; }
-                                    }
-                                    let code = String::from_utf8_lossy(&digits);
-                                    match code.as_ref() {
-                                        "1"|"7" => v.cx = 0,          // Home variants
-                                        "4"|"8" => v.cx = b.lines[v.cy].len(), // End variants
-                                        "5" => { // PageUp
-                                            let view_rows = height.saturating_sub(2);
-                                            if v.cy >= view_rows { v.cy -= view_rows; } else { v.cy = 0; }
-                                            v.cx = v.cx.min(b.lines[v.cy].len());
-                                        }
-                                        "6" => { // PageDown
-                                            let view_rows = height.saturating_sub(2);
-                                            if v.cy + view_rows < b.lines.len() { v.cy += view_rows; } else { v.cy = b.lines.len().saturating_sub(1); }
-                                            v.cx = v.cx.min(b.lines[v.cy].len());
-                                        }
-                                        _ => {}
-                                    }
+                                ,'c'=>{
+                                    if matches!(mode, Mode::VisualChar|Mode::VisualLine) {
+                                        if let Some(anchor)=visual_anchor { let v=&mut views[cur_view]; let bbuf=&mut buffers[v.buf]; let (sx,sy,ex,ey,charwise)=visual_compute_range(v, anchor, mode, &bbuf.lines); take_undo_snapshot(bbuf, v, &mut undo_snap); clipboard=Some(yank_selection(&bbuf.lines, sx,sy,ex,ey,charwise)); delete_selection(&mut bbuf.lines, sx,sy,ex,ey,charwise); bbuf.modified=true; mode=Mode::Insert; visual_anchor=None; v.cx=sx; v.cy=sy; insert_record.clear(); }
+                                    } else { pending_op=Some('c'); }
                                 }
                                 _ => {}
                             }
+                            // Handle dd/yy/cc
+                            if let Some(op)=pending_op {
+                                if op=='d' && b as char=='d' { let v=&mut views[cur_view]; let bbuf=&mut buffers[v.buf]; take_undo_snapshot(bbuf, v, &mut undo_snap); let line=bbuf.lines.remove(v.cy); clipboard=Some(Register::Linewise(vec![line])); if v.cy>=bbuf.lines.len(){ if bbuf.lines.is_empty(){ bbuf.lines.push(String::new()); v.cy=0; } else { v.cy=bbuf.lines.len()-1; } } v.cx=v.cx.min(bbuf.lines[v.cy].len()); bbuf.modified=true; pending_op=None; }
+                                else if op=='y' && b as char=='y' { let v=&mut views[cur_view]; let bbuf=&mut buffers[v.buf]; clipboard=Some(Register::Linewise(vec![bbuf.lines[v.cy].clone()])); pending_op=None; }
+                                else if op=='c' && b as char=='c' { let v=&mut views[cur_view]; let bbuf=&mut buffers[v.buf]; take_undo_snapshot(bbuf, v, &mut undo_snap); let _old=bbuf.lines.remove(v.cy); bbuf.lines.insert(v.cy,String::new()); v.cx=0; clipboard=Some(Register::Linewise(vec![String::new()])); bbuf.modified=true; pending_op=None; mode=Mode::Insert; insert_record.clear(); }
+                            }
                         }
-                    } else if b == 0x17 { // Ctrl-W
-                        let mut next = [0u8;1];
-                        let _ = stdin.read(&mut next);
-                        match next[0] as char {
-                            'w' | 'W' => { if views.len() > 1 { cur_view = (cur_view + 1) % views.len(); } },
-                            _ => {}
-                        }
-                    } else if b == b'h' { let v=&mut views[cur_view]; let len = buffers[v.buf].lines[v.cy].len(); if v.cx > 0 { v.cx -= 1; } else if v.cy > 0 { v.cy -= 1; v.cx = len; } }
-                    else if b == b'l' { let v=&mut views[cur_view]; let blen = buffers[v.buf].lines.len(); let llen = buffers[v.buf].lines[v.cy].len(); if v.cx < llen { v.cx += 1; } else if v.cy + 1 < blen { v.cy += 1; v.cx = 0; } }
-                    else if b == b'k' { let v=&mut views[cur_view]; v.cy = v.cy.saturating_sub(1); let llen = buffers[v.buf].lines[v.cy].len(); v.cx = v.cx.min(llen); }
-                    else if b == b'j' { let v=&mut views[cur_view]; let blen = buffers[v.buf].lines.len(); if v.cy + 1 < blen { v.cy += 1; let llen = buffers[v.buf].lines[v.cy].len(); v.cx = v.cx.min(llen); } }
-                    else if b == b'J' { // Join
-                        let v = &mut views[cur_view];
-                        if join_current_with_next(&mut buffers[v.buf].lines, v.cy) { buffers[v.buf].modified = true; }
-                    }
-                    else if (0x20..=0x7E).contains(&b) || b == b'\t' {
-                        let v = &mut views[cur_view];
-                        let bbuf = &mut buffers[v.buf];
-                        if b == b'\t' {
-                            let spaces = " ".repeat(tab_width.max(1));
-                            for ch in spaces.chars() { bbuf.lines[v.cy].insert(v.cx, ch); v.cx += 1; }
-                        } else {
-                            bbuf.lines[v.cy].insert(v.cx, b as char);
-                            v.cx += 1;
-                        }
-                        bbuf.modified = true;
                     }
                 }
             }
@@ -798,6 +922,12 @@ pub extern "C" fn rust_editor_main(argc: i32, argv: *const *const i8) -> i32 {
                         lines.push(":split | :vsplit | :only | :close | :wincmd w | Ctrl-W w".into());
                         lines.push(":read {file} | :write [range] {file} | :write >> {file}".into());
                         lines.push(":%s/pat/repl/[g][i] | :& (repeat on line) | :&& (repeat on buffer)".into());
+                        lines.push(String::new());
+                        lines.push("Modes:".into());
+                        lines.push(" Normal: h j k l, 0, $, w, b, e, gg, G".into());
+                        lines.push("         i/a/I/A, o/O, x, J, dd, yy, cc, p/P, u, .".into());
+                        lines.push(" Insert: ESC で Normalへ。改行/Backspace/Tab可".into());
+                        lines.push(" Visual: v (char), V (line)。d/y/c で削除/ヤンク/変更".into());
                         buffers.push(Buffer { lines, filename: None, modified: false, kind: Some(BufferKind::Help) });
                         views[cur_view].buf = buffers.len() - 1;
                     }
@@ -811,8 +941,7 @@ pub extern "C" fn rust_editor_main(argc: i32, argv: *const *const i8) -> i32 {
         }
 
         // 再描画
-        // mode will be updated later; placeholder gets replaced below
-        // This call will be overwritten by the final call at loop bottom
+        draw_all(&buffers, &mut views, cur_view, width, height, &status_msg, layout, mode);
         if cmd_mode { print!("\r\n:{}", cmd); } else { print!("\r\n"); }
         flush();
     }
@@ -905,3 +1034,6 @@ fn draw_all(buffers: &Vec<Buffer>, views: &mut Vec<View>, cur_view: usize, width
         }
     }
 }
+
+// TUI 実装は別モジュール
+pub mod tui;
