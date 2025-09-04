@@ -72,7 +72,7 @@ mod tests {
     #[cfg(unix)]
     use rust_os_unix as os_layer;
     #[cfg(windows)]
-    use rust_os_win32 as os_layer;
+    use rust_os_mswin as os_layer;
 
     #[tokio::test]
     async fn read_write_roundtrip() {

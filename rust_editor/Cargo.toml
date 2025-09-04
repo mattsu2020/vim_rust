@@ -1,0 +1,11 @@
+[package]
+name = "rust_editor"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[lib]
+name = "rust_editor"
+crate-type = ["staticlib", "rlib"]
+path = "src/lib.rs"

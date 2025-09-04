@@ -2112,6 +2112,7 @@ dependencies = [
 name = "rust_clientserver"
 version = "0.1.0"
 dependencies = [
+ "once_cell",
  "tokio",
 ]
 
@@ -2210,6 +2211,19 @@ name = "rust_edit"
 version = "0.1.0"
 dependencies = [
  "cbindgen",
+]
+
+[[package]]
+name = "rust_editor"
+version = "0.1.0"
+
+[[package]]
+name = "rust_entry"
+version = "0.1.0"
+dependencies = [
+ "once_cell",
+ "rust_bufwrite",
+ "rust_vim9class",
 ]
 
 [[package]]
@@ -2590,6 +2604,9 @@ dependencies = [
 [[package]]
 name = "rust_os_mswin"
 version = "0.1.0"
+dependencies = [
+ "windows",
+]
 
 [[package]]
 name = "rust_os_qnx"
@@ -2609,13 +2626,6 @@ version = "0.1.0"
 [[package]]
 name = "rust_os_w32exe"
 version = "0.1.0"
-
-[[package]]
-name = "rust_os_win32"
-version = "0.1.0"
-dependencies = [
- "windows",
-]
 
 [[package]]
 name = "rust_path"
@@ -3578,11 +3588,12 @@ dependencies = [
  "rust_job",
  "rust_message",
  "rust_misc1",
+ "rust_move",
  "rust_netbeans",
  "rust_os_amiga",
+ "rust_os_mswin",
  "rust_os_qnx",
  "rust_os_unix",
- "rust_os_win32",
  "rust_profiler",
  "rust_pty",
  "rust_python",
