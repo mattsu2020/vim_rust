@@ -1,6 +1,5 @@
-#![cfg(windows)]
-use std::{ffi::c_void, ptr};
 use std::vec::Vec;
+use std::{ffi::c_void, ptr};
 use windows_sys::Win32::System::Console::{GetStdHandle, WriteConsoleW, STD_OUTPUT_HANDLE};
 use windows_sys::Win32::System::Environment::GetCommandLineW;
 
@@ -10,6 +9,7 @@ extern "C" {
     fn _getch() -> i32;
 }
 
+#[cfg(windows)]
 fn main() {
     unsafe {
         let mut p = GetCommandLineW();
@@ -93,3 +93,6 @@ fn main() {
         std::process::exit(retval);
     }
 }
+
+#[cfg(not(windows))]
+fn main() {}
