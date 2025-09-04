@@ -1574,7 +1574,6 @@ $(OUTDIR)/locale.obj: $(OUTDIR) locale.c $(INCL)
 
 $(OUTDIR)/logfile.obj: $(OUTDIR) logfile.c $(INCL)
 
-$(OUTDIR)/main.obj: $(OUTDIR) main.c $(INCL) 
 
 $(OUTDIR)/map.obj: $(OUTDIR) map.c $(INCL)
 
@@ -1835,7 +1834,6 @@ proto.h: \
 	proto/list.pro \
 	proto/locale.pro \
 	proto/logfile.pro \
-	proto/main.pro \
 	proto/map.pro \
 	proto/mark.pro \
 	proto/match.pro \

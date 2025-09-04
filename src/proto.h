@@ -246,7 +246,6 @@ void do_modelines(int flags);
 # include "locale.pro"
 /* logfile.c をビルド対象から外しているため、対応するプロトタイプも除外 */
 /* # include "logfile.pro" */
-# include "main.pro"
 # include "map.pro"
 # if defined(__has_include)
 #  if __has_include("mark.pro")

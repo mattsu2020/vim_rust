@@ -114,7 +114,6 @@ SRC += \
         list.c \
 	locale.c \
 	logfile.c \
-	main.c \
         map.c \
 	mbyte.c \
 	memfile.c \

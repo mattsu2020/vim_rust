@@ -1,4 +1,7 @@
 use std::ffi::CString;
+use std::os::raw::c_char;
+use std::process;
+use std::ptr;
 
 /// Placeholder for platform specific early initialization.
 fn mch_early_init() {
@@ -38,5 +41,21 @@ fn main() {
     let len = rust_vim9class::rs_vim9class_eval(class_src.as_ptr());
     println!("Class name length: {}", len);
 
-    println!("Initialization complete");
+    // Collect arguments for passing to the C-style interfaces.
+    let args: Vec<String> = std::env::args().collect();
+    let c_args: Vec<CString> = args
+        .iter()
+        .map(|a| CString::new(a.as_str()).expect("CString::new failed"))
+        .collect();
+    let mut argv: Vec<*const c_char> = c_args.iter().map(|a| a.as_ptr()).collect();
+    argv.push(ptr::null());
+    let argc = c_args.len() as i32;
+
+    unsafe {
+        if rust_version::rust_handle_args(argc, argv.as_ptr()) != 0 {
+            return;
+        }
+        let code = rust_editor::rust_editor_main(argc, argv.as_ptr());
+        process::exit(code);
+    }
 }

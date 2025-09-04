@@ -1324,10 +1324,6 @@ ifeq (16, $(RUBY))
 	$(CC) $(CFLAGS) -U_WIN32 -c -o $@ if_ruby.c
 endif
 
-$(OUTDIR)/main.o:	main.c $(INCL)
-	$(CC) -c $(CFLAGS) main.c -o $@
-
-
 $(OUTDIR)/os_w32exec.o:	os_w32exe.c $(INCL)
 	$(CC) -c $(CFLAGS) -UFEAT_GUI_MSWIN $(EXECFLAGS) os_w32exe.c -o $@
 

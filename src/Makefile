@@ -1798,7 +1798,6 @@ BASIC_SRC = \
         insexpand.c \
         list.c \
         locale.c \
-        main.c \
         map.c \
         mbyte.c \
         memfile.c \
@@ -1902,9 +1901,8 @@ LINT_SRC = $(BASIC_SRC) $(GUI_SRC) \
 
 OBJ_COMMON =
 
-# 最小バイナリ用に main.o のみを対象とする
-OBJ_MAIN = \
-	objects/main.o
+# 最小バイナリ用
+OBJ_MAIN =
 
 OBJ = $(OBJ_MAIN)
 
@@ -3295,19 +3293,11 @@ objects/locale.o: locale.c
 objects/logfile.o: logfile.c
 	$(CCC) -o $@ logfile.c
 
-objects/main.o: main.c
-	$(CCC) -o $@ main.c
-
 objects/map.o: map.c
-	$(CCC) -o $@ map.c
-
-
-objects/memfile.o: memfile.c
-	$(CCC) -o $@ memfile.c
+        $(CCC) -o $@ map.c
 
 objects/memfile.o: memfile.c
-	$(CCC) -o $@ memfile.c
-
+        $(CCC) -o $@ memfile.c
 objects/memline.o: memline.c
 	$(CCC) -o $@ memline.c
 
@@ -3758,11 +3748,6 @@ objects/locale.o: locale.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
 objects/logfile.o: logfile.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
-objects/main.o: main.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \

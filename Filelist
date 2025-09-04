@@ -245,7 +245,6 @@ SRC_ALL =	\
                 src/proto/list.pro \
 		src/proto/locale.pro \
 		src/proto/logfile.pro \
-		src/proto/main.pro \
 		src/proto/map.pro \
 		src/proto/mbyte.pro \
 		src/proto/memfile.pro \
