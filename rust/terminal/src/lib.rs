@@ -11,6 +11,8 @@ use crossterm::{
 use ratatui::{backend::CrosstermBackend, widgets::*, Terminal as RatatuiTerminal};
 use std::time::Duration;
 
+pub mod harness;
+
 pub struct Terminal {
     scrollback: Vec<CString>,
 }
