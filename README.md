@@ -58,6 +58,9 @@ Rust ports of Amiga, QNX and VMS specific functionality now live in the
 `rust_os_amiga`, `rust_os_qnx` and `rust_os_vms` crates.  These replace the
 historical C implementations found in `src/os_*.c`.
 
+Win32 Cygwin pty detection is now handled by the `rust_iscygpty` crate, removing
+the need for the legacy `src/iscygpty.c` module.
+
 For Vim9 script see [README_VIM9](README_VIM9.md).
 
 ## Distribution

@@ -43,10 +43,6 @@ def Test_source_files()
 
     PerformCheck(fname, '\s$', 'trailing white space', '')
 
-    # some files don't stick to the Vim style rules
-    if fname =~ 'iscygpty.c'
-      continue
-    endif
 
     var skip = 'getline(".") =~ "condition) {" || getline(".") =~ "vimglob_func" || getline(".") =~ "{\"" || getline(".") =~ "{\\d" || getline(".") =~ "{{{"'
     PerformCheck(fname, ')\s*{', 'curly after closing paren', skip)
