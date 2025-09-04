@@ -1805,7 +1805,6 @@ BASIC_SRC = \
         memline.c \
         menu.c \
         misc1.c \
-        misc2.c \
         mouse.c \
         move.c \
         normal.c \
@@ -1973,9 +1972,8 @@ PRO_AUTO = \
 	memline.pro \
 	menu.pro \
 	message.pro \
-	misc1.pro \
-	misc2.pro \
-	mouse.pro \
+        misc1.pro \
+        mouse.pro \
 	move.pro \
 	normal.pro \
 	ops.pro \
@@ -3318,9 +3316,6 @@ objects/menu.o: menu.c
 objects/misc1.o: misc1.c
 	$(CCC) -o $@ misc1.c
 
-objects/misc2.o: misc2.c
-	$(CCC) -o $@ misc2.c
-
 objects/mouse.o: mouse.c
 	$(CCC) -o $@ mouse.c
 
@@ -3797,11 +3792,6 @@ objects/misc1.o: misc1.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h version.h
-objects/misc2.o: misc2.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
 objects/mouse.o: mouse.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \

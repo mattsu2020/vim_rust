@@ -718,7 +718,6 @@ OBJ = \
 	$(OUTDIR)\memline.obj \
 	$(OUTDIR)\menu.obj \
 	$(OUTDIR)\misc1.obj \
-	$(OUTDIR)\misc2.obj \
 	$(OUTDIR)\mouse.obj \
 	$(OUTDIR)\move.obj \
 	$(OUTDIR)\normal.obj \
@@ -1586,8 +1585,6 @@ $(OUTDIR)/menu.obj: $(OUTDIR) menu.c $(INCL)
 
 $(OUTDIR)/misc1.obj: $(OUTDIR) misc1.c $(INCL) version.h
 
-$(OUTDIR)/misc2.obj: $(OUTDIR) misc2.c $(INCL)
-
 $(OUTDIR)/mouse.obj: $(OUTDIR) mouse.c $(INCL)
 
 $(OUTDIR)/move.obj: $(OUTDIR) move.c $(INCL)
@@ -1844,7 +1841,6 @@ proto.h: \
 	proto/menu.pro \
 	proto/message.pro \
 	proto/misc1.pro \
-	proto/misc2.pro \
 	proto/mouse.pro \
 	proto/move.pro \
 	proto/mbyte.pro \

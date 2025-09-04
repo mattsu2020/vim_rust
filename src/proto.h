@@ -294,7 +294,6 @@ int vim_vsnprintf_typval(char *str, size_t str_m, const char *fmt, va_list ap, t
 
 # include "message.pro"
 # include "misc1.pro"
-# include "misc2.pro"
 # ifndef HAVE_STRPBRK	    // not generated automatically from misc2.c
 char_u *vim_strpbrk(char_u *s, char_u *charset);
 # endif

@@ -121,7 +121,6 @@ SRC += \
 	memline.c \
 	menu.c \
 	misc1.c \
-	misc2.c \
 	mouse.c \
 	move.c \
 	normal.c \

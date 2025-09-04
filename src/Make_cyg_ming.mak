@@ -821,9 +821,8 @@ OBJ = \
 	$(OUTDIR)/memline.o \
 	$(OUTDIR)/menu.o \
 	$(OUTDIR)/message.o \
-	$(OUTDIR)/misc1.o \
-	$(OUTDIR)/misc2.o \
-	$(OUTDIR)/mouse.o \
+        $(OUTDIR)/misc1.o \
+        $(OUTDIR)/mouse.o \
 	$(OUTDIR)/move.o \
 	$(OUTDIR)/mbyte.o \
 	$(OUTDIR)/normal.o \
