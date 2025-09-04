@@ -30,6 +30,9 @@ fn save_file(path: &Path, lines: &Vec<String>) -> std::io::Result<()> {
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Mode { Normal, Insert, Command, SearchFwd, SearchBwd, VisualChar, VisualLine }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum SplitLayout { Horizontal, Vertical }
+
 struct SearchState {
     regex: Option<Regex>,
     pattern: String,
@@ -72,6 +75,13 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
     let mut last_repl: String = String::new();
     let mut last_flags: String = String::new();
 
+    // window splits (logical only for now; rendering is single view)
+    #[derive(Clone)]
+    struct View { cx: usize, cy: usize, scroll: usize }
+    let mut views: Vec<View> = vec![View { cx, cy, scroll }];
+    let mut cur_view: usize = 0;
+    let mut layout = SplitLayout::Horizontal;
+
     // setup terminal
     terminal::enable_raw_mode().map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
     let mut stdout = std::io::stdout();
@@ -99,68 +109,64 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                     ]).split(size)
             };
 
-            // adjust scroll for cursor visibility
-            let view_rows = content_rows as usize;
-            if cy < scroll { scroll = cy; }
-            if cy >= scroll + view_rows { scroll = cy + 1 - view_rows; }
+            // sync current view state
+            if !views.is_empty() {
+                views[cur_view].cx = cx; views[cur_view].cy = cy; views[cur_view].scroll = scroll;
+            }
 
-            // compose visible text with optional search/visual highlight
-            let mut text = Text::default();
             let hl_style = Style::default().add_modifier(Modifier::REVERSED);
             let sel_style = Style::default().add_modifier(Modifier::REVERSED | Modifier::BOLD);
-            for i in 0..view_rows {
-                let li = scroll + i;
-                if li < lines.len() {
-                    let line = &lines[li];
-                    let mut spans: Vec<Span> = Vec::new();
-                    let mut last = 0usize;
-                    // gather search matches as segments
-                    let mut matches: Vec<(usize, usize, Style)> = Vec::new();
-                    if let Some(re) = &search.regex {
-                        let mut start_at = 0usize;
-                        while let Some(m) = re.find_at(line, start_at) {
-                            let s = m.start(); let e = m.end();
-                            matches.push((s, e, hl_style));
-                            if e == start_at { break; }
-                            start_at = e;
-                        }
-                    }
-                    // visual selection overlay
-                    if matches!(mode, Mode::VisualChar | Mode::VisualLine) {
-                        if let Some((ax, ay)) = visual_anchor {
-                            let (bx, by) = (cx, cy);
-                            // compute range on this line
-                            if (li >= ay && li <= by) || (li >= by && li <= ay) {
-                                let (sx, sy, ex, ey) = ordered_region(ax, ay, bx, by);
-                                let (s, e) = if sy == ey {
-                                    if li == sy { (sx.min(line.len()), (ex + 1).min(line.len())) } else { (0, 0) }
-                                } else if li == sy {
-                                    (sx.min(line.len()), line.len())
-                                } else if li == ey {
-                                    (0, (ex + 1).min(line.len()))
-                                } else {
-                                    (0, line.len())
-                                };
-                                if e > s { matches.push((s, e, sel_style)); }
+
+            // areas to render
+            let areas: Vec<Rect> = if views.len() <= 1 {
+                vec![chunks[0]]
+            } else {
+                let n = views.len();
+                let mut constraints: Vec<Constraint> = Vec::with_capacity(n);
+                for i in 0..n { let mut p = (100 / n) as u16; if i == n - 1 { p = 100 - (p * (n as u16 - 1)); } constraints.push(Constraint::Percentage(p)); }
+                match layout {
+                    SplitLayout::Horizontal => Layout::default().direction(Direction::Vertical).constraints(constraints).split(chunks[0]).to_vec(),
+                    SplitLayout::Vertical => Layout::default().direction(Direction::Horizontal).constraints(constraints).split(chunks[0]).to_vec(),
+                }
+            };
+
+            let n = views.len();
+            for i in 0..n {
+                let area = areas[i];
+                let v = &mut views[i];
+                // adjust scroll for visibility
+                let view_rows = area.height as usize;
+                if v.cy < v.scroll { v.scroll = v.cy; }
+                if v.cy >= v.scroll + view_rows { v.scroll = v.cy + 1 - view_rows; }
+
+                let mut text = Text::default();
+                for r in 0..view_rows {
+                    let li = v.scroll + r;
+                    if li < lines.len() {
+                        let line = &lines[li];
+                        let mut spans: Vec<Span> = Vec::new();
+                        let mut last = 0usize;
+                        let mut matches: Vec<(usize, usize, Style)> = Vec::new();
+                        if let Some(re) = &search.regex {
+                            let mut start_at = 0usize;
+                            while let Some(m) = re.find_at(line, start_at) {
+                                let s = m.start(); let e = m.end(); matches.push((s, e, hl_style)); if e == start_at { break; } start_at = e;
                             }
                         }
-                    }
-                    // merge matches/spans sorted by start
-                    matches.sort_by_key(|m| m.0);
-                    for (s, e, st) in matches {
-                        if s > last { spans.push(Span::raw(line[last..s].to_string())); }
-                        spans.push(Span::styled(line[s..e].to_string(), st));
-                        last = e;
-                    }
-                    if last < line.len() { spans.push(Span::raw(line[last..].to_string())); }
-                    text.lines.push(Line::from(spans));
-                } else {
-                    text.lines.push(Line::from("~"));
+                        if i == cur_view && matches!(mode, Mode::VisualChar | Mode::VisualLine) {
+                            if let Some((ax, ay)) = visual_anchor { let (bx, by) = (cx, cy); if (li >= ay && li <= by) || (li >= by && li <= ay) { let (sx, sy, ex, ey) = ordered_region(ax, ay, bx, by); let (s, e) = if sy == ey { if li == sy { (sx.min(line.len()), (ex + 1).min(line.len())) } else { (0, 0) } } else if li == sy { (sx.min(line.len()), line.len()) } else if li == ey { (0, (ex + 1).min(line.len())) } else { (0, line.len()) }; if e > s { matches.push((s, e, sel_style)); } } }
+                        }
+                        matches.sort_by_key(|m| m.0);
+                        for (s, e, st) in matches { if s > last { spans.push(Span::raw(line[last..s].to_string())); } spans.push(Span::styled(line[s..e].to_string(), st)); last = e; }
+                        if last < line.len() { spans.push(Span::raw(line[last..].to_string())); }
+                        text.lines.push(Line::from(spans));
+                    } else { text.lines.push(Line::from("~")); }
                 }
+                let content = Paragraph::new(text).block(Block::default().borders(Borders::NONE));
+                f.render_widget(content, area);
             }
-            let content = Paragraph::new(text)
-                .block(Block::default().borders(Borders::NONE));
-            f.render_widget(content, chunks[0]);
+            // propagate scroll of active view back to top-level
+            if !views.is_empty() { scroll = views[cur_view].scroll; }
 
             // status
             let name = filename.as_ref().map(|p| p.to_string_lossy().to_string()).unwrap_or_else(|| "[No Name]".to_string());
@@ -184,10 +190,27 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                 let pos = (x + 1 + cmdline.len() as u16, y);
                 f.set_cursor(pos.0, pos.1);
             } else {
-                // place cursor in content
-                let Rect { x, y, .. } = chunks[0];
-                let cur_y = y + (cy - scroll) as u16;
-                let cur_x = x + (cx as u16);
+                // place cursor in content area of current view
+                let area = if views.len() <= 1 { chunks[0] } else {
+                    match layout {
+                        SplitLayout::Horizontal => {
+                            let n = views.len();
+                            let mut constraints: Vec<Constraint> = Vec::with_capacity(n);
+                            for i in 0..n { let mut p = (100 / n) as u16; if i == n - 1 { p = 100 - (p * (n as u16 - 1)); } constraints.push(Constraint::Percentage(p)); }
+                            Layout::default().direction(Direction::Vertical).constraints(constraints).split(chunks[0])[cur_view]
+                        }
+                        SplitLayout::Vertical => {
+                            let n = views.len();
+                            let mut constraints: Vec<Constraint> = Vec::with_capacity(n);
+                            for i in 0..n { let mut p = (100 / n) as u16; if i == n - 1 { p = 100 - (p * (n as u16 - 1)); } constraints.push(Constraint::Percentage(p)); }
+                            Layout::default().direction(Direction::Horizontal).constraints(constraints).split(chunks[0])[cur_view]
+                        }
+                    }
+                };
+                let Rect { x, y, .. } = area;
+                let v = &views[cur_view];
+                let cur_y = y + (v.cy - v.scroll) as u16;
+                let cur_x = x + (v.cx as u16);
                 f.set_cursor(cur_x, cur_y);
             }
         }).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
@@ -326,6 +349,30 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                                 else if cmd.starts_with("set ") || cmd.starts_with(":set ") {
                                     if let Some(pos) = cmd.find("ts=") { if let Ok(n) = cmd[pos+3..].trim().parse::<usize>() { tabstop = n.max(1); status = Some(format!("tabstop={}", tabstop)); } }
                                 }
+                                else if cmd == ":split" || cmd == "split" || cmd == ":sp" || cmd == "sp" {
+                                    // add a new horizontal view (clone current)
+                                    views[cur_view] = View { cx, cy, scroll };
+                                    views.push(View { cx, cy, scroll });
+                                    cur_view = views.len() - 1;
+                                    layout = SplitLayout::Horizontal;
+                                    status = Some("split".into());
+                                }
+                                else if cmd == ":vsplit" || cmd == "vsplit" || cmd == ":vsp" || cmd == "vsp" {
+                                    views[cur_view] = View { cx, cy, scroll };
+                                    views.push(View { cx, cy, scroll });
+                                    cur_view = views.len() - 1;
+                                    layout = SplitLayout::Vertical;
+                                    status = Some("vsplit".into());
+                                }
+                                else if cmd == ":only" || cmd == "only" {
+                                    if views.len() > 1 { let keep = views[cur_view].clone(); views.clear(); views.push(keep); cur_view = 0; status = Some("only".into()); }
+                                }
+                                else if cmd == ":close" || cmd == "close" {
+                                    if views.len() > 1 { views.remove(cur_view); cur_view = 0; let v = views[cur_view].clone(); cx = v.cx; cy = v.cy; scroll = v.scroll; status = Some("closed".into()); } else { status = Some("cannot close last window".into()); }
+                                }
+                                else if cmd == ":wincmd w" || cmd == "wincmd w" {
+                                    if !views.is_empty() { views[cur_view] = View { cx, cy, scroll }; cur_view = (cur_view + 1) % views.len(); let v = views[cur_view].clone(); cx = v.cx; cy = v.cy; scroll = v.scroll; }
+                                }
                                 else if cmd == "help" || cmd == ":help" {
                                     status = Some("Use h j k l, i/ESC, :w :q".into());
                                 }
@@ -374,6 +421,7 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                         ,(KeyCode::Char('s'), KeyModifiers::CONTROL, _) => { if let Some(ref p) = filename { if save_file(p, &lines).is_ok() { modified = false; status = Some("written".into()); } else { status = Some("write error".into()); } } else { status = Some("No file name".into()); } }
                         ,(KeyCode::Char('n'), _, Mode::Normal) => { if let Some(_) = &search.regex { if let Some((ny, nx)) = find_next(&lines, cy, cx, &search, search.last_dir) { cy = ny; cx = nx; } } }
                         ,(KeyCode::Char('N'), _, Mode::Normal) => { if let Some(_) = &search.regex { if let Some((ny, nx)) = find_next(&lines, cy, cx, &search, -search.last_dir) { cy = ny; cx = nx; } } }
+                        ,(KeyCode::Char('w'), KeyModifiers::CONTROL, Mode::Normal) => { if !views.is_empty() { views[cur_view] = View { cx, cy, scroll }; cur_view = (cur_view + 1) % views.len(); let v = views[cur_view].clone(); cx = v.cx; cy = v.cy; scroll = v.scroll; } }
                         ,(KeyCode::Char('q'), KeyModifiers::CONTROL, _) => { if modified { status = Some("No write since last change (:q! to quit)".into()); } else { break; } }
                         ,_ => {}
                     }
