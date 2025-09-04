@@ -31,6 +31,10 @@ static garray_T	ga_users;
 // FFI: implemented in rust_strings crate
 extern char_u *skip_to_option_part(char_u *p);
 
+// FFI: implemented in rust_misc1 crate
+extern int vim_append_digit_long(long *value, int digit);
+extern int trim_to_int(vimlong_T x);
+
 /*
  * get_leader_len() returns the length in bytes of the prefix of the given
  * string which introduces a comment.  If this string is not a comment then
@@ -2859,23 +2863,5 @@ may_trigger_modechanged(void)
 
     restore_v_event(v_event, &save_v_event);
 #endif
-}
-
-// For overflow detection, add a digit safely to a long value.
-    int
-vim_append_digit_long(long *value, int digit)
-{
-    long x = *value;
-    if (x > ((LONG_MAX - (long)digit) / 10))
-	return FAIL;
-    *value = x * 10 + (long)digit;
-    return OK;
-}
-
-// Return something that fits into an int.
-    int
-trim_to_int(vimlong_T x)
-{
-    return x > INT_MAX ? INT_MAX : x < INT_MIN ? INT_MIN : x;
 }
 
