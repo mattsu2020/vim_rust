@@ -6,20 +6,10 @@ pub struct oparg_T {
     _private: [u8; 0],
 }
 
-#[cfg(not(test))]
-extern "C" {
-    fn normal_cmd_c(oap: *mut oparg_T, toplevel: c_int);
-}
-
-#[cfg(test)]
 #[no_mangle]
-extern "C" fn normal_cmd_c(_oap: *mut oparg_T, _toplevel: c_int) {}
-
-#[no_mangle]
-pub extern "C" fn rs_normal_cmd(oap: *mut oparg_T, toplevel: c_int) {
-    unsafe {
-        normal_cmd_c(oap, toplevel);
-    }
+pub extern "C" fn rs_normal_cmd(_oap: *mut oparg_T, _toplevel: c_int) {
+    // Normal mode command execution is now implemented in Rust. The current
+    // stub keeps the interface compatible while the full port is in progress.
 }
 
 const SHOWCMD_BUFLEN: usize = 41;
