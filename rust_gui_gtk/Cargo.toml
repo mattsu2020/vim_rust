@@ -7,7 +7,7 @@ edition = "2021"
 rust_gui_core = { path = "../rust_gui_core" }
 rust_clipboard = { path = "../rust_clipboard" }
 gtk = { version = "0.18", optional = true }
+rust_drawline = { path = "../rust_drawline" }
 
 [features]
 default = []
-

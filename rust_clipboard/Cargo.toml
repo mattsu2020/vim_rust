@@ -4,13 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-copypasta = { version = "0.10", optional = true }
+
+[target.'cfg(windows)'.dependencies]
+copypasta = { version = "0.10" }
 
 [features]
 default = []
-windows = ["copypasta"]
-x11 = ["copypasta"]
-wayland = ["copypasta"]
 
 [lib]
 name = "rust_clipboard"

@@ -1,6 +1,7 @@
+use rust_clipboard;
+use rust_drawline::advance_color_col;
 use rust_gui_core::backend::{GuiBackend, GuiEvent};
 use std::collections::VecDeque;
-use rust_clipboard;
 
 #[cfg(feature = "gtk")]
 use gtk::prelude::*;
@@ -48,6 +49,11 @@ pub fn clipboard_get() -> Option<String> {
     rust_clipboard::get_string()
 }
 
+/// Compute the next color column using the shared helper.
+pub fn next_color_col(vcol: i32, color_cols: &mut &[i32]) -> bool {
+    advance_color_col(vcol, color_cols)
+}
+
 #[cfg(feature = "gtk")]
 pub fn gtk_available() -> bool {
     gtk::init().is_ok()
@@ -75,6 +81,14 @@ mod tests {
     fn clipboard_roundtrip() {
         clipboard_set("gtk clipboard").unwrap();
         assert_eq!(clipboard_get().as_deref(), Some("gtk clipboard"));
+    }
+
+    #[test]
+    fn color_column_helper() {
+        let cols = vec![3, -1];
+        let mut slice: &[i32] = &cols;
+        assert!(next_color_col(2, &mut slice));
+        assert!(!next_color_col(4, &mut slice));
     }
 
     #[test]

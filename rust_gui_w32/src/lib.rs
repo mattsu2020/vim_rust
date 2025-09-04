@@ -1,6 +1,7 @@
-use rust_gui_core::backend::{GuiBackend, GuiEvent};
-use std::collections::VecDeque;
 use rust_clipboard;
+use rust_gui_core::backend::{GuiBackend, GuiEvent};
+use rust_gui_xpm;
+use std::collections::VecDeque;
 
 /// Minimal Windows backend.  Real drawing is delegated to the platform APIs
 /// but for now these methods record actions for testing purposes.
@@ -12,7 +13,10 @@ pub struct W32Backend {
 
 impl W32Backend {
     pub fn new() -> Self {
-        Self { drawn: Vec::new(), events: VecDeque::new() }
+        Self {
+            drawn: Vec::new(),
+            events: VecDeque::new(),
+        }
     }
 
     /// Queue an event so it can later be retrieved by `poll_event`.
@@ -41,6 +45,12 @@ pub fn clipboard_get() -> Option<String> {
     rust_clipboard::get_string()
 }
 
+/// Load an XPM image from raw data.  On non-Windows platforms this
+/// returns `None` as a stub implementation.
+pub fn load_xpm(data: &[u8]) -> Option<Vec<u8>> {
+    rust_gui_xpm::parse_xpm(data)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -58,5 +68,10 @@ mod tests {
     fn clipboard_roundtrip() {
         clipboard_set("w32 clipboard").unwrap();
         assert_eq!(clipboard_get().as_deref(), Some("w32 clipboard"));
+    }
+
+    #[test]
+    fn xpm_stub_returns_none() {
+        assert!(load_xpm(b"data").is_none());
     }
 }

@@ -1,6 +1,7 @@
 pub mod backend;
 
 pub use backend::{GuiBackend, GuiEvent};
+use rust_drawline::advance_color_col;
 
 /// Core GUI handling that delegates to a backend implementation.
 ///
@@ -35,6 +36,13 @@ impl<B: GuiBackend> GuiCore<B> {
         while let Some(event) = self.backend.poll_event() {
             handler(event);
         }
+    }
+
+    /// Wrapper around the `advance_color_col` helper from the screen
+    /// drawing logic.  Exposed here so GUI backends can easily reuse the
+    /// calculation without depending on the low level crate directly.
+    pub fn next_color_col(&self, vcol: i32, color_cols: &mut &[i32]) -> bool {
+        advance_color_col(vcol, color_cols)
     }
 }
 
@@ -102,5 +110,15 @@ mod tests {
                 GuiEvent::Expose,
             ]
         );
+    }
+
+    #[test]
+    fn color_column_helper() {
+        let backend = TestBackend::new();
+        let core = GuiCore::new(backend);
+        let cols = vec![2, -1];
+        let mut slice: &[i32] = &cols;
+        assert!(core.next_color_col(1, &mut slice));
+        assert!(!core.next_color_col(3, &mut slice));
     }
 }

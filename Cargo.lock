@@ -2149,6 +2149,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_drawline"
+version = "0.1.0"
+
+[[package]]
 name = "rust_drawscreen"
 version = "0.1.0"
 dependencies = [
@@ -2277,6 +2281,9 @@ dependencies = [
 [[package]]
 name = "rust_gui_core"
 version = "0.1.0"
+dependencies = [
+ "rust_drawline",
+]
 
 [[package]]
 name = "rust_gui_gtk"
@@ -2284,6 +2291,7 @@ version = "0.1.0"
 dependencies = [
  "gtk",
  "rust_clipboard",
+ "rust_drawline",
  "rust_gui_core",
 ]
 
@@ -2321,6 +2329,7 @@ version = "0.1.0"
 dependencies = [
  "rust_clipboard",
  "rust_gui_core",
+ "rust_gui_xpm",
 ]
 
 [[package]]
@@ -2338,6 +2347,10 @@ version = "0.1.0"
 dependencies = [
  "rust_gui_core",
 ]
+
+[[package]]
+name = "rust_gui_xpm"
+version = "0.1.0"
 
 [[package]]
 name = "rust_hashtab"

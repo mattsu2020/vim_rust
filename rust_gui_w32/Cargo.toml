@@ -7,3 +7,4 @@ edition = "2021"
 rust_gui_core = { path = "../rust_gui_core" }
 rust_clipboard = { path = "../rust_clipboard" }
 
+rust_gui_xpm = { path = "../rust_gui_xpm" }
