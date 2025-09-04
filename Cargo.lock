@@ -2215,7 +2215,7 @@ dependencies = [
 
 [[package]]
 name = "rust_editor"
-version = "0.0.1"
+version = "0.1.0"
 
 [[package]]
 name = "rust_entry"
@@ -2252,7 +2252,6 @@ dependencies = [
 name = "rust_evalvars"
 version = "0.1.0"
 dependencies = [
- "libc",
  "once_cell",
 ]
 
@@ -2260,7 +2259,6 @@ dependencies = [
 name = "rust_evalwindow"
 version = "0.1.0"
 dependencies = [
- "libc",
  "rust_evalvars",
 ]
 
@@ -2529,6 +2527,7 @@ name = "rust_message"
 version = "0.1.0"
 dependencies = [
  "libc",
+ "rust_log",
  "tempfile",
 ]
 
@@ -3585,6 +3584,7 @@ dependencies = [
  "rust_clipboard",
  "rust_cmdhist",
  "rust_debugger",
+ "rust_editor",
  "rust_evalfunc",
  "rust_evalwindow",
  "rust_excmds",
@@ -3606,7 +3606,9 @@ dependencies = [
  "rust_python",
  "rust_sha256",
  "rust_spell",
+ "rust_time",
  "rust_usercmd",
+ "rust_version",
  "rust_vim9class",
  "rust_wayland",
  "rust_winclip",
