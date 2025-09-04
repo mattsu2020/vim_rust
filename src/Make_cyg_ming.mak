@@ -1106,8 +1106,9 @@ endif
 
 all: $(MAIN_TARGET) vimrun.exe xxd/xxd.exe tee/tee.exe GvimExt/gvimext.dll
 
-vimrun.exe: vimrun.c
-	$(CC) $(CFLAGS) -o vimrun.exe vimrun.c $(LIB)
+vimrun.exe:
+	cargo build --release -p vimrun --target x86_64-pc-windows-gnu
+	cp target/x86_64-pc-windows-gnu/release/vimrun.exe .
 
 
 $(OBJ): | $(OUTDIR)
