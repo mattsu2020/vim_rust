@@ -1,55 +1,53 @@
-use std::os::raw::{c_char, c_int, c_void};
+use std::collections::HashMap;
+use std::ffi::c_void;
 use std::sync::{Mutex, OnceLock};
 
-use rust_hashtab::{rust_hashtab_free, rust_hashtab_get, rust_hashtab_new, rust_hashtab_set};
-
+/// Call stack entry for a user-defined function.
 #[repr(C)]
-pub struct rust_funccall_S {
-    pub previous: *mut rust_funccall_S,
-    pub depth: c_int,
+pub struct Funccall {
+    /// Previous entry in the call stack.
+    pub previous: *mut Funccall,
+    /// Depth of the call.
+    pub depth: i32,
 }
 
-#[repr(C)]
 struct FuncState {
-    table: *mut c_void,
-    current: *mut rust_funccall_S,
+    table: HashMap<String, usize>,
+    current: *mut Funccall,
 }
 
 unsafe impl Send for FuncState {}
+unsafe impl Send for Funccall {}
 
 static FUNC_STATE: OnceLock<Mutex<FuncState>> = OnceLock::new();
 
-#[no_mangle]
-pub extern "C" fn rust_func_init() {
+/// Initialise the global function table.
+pub fn func_init() {
     FUNC_STATE.get_or_init(|| {
         Mutex::new(FuncState {
-            table: rust_hashtab_new(),
+            table: HashMap::new(),
             current: std::ptr::null_mut(),
         })
     });
 }
 
-#[no_mangle]
-pub extern "C" fn rust_func_deinit() {
+/// Clear the function table and reset the current call stack.
+pub fn func_deinit() {
     if let Some(state) = FUNC_STATE.get() {
         if let Ok(mut guard) = state.lock() {
-            rust_hashtab_free(guard.table);
-            guard.table = std::ptr::null_mut();
+            guard.table.clear();
             guard.current = std::ptr::null_mut();
         }
     }
 }
 
-#[no_mangle]
-pub extern "C" fn rust_funccall_new(
-    previous: *mut rust_funccall_S,
-    depth: c_int,
-) -> *mut rust_funccall_S {
-    Box::into_raw(Box::new(rust_funccall_S { previous, depth }))
+/// Allocate a new [`Funccall`] entry.
+pub fn funccall_new(previous: *mut Funccall, depth: i32) -> *mut Funccall {
+    Box::into_raw(Box::new(Funccall { previous, depth }))
 }
 
-#[no_mangle]
-pub extern "C" fn rust_funccall_free(fc: *mut rust_funccall_S) {
+/// Free a [`Funccall`] entry previously allocated with [`funccall_new`].
+pub fn funccall_free(fc: *mut Funccall) {
     if !fc.is_null() {
         unsafe {
             drop(Box::from_raw(fc));
@@ -62,48 +60,49 @@ where
     F: FnOnce(&mut FuncState) -> R,
 {
     let state = FUNC_STATE.get()?;
-    if let Ok(mut guard) = state.lock() {
-        Some(f(&mut *guard))
-    } else {
-        None
-    }
+    Some(f(&mut *state.lock().ok()?))
 }
 
-#[no_mangle]
-pub extern "C" fn rust_func_hashtab_set(name: *const c_char, func: *mut c_void) -> c_int {
-    if name.is_null() {
-        return 0;
+/// Store a function pointer under `name`.
+/// Returns `true` on success.
+pub fn func_hashtab_set(name: &str, func: *mut c_void) -> bool {
+    if name.is_empty() {
+        return false;
     }
-    with_state(|st| rust_hashtab_set(st.table, name, func)).unwrap_or(0)
+    with_state(|st| {
+        st.table.insert(name.to_string(), func as usize);
+        true
+    })
+    .unwrap_or(false)
 }
 
-#[no_mangle]
-pub extern "C" fn rust_func_hashtab_get(name: *const c_char) -> *mut c_void {
-    if name.is_null() {
+/// Retrieve a previously stored function pointer by name.
+pub fn func_hashtab_get(name: &str) -> *mut c_void {
+    if name.is_empty() {
         return std::ptr::null_mut();
     }
-    with_state(|st| rust_hashtab_get(st.table, name)).unwrap_or(std::ptr::null_mut())
+    let ptr = with_state(|st| st.table.get(name).copied().unwrap_or(0)).unwrap_or(0);
+    ptr as *mut c_void
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::ffi::CString;
 
     #[test]
     fn store_and_get() {
-        rust_func_init();
-        let name = CString::new("foo").unwrap();
+        func_init();
         let fptr = 0xdeadbeef as *mut c_void;
-        assert_eq!(rust_func_hashtab_set(name.as_ptr(), fptr), 1);
-        assert_eq!(rust_func_hashtab_get(name.as_ptr()), fptr);
-        rust_func_deinit();
+        assert!(func_hashtab_set("foo", fptr));
+        assert_eq!(func_hashtab_get("foo"), fptr);
+        func_deinit();
     }
 
     #[test]
     fn funccall_alloc_free() {
-        let fc = rust_funccall_new(std::ptr::null_mut(), 1);
+        let fc = funccall_new(std::ptr::null_mut(), 1);
         assert!(!fc.is_null());
-        rust_funccall_free(fc);
+        funccall_free(fc);
     }
 }
+

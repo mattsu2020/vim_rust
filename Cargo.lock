@@ -2695,6 +2695,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_scriptfile"
+version = "0.1.0"
+dependencies = [
+ "rust_fileio",
+ "tempfile",
+]
+
+[[package]]
 name = "rust_search"
 version = "0.1.0"
 dependencies = [
@@ -2791,6 +2799,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_textformat"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "rust_indent",
+ "rust_text",
+]
+
+[[package]]
 name = "rust_textobject"
 version = "0.1.0"
 dependencies = [
@@ -2851,9 +2868,6 @@ dependencies = [
 [[package]]
 name = "rust_userfunc"
 version = "0.1.0"
-dependencies = [
- "rust_hashtab",
-]
 
 [[package]]
 name = "rust_version"
