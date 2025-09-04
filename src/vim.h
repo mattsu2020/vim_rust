@@ -9,15 +9,13 @@
 #ifndef VIM__H
 # define VIM__H
 
-#include "protodef.h"
-
 // _WIN32 is defined as 1 when the compilation target is 32-bit or 64-bit.
 // Note: If you want to check for 64-bit use the _WIN64 macro.
 #if defined(WIN32) || defined(_WIN32)
 # define MSWIN
 #endif
 
-#if defined(MSWIN) && !defined(PROTO)
+#if defined(MSWIN)
 # include <io.h>
 #endif
 
@@ -2477,14 +2475,8 @@ typedef int (*opt_expand_cb_T)(optexpand_T *args, int *numMatches, char_u ***mat
 #include "ex_cmds.h"	    // Ex command defines
 #include "spell.h"	    // spell checking stuff
 
-#include "proto.h"	    // function prototypes
-
-// This has to go after the include of proto.h, as proto/gui.pro declares
-// functions of these names. The declarations would break if the defines had
-// been seen at that stage.  But it must be before globals.h, where error_ga
-// is declared.
 #if !defined(MSWIN) && !defined(FEAT_GUI_X11) && !defined(FEAT_GUI_HAIKU) \
-	&& !defined(FEAT_GUI_GTK) && !defined(PROTO)
+        && !defined(FEAT_GUI_GTK)
 # define mch_errmsg(str)	fprintf(stderr, "%s", (str))
 # define display_errors()	fflush(stderr)
 # define mch_msg(str)		printf("%s", (str))
@@ -2511,9 +2503,8 @@ typedef int (*opt_expand_cb_T)(optexpand_T *args, int *numMatches, char_u ***mat
 # define number_width(x) 7
 #endif
 
-// This must come after including proto.h.
 // For VMS this is defined in macros.h.
-#if !defined(MSWIN) && !defined(VMS) && !defined(PROTO)
+#if !defined(MSWIN) && !defined(VMS)
 # define mch_open(n, m, p)	open((n), (m), (p))
 # define mch_fopen(n, p)	fopen((n), (p))
 #endif
