@@ -1805,7 +1805,6 @@ BASIC_SRC = \
         float.c \
         fold.c \
         gui_xim.c \
-        hardcopy.c \
         hashtab.c \
         \
         highlight.c \
@@ -1955,7 +1954,6 @@ OBJ_COMMON = \
 	objects/getchar.o \
 	objects/gc.o \
 	objects/gui_xim.o \
-	objects/hardcopy.o \
 	objects/hashtab.o \
 	objects/help.o \
 	objects/highlight.o \
@@ -2092,7 +2090,6 @@ PRO_AUTO = \
 	gc.pro \
 	gui_xim.pro \
 	gui_beval.pro \
-	hardcopy.pro \
 	hashtab.pro \
 	help.pro \
 	highlight.pro \
@@ -3365,8 +3362,6 @@ objects/float.o: float.c
 objects/fold.o: fold.c
 	$(CCC) -o $@ fold.c
 
-objects/hardcopy.o: hardcopy.c
-       $(CCC) -o $@ hardcopy.c
 
 objects/hashtab.o: hashtab.c
 	$(CCC) -o $@ hashtab.c
@@ -3914,11 +3909,6 @@ objects/gui_xim.o: gui_xim.c vim.h protodef.h auto/config.h feature.h os_unix.h 
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/hardcopy.o: hardcopy.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h version.h
 objects/hashtab.o: hashtab.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \

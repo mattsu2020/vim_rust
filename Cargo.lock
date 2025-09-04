@@ -2256,6 +2256,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_exeval"
+version = "0.1.0"
+dependencies = [
+ "rust_excmds",
+]
+
+[[package]]
 name = "rust_ffi"
 version = "0.1.0"
 
@@ -2373,6 +2380,19 @@ name = "rust_gui_xim"
 version = "0.1.0"
 dependencies = [
  "rust_gui_core",
+]
+
+[[package]]
+name = "rust_hardcopy"
+version = "0.1.0"
+dependencies = [
+ "rust_gui_core",
+ "rust_gui_gtk",
+ "rust_gui_haiku",
+ "rust_gui_motif",
+ "rust_gui_photon",
+ "rust_gui_w32",
+ "rust_gui_x11",
 ]
 
 [[package]]
@@ -2631,6 +2651,13 @@ dependencies = [
  "criterion 0.5.1",
  "regex",
  "rust_fuzzy",
+]
+
+[[package]]
+name = "rust_register"
+version = "0.1.0"
+dependencies = [
+ "rust_clipboard",
 ]
 
 [[package]]
@@ -3424,6 +3451,7 @@ dependencies = [
  "rust_fold",
  "rust_fuzzy",
  "rust_gc",
+ "rust_hardcopy",
  "rust_job",
  "rust_message",
  "rust_os_amiga",
