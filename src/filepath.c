@@ -12,6 +12,8 @@
  */
 
 #include "vim.h"
+#include "filepath_rs.h"
+#include "fileio_rs.h"
 
 #ifdef MSWIN
 /*
@@ -1063,7 +1065,23 @@ f_finddir(typval_T *argvars, typval_T *rettv)
     void
 f_findfile(typval_T *argvars, typval_T *rettv)
 {
-    findfilendir(argvars, rettv, FINDFILE_FILE);
+    char_u *fname = tv_get_string(&argvars[0]);
+    char_u *path;
+
+    if (argvars[1].v_type != VAR_UNKNOWN)
+        path = tv_get_string(&argvars[1]);
+    else
+        path = *curbuf->b_p_path == NUL ? p_path : curbuf->b_p_path;
+
+    char *res = rs_findfile((const char *)fname, (const char *)path);
+    rettv->v_type = VAR_STRING;
+    if (res != NULL)
+    {
+        rettv->vval.v_string = vim_strsave((char_u *)res);
+        rs_findfile_free(res);
+    }
+    else
+        rettv->vval.v_string = NULL;
 }
 
 /*
@@ -3043,22 +3061,9 @@ get_past_head(char_u *path)
     int
 vim_ispathsep(int c)
 {
-#ifdef UNIX
-    return (c == '/');	    // UNIX has ':' inside file names
-#else
-# ifdef BACKSLASH_IN_FILENAME
-    return (c == ':' || c == '/' || c == '\\');
-# else
-#  ifdef VMS
-    // server"user passwd"::device:[full.path.name]fname.extension;version"
-    return (c == ':' || c == '[' || c == ']' || c == '/'
-	    || c == '<' || c == '>' || c == '"' );
-#  else
-    return (c == ':' || c == '/');
-#  endif // VMS
-# endif
-#endif
+    return rs_is_path_sep(c);
 }
+
 
 /*
  * Like vim_ispathsep(c), but exclude the colon for MS-Windows.

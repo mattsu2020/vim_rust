@@ -2,8 +2,10 @@ use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
 use std::path::{Path, PathBuf};
 
+// On Windows a path separator can also be ':'; match the C implementation of
+// `vim_ispathsep` which treats "c:/" and "c:\\" style paths equally.
 #[cfg(target_os = "windows")]
-const PATH_SEPARATORS: &[char] = &['\\', '/'];
+const PATH_SEPARATORS: &[char] = &['\\', '/', ':'];
 #[cfg(not(target_os = "windows"))]
 const PATH_SEPARATORS: &[char] = &['/'];
 
