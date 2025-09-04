@@ -1,15 +1,9 @@
 [package]
-name = "rust_vim9"
+name = "rust_vim9expr"
 version = "0.1.0"
 edition = "2021"
 
-[lib]
-name = "rust_vim9"
-crate-type = ["rlib"]
-
 [dependencies]
 rust_vim9execute = { path = "../rust_vim9execute" }
-rust_vim9expr = { path = "../rust_vim9expr" }
 rust_vim9instr = { path = "../rust_vim9instr" }
 rust_vim9type = { path = "../rust_vim9type" }
-rust_vim9generics = { path = "../rust_vim9generics" }

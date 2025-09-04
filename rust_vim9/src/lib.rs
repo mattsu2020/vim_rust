@@ -1,7 +1,8 @@
-pub use rust_vim9script::{
-    compile, eval_bool_expr, eval_expr, execute, parse_line, Instr as Vim9Instr,
-    Program as Vim9Program, ValueType as Vim9Type,
-};
+pub use rust_vim9execute::{execute, Vim9Program};
+pub use rust_vim9expr::{compile, eval_bool_expr, eval_expr, parse_line};
+pub use rust_vim9generics::repeat;
+pub use rust_vim9instr::Vim9Instr;
+pub use rust_vim9type::Vim9Type;
 
 /// Execute a Vim9 script consisting of multiple lines.
 /// Each line is parsed, compiled and executed independently.
@@ -10,8 +11,8 @@ pub fn execute_script(script: &str) -> Vec<i64> {
     script
         .lines()
         .filter_map(|line| {
-            let ast = parse_line(line)?;
-            let prog = compile(&ast);
+            let tokens = parse_line(line)?;
+            let prog = compile(&tokens);
             Some(execute(&prog))
         })
         .collect()
