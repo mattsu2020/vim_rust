@@ -381,10 +381,8 @@ ins_mousescroll(int dir)
     // window, need to redraw it.
     if (did_scroll && pum_visible())
     {
-	// TODO: Would be more efficient to only redraw the windows that are
-	// overlapped by the popup menu.
-	redraw_all_later(UPD_NOT_VALID);
-	ins_compl_show_pum();
+        rs_redraw_pum_overlap();
+        ins_compl_show_pum();
     }
 
     if (!EQUAL_POS(curwin->w_cursor, orig_cursor))

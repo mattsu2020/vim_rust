@@ -1,5 +1,28 @@
 use libc::{c_int, c_long, c_void};
 
+const UPD_NOT_VALID: c_int = 40;
+
+#[cfg(not(test))]
+extern "C" {
+    fn redraw_win_later(wp: *mut c_void, update: c_int);
+    fn pum_visible() -> c_int;
+    static mut curwin: *mut c_void;
+}
+
+#[cfg(test)]
+mod stubs {
+    use super::*;
+    #[no_mangle]
+    pub extern "C" fn redraw_win_later(_wp: *mut c_void, _update: c_int) {}
+    #[no_mangle]
+    pub extern "C" fn pum_visible() -> c_int { 0 }
+    #[no_mangle]
+    pub static mut curwin: *mut c_void = std::ptr::null_mut();
+}
+
+#[cfg(test)]
+use stubs::*;
+
 #[cfg(feature = "gui")]
 mod gui;
 #[cfg(not(feature = "gui"))]
@@ -19,6 +42,15 @@ pub extern "C" fn rs_handle_mouse_event(
     fixindent: c_int,
 ) -> c_int {
     handle_mouse_event(oap, c, dir, count, fixindent)
+}
+
+#[no_mangle]
+pub extern "C" fn rs_redraw_pum_overlap() {
+    unsafe {
+        if pum_visible() != 0 && !curwin.is_null() {
+            redraw_win_later(curwin, UPD_NOT_VALID);
+        }
+    }
 }
 
 #[cfg(test)]
