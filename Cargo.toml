@@ -1,7 +1,6 @@
 [workspace]
 members = ["rust_*", "rust/*"]
 exclude = [
-    "rust_lua",
     "rust_ruby",
     "rust_perl",
     "rust_tcl",
