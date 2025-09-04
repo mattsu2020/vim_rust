@@ -17,6 +17,7 @@ void rs_op_addsub(oparg_T *oap, long Prenum1, int g_cmd);
 void rs_op_colon(oparg_T *oap);
 void rs_op_function(oparg_T *oap);
 int rs_op_on_lines(int op);
+int rs_skip_block_whitespace(struct block_def *bd, char_u *line, size_t line_len);
 
 #ifdef __cplusplus
 }

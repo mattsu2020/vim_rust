@@ -344,7 +344,6 @@ shift_block(oparg_T *oap, int amount)
     if (!left)
     {
 	int		tabs = 0, spaces = 0;
-	chartabsize_T	cts;
 
 	/*
 	 *  1. Get start vcol
@@ -371,17 +370,7 @@ shift_block(oparg_T *oap, int amount)
 	}
 
 	// TODO: is passing bd.textstart for start of the line OK?
-	init_chartabsize_arg(&cts, curwin, curwin->w_cursor.lnum,
-				   bd.start_vcol, bd.textstart, bd.textstart);
-	for ( ; VIM_ISWHITE(*cts.cts_ptr); )
-	{
-	    incr = lbr_chartabsize_adv(&cts);
-	    total += incr;
-	    cts.cts_vcol += incr;
-	}
-	bd.textstart = cts.cts_ptr;
-	bd.start_vcol = cts.cts_vcol;
-	clear_chartabsize_arg(&cts);
+	        total += rs_skip_block_whitespace(&bd, oldp, (size_t)oldlen);
 
 	// OK, now total=all the VWS reqd, and textstart points at the 1st
 	// non-ws char in the block.
@@ -4401,9 +4390,7 @@ do_pending_operator(cmdarg_T *cap, int old_col, int gui_yank)
 		(void)reset_lbr();
 #endif
 
-		// TODO: when inserting in several lines, should format all
-		// the lines.
-		auto_format(FALSE, TRUE);
+                // Formatting handled in rs_op_insert()
 
 		if (restart_edit == 0)
 		    restart_edit = restart_edit_save;

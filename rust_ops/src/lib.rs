@@ -120,6 +120,46 @@ pub struct oparg_T {
     _private: [u8; 0],
 }
 
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct block_def {
+    pub startspaces: c_int,
+    pub endspaces: c_int,
+    pub textlen: c_int,
+    pub textstart: *mut u8,
+    pub textcol: c_int,
+    pub start_vcol: c_int,
+    pub end_vcol: c_int,
+    pub is_short: c_int,
+    pub is_MAX: c_int,
+    pub is_oneChar: c_int,
+    pub pre_whitesp: c_int,
+    pub pre_whitesp_c: c_int,
+    pub end_char_vcols: c_int,
+    pub start_char_vcols: c_int,
+}
+
+impl Default for block_def {
+    fn default() -> Self {
+        Self {
+            startspaces: 0,
+            endspaces: 0,
+            textlen: 0,
+            textstart: std::ptr::null_mut(),
+            textcol: 0,
+            start_vcol: 0,
+            end_vcol: 0,
+            is_short: 0,
+            is_MAX: 0,
+            is_oneChar: 0,
+            pre_whitesp: 0,
+            pre_whitesp_c: 0,
+            end_char_vcols: 0,
+            start_char_vcols: 0,
+        }
+    }
+}
+
 #[cfg(not(test))]
 extern "C" {
     fn op_shift_c(oap: *mut oparg_T, curs_top: c_int, amount: c_int);
@@ -131,6 +171,7 @@ extern "C" {
     fn op_addsub_c(oap: *mut oparg_T, Prenum1: c_long, g_cmd: c_int);
     fn op_colon_c(oap: *mut oparg_T);
     fn op_function_c(oap: *mut oparg_T);
+    fn auto_format(trailwhite: c_int, prev_line: c_int);
 }
 
 #[cfg(test)]
@@ -161,6 +202,14 @@ extern "C" fn op_colon_c(_oap: *mut oparg_T) {}
 #[no_mangle]
 extern "C" fn op_function_c(_oap: *mut oparg_T) {}
 
+#[cfg(test)]
+pub(crate) static mut AUTO_COUNT: c_int = 0;
+#[cfg(test)]
+#[no_mangle]
+pub extern "C" fn auto_format(_trailwhite: c_int, _prev_line: c_int) {
+    unsafe { AUTO_COUNT += 1; }
+}
+
 #[no_mangle]
 pub extern "C" fn rs_op_shift(oap: *mut oparg_T, curs_top: c_int, amount: c_int) {
     unsafe { op_shift_c(oap, curs_top, amount) }
@@ -183,7 +232,13 @@ pub extern "C" fn rs_op_tilde(oap: *mut oparg_T) {
 
 #[no_mangle]
 pub extern "C" fn rs_op_insert(oap: *mut oparg_T, count1: c_long) {
-    unsafe { op_insert_c(oap, count1) }
+    unsafe {
+        op_insert_c(oap, count1);
+        let cnt = if count1 > 0 { count1 } else { 0 };
+        for _ in 0..cnt {
+            auto_format(0, 1);
+        }
+    }
 }
 
 #[no_mangle]
@@ -206,6 +261,34 @@ pub extern "C" fn rs_op_function(oap: *mut oparg_T) {
     unsafe { op_function_c(oap) }
 }
 
+#[no_mangle]
+pub extern "C" fn rs_skip_block_whitespace(
+    bd: *mut block_def,
+    line: *const u8,
+    line_len: usize,
+) -> c_int {
+    unsafe {
+        if bd.is_null() || line.is_null() {
+            return 0;
+        }
+        let bd_ref = &mut *bd;
+        let slice = std::slice::from_raw_parts(line, line_len);
+        let start_offset = bd_ref.textstart.offset_from(line) as usize;
+        if start_offset >= slice.len() {
+            bd_ref.textstart = line.add(slice.len()) as *mut u8;
+            return 0;
+        }
+        let mut idx = start_offset;
+        while idx < slice.len() && (slice[idx] == b' ' || slice[idx] == b'\t') {
+            idx += 1;
+        }
+        bd_ref.textstart = line.add(idx) as *mut u8;
+        let skipped = idx - start_offset;
+        bd_ref.start_vcol += skipped as c_int;
+        skipped as c_int
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -225,5 +308,24 @@ mod tests {
     fn op_on_lines_checks_flag() {
         assert_eq!(rs_op_on_lines(OP_LSHIFT as c_int), 1);
         assert_eq!(rs_op_on_lines(OP_YANK as c_int), 0);
+    }
+
+    #[test]
+    fn auto_formats_each_count() {
+        unsafe { AUTO_COUNT = 0; }
+        rs_op_insert(std::ptr::null_mut(), 3);
+        unsafe { assert_eq!(AUTO_COUNT, 3); }
+    }
+
+    #[test]
+    fn skip_block_whitespace_moves_pointer() {
+        let line = b"  abc";
+        let mut bd = block_def { textstart: line.as_ptr() as *mut u8, ..Default::default() };
+        let skipped = rs_skip_block_whitespace(&mut bd, line.as_ptr(), line.len());
+        assert_eq!(skipped, 2);
+        unsafe {
+            assert_eq!(bd.textstart, line.as_ptr().add(2) as *mut u8);
+        }
+        assert_eq!(bd.start_vcol, 2);
     }
 }
