@@ -18,6 +18,7 @@ static int coladvance2(pos_T *pos, int addspaces, int finetune, colnr_T wcol);
 
 // FFI: implemented in rust_strings crate
 extern int copy_option_part(char_u **option, char_u *buf, int maxlen, char *sep_chars);
+extern int vim_isspace(int x);
 
 /*
  * Return TRUE if in the current mode we need to use virtual.
@@ -744,17 +745,6 @@ vim_memset(void *ptr, int c, size_t size)
     return ptr;
 }
 #endif
-
-/*
- * Vim has its own isspace() function, because on some machines isspace()
- * can't handle characters above 128.
- */
-    int
-vim_isspace(int x)
-{
-    return ((x >= 9 && x <= 13) || x == ' ');
-}
-
 /************************************************************************
  * functions that use lookup tables for various things, generally to do with
  * special key codes.
