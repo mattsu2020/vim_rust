@@ -132,7 +132,6 @@ SRC += \
 	normal.c \
 	ops.c \
 	option.c \
-	optionstr.c \
 	os_amiga.c \
         popupmenu.c \
         popupwin.c \
@@ -155,7 +154,6 @@ SRC += \
 	typval.c \
 	ui.c \
 	undo.c \
-	usercmd.c \
 	userfunc.c \
 	version.c \
 	viminfo.c \

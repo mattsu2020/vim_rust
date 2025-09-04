@@ -176,7 +176,6 @@ void mbyte_im_set_active(int active_arg);
 # include "normal.pro"
 # include "ops.pro"
 # include "option.pro"
-# include "optionstr.pro"
 # include "popupmenu.pro"
 # if defined(FEAT_PROFILE) || defined(FEAT_RELTIME)
 #  include "profiler.pro"
@@ -185,7 +184,6 @@ void mbyte_im_set_active(int active_arg);
 # include "wayland.pro"
 #endif
 # include "register.pro"
-# include "scriptfile.pro"
 # include "screen.pro"
 # include "session.pro"
 # if defined(FEAT_CRYPT) || defined(FEAT_PERSISTENT_UNDO)
@@ -216,13 +214,11 @@ void mbyte_im_set_active(int active_arg);
 /* testing.c もビルド対象外のため除外 */
 /* # include "testing.pro" */
 # include "textobject.pro"
-# include "textformat.pro"
 # include "time.pro"
 # include "tuple.pro"
 # include "typval.pro"
 # include "ui.pro"
 # include "undo.pro"
-# include "usercmd.pro"
 # include "userfunc.pro"
 # include "version.pro"
 # include "vim9script.pro"

@@ -2135,6 +2135,7 @@ name = "rust_cmdhist"
 version = "0.1.0"
 dependencies = [
  "once_cell",
+ "rust_usercmd",
 ]
 
 [[package]]
@@ -2514,8 +2515,13 @@ name = "rust_option"
 version = "0.1.0"
 dependencies = [
  "bindgen",
+ "rust_optionstr",
  "tempfile",
 ]
+
+[[package]]
+name = "rust_optionstr"
+version = "0.1.0"
 
 [[package]]
 name = "rust_os_amiga"
@@ -2795,6 +2801,13 @@ version = "0.1.0"
 dependencies = [
  "libc",
  "rust_memline",
+]
+
+[[package]]
+name = "rust_usercmd"
+version = "0.1.0"
+dependencies = [
+ "once_cell",
 ]
 
 [[package]]
@@ -3454,6 +3467,7 @@ dependencies = [
  "rust_python",
  "rust_sha256",
  "rust_spell",
+ "rust_usercmd",
  "rust_vim9class",
  "rust_wayland",
  "serde",

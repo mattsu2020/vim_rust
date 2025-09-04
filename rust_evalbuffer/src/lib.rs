@@ -70,34 +70,3 @@ pub extern "C" fn buflist_find_by_name_rs(name: *const c_char, _curtab_only: boo
     &DUMMY_BUF as *const buf_T as *mut buf_T
 }
 
-#[no_mangle]
-pub extern "C" fn read_scriptfile_rs(path: *const c_char) -> bool {
-    if path.is_null() {
-        return false;
-    }
-    let c_str = unsafe { CStr::from_ptr(path) };
-    let path_str = match c_str.to_str() {
-        Ok(s) => s,
-        Err(_) => return false,
-    };
-    fs::read_to_string(path_str).is_ok()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::io::Write;
-
-    #[test]
-    fn test_read_scriptfile_rs() {
-        let dir = std::env::temp_dir();
-        let file_path = dir.join("test_script.txt");
-        {
-            let mut f = std::fs::File::create(&file_path).unwrap();
-            f.write_all(b"echo hi").unwrap();
-        }
-        let c_path = std::ffi::CString::new(file_path.to_str().unwrap()).unwrap();
-        assert!(read_scriptfile_rs(c_path.as_ptr()));
-        std::fs::remove_file(file_path).unwrap();
-    }
-}

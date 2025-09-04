@@ -3,52 +3,13 @@ use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::sync::{Mutex, OnceLock};
 
+use rust_optionstr::is_valid as option_string_is_valid;
+
 mod bindings {
     include!("bindings.rs");
 }
 use bindings::rs_opt_t;
 unsafe impl Sync for rs_opt_t {}
-
-#[derive(Debug)]
-struct StringOptionDef {
-    name: &'static str,
-    values: &'static [&'static str],
-}
-
-impl StringOptionDef {
-    fn is_valid(&self, value: &str) -> bool {
-        self.values.iter().any(|&v| {
-            if let Some(prefix) = v.strip_suffix(':') {
-                value.starts_with(prefix)
-            } else {
-                value == v
-            }
-        })
-    }
-}
-
-static STRING_OPTIONS: &[StringOptionDef] = &[
-    StringOptionDef {
-        name: "background",
-        values: &["light", "dark"],
-    },
-    StringOptionDef {
-        name: "fileformat",
-        values: &["unix", "dos", "mac"],
-    },
-    StringOptionDef {
-        name: "clipboard",
-        values: &[
-            "unnamed",
-            "unnamedplus",
-            "autoselect",
-            "autoselectplus",
-            "autoselectml",
-            "html",
-            "exclude:",
-        ],
-    },
-];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct Opt {
@@ -121,10 +82,8 @@ fn apply_option(name: &str, value: &str) -> bool {
         return false;
     }
     let value = value.trim();
-    if let Some(def) = STRING_OPTIONS.iter().find(|o| o.name == name) {
-        if !def.is_valid(value) {
-            return false;
-        }
+    if !option_string_is_valid(name, value) {
+        return false;
     }
     options()
         .lock()

@@ -1,5 +1,5 @@
 [package]
-name = "rust_fileio"
+name = "rust_optionstr"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,7 +7,3 @@ edition = "2021"
 crate-type = ["staticlib", "rlib"]
 
 [dependencies]
-rust_path = { path = "../rust_path" }
-
-[dev-dependencies]
-tempfile = "3"

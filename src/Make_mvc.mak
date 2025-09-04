@@ -736,7 +736,6 @@ OBJ = \
 	$(OUTDIR)\normal.obj \
 	$(OUTDIR)\ops.obj \
 	$(OUTDIR)\option.obj \
-	$(OUTDIR)\optionstr.obj \
 	$(OUTDIR)\os_mswin.obj \
 	$(OUTDIR)\os_win32.obj \
 	$(OUTDIR)\pathdef.obj \
@@ -764,7 +763,6 @@ OBJ = \
 	$(OUTDIR)\typval.obj \
 	$(OUTDIR)\ui.obj \
 	$(OUTDIR)\undo.obj \
-	$(OUTDIR)\usercmd.obj \
 	$(OUTDIR)\userfunc.obj \
 	$(OUTDIR)\vim9class.obj \
 	$(OUTDIR)\vim9cmds.obj \
@@ -1631,7 +1629,6 @@ $(OUTDIR)/normal.obj: $(OUTDIR) normal.c $(INCL) nv_cmdidxs.h nv_cmds.h
 
 $(OUTDIR)/option.obj: $(OUTDIR) option.c $(INCL) optiondefs.h
 
-$(OUTDIR)/optionstr.obj: $(OUTDIR) optionstr.c $(INCL)
 
 $(OUTDIR)/ops.obj: $(OUTDIR) ops.c $(INCL)
 
@@ -1702,8 +1699,6 @@ $(OUTDIR)/typval.obj: $(OUTDIR) typval.c $(INCL)
 $(OUTDIR)/ui.obj: $(OUTDIR) ui.c $(INCL)
 
 $(OUTDIR)/undo.obj: $(OUTDIR) undo.c $(INCL)
-
-$(OUTDIR)/usercmd.obj: $(OUTDIR) usercmd.c $(INCL)
 
 $(OUTDIR)/userfunc.obj: $(OUTDIR) userfunc.c $(INCL)
 
@@ -1892,7 +1887,6 @@ proto.h: \
 	proto/normal.pro \
 	proto/ops.pro \
 	proto/option.pro \
-	proto/optionstr.pro \
 	proto/os_mswin.pro \
 	proto/winclip.pro \
 	proto/os_win32.pro \
@@ -1919,7 +1913,6 @@ proto.h: \
 	proto/typval.pro \
 	proto/ui.pro \
 	proto/undo.pro \
-	proto/usercmd.pro \
 	proto/userfunc.pro \
 	proto/vim9class.pro \
 	proto/vim9cmds.pro \
