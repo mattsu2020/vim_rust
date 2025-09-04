@@ -2215,7 +2215,7 @@ dependencies = [
 
 [[package]]
 name = "rust_editor"
-version = "0.0.1"
+version = "0.1.0"
 
 [[package]]
 name = "rust_entry"
@@ -2252,7 +2252,6 @@ dependencies = [
 name = "rust_evalvars"
 version = "0.1.0"
 dependencies = [
- "libc",
  "once_cell",
 ]
 
@@ -2260,7 +2259,6 @@ dependencies = [
 name = "rust_evalwindow"
 version = "0.1.0"
 dependencies = [
- "libc",
  "rust_evalvars",
 ]
 
@@ -2400,6 +2398,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_gvimext"
+version = "0.1.0"
+dependencies = [
+ "windows 0.48.0",
+]
+
+[[package]]
 name = "rust_hardcopy"
 version = "0.1.0"
 dependencies = [
@@ -2529,6 +2534,7 @@ name = "rust_message"
 version = "0.1.0"
 dependencies = [
  "libc",
+ "rust_log",
  "tempfile",
 ]
 
@@ -2628,7 +2634,7 @@ version = "0.1.0"
 name = "rust_os_win32"
 version = "0.1.0"
 dependencies = [
- "windows",
+ "windows 0.52.0",
 ]
 
 [[package]]
@@ -3606,6 +3612,7 @@ dependencies = [
  "rust_python",
  "rust_sha256",
  "rust_spell",
+ "rust_time",
  "rust_usercmd",
  "rust_vim9class",
  "rust_wayland",
@@ -3923,6 +3930,15 @@ name = "winapi-x86_64-pc-windows-gnu"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
+
+[[package]]
+name = "windows"
+version = "0.48.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e686886bc078bc1b0b600cac0147aadb815089b6e4da64016cbd754b6342700f"
+dependencies = [
+ "windows-targets 0.48.5",
+]
 
 [[package]]
 name = "windows"
