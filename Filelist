@@ -297,65 +297,8 @@ SRC_ALL =	\
 		src/proto/vim9script.pro \
 		src/proto/vim9type.pro \
 		src/proto/viminfo.pro \
-		src/proto/winclip.pro \
-		src/proto/window.pro \
-		src/libvterm/.bzrignore \
-		src/libvterm/.gitignore \
-		src/libvterm/LICENSE \
-		src/libvterm/Makefile \
-		src/libvterm/README \
-		src/libvterm/CONTRIBUTING \
-		src/libvterm/tbl2inc_c.pl \
-		src/libvterm/vterm.pc.in \
-		src/libvterm/doc/URLs \
-		src/libvterm/doc/seqs.txt \
-		src/libvterm/find-wide-chars.pl \
-		src/libvterm/include/vterm.h \
-		src/libvterm/include/vterm_keycodes.h \
-		src/libvterm/t/02parser.test \
-		src/libvterm/t/03encoding_utf8.test \
-		src/libvterm/t/10state_putglyph.test \
-		src/libvterm/t/11state_movecursor.test \
-		src/libvterm/t/12state_scroll.test \
-		src/libvterm/t/13state_edit.test \
-		src/libvterm/t/14state_encoding.test \
-		src/libvterm/t/15state_mode.test \
-		src/libvterm/t/16state_resize.test \
-		src/libvterm/t/17state_mouse.test \
-		src/libvterm/t/18state_termprops.test \
-		src/libvterm/t/20state_wrapping.test \
-		src/libvterm/t/21state_tabstops.test \
-		src/libvterm/t/22state_save.test \
-		src/libvterm/t/25state_input.test \
-		src/libvterm/t/26state_query.test \
-		src/libvterm/t/27state_reset.test \
-		src/libvterm/t/28state_dbl_wh.test \
-		src/libvterm/t/29state_fallback.test \
-		src/libvterm/t/30state_pen.test \
-		src/libvterm/t/31state_rep.test \
-		src/libvterm/t/32state_flow.test \
-		src/libvterm/t/40state_selection.test \
-		src/libvterm/t/60screen_ascii.test \
-		src/libvterm/t/61screen_unicode.test \
-		src/libvterm/t/62screen_damage.test \
-		src/libvterm/t/63screen_resize.test \
-		src/libvterm/t/64screen_pen.test \
-		src/libvterm/t/65screen_protect.test \
-		src/libvterm/t/66screen_extent.test \
-		src/libvterm/t/67screen_dbl_wh.test \
-		src/libvterm/t/68screen_termprops.test \
-		src/libvterm/t/69screen_reflow.test \
-		src/libvterm/t/90vttest_01-movement-1.test \
-		src/libvterm/t/90vttest_01-movement-2.test \
-		src/libvterm/t/90vttest_01-movement-3.test \
-		src/libvterm/t/90vttest_01-movement-4.test \
-		src/libvterm/t/90vttest_02-screen-1.test \
-		src/libvterm/t/90vttest_02-screen-2.test \
-		src/libvterm/t/90vttest_02-screen-3.test \
-		src/libvterm/t/90vttest_02-screen-4.test \
-		src/libvterm/t/92lp1640917.test \
-		src/libvterm/t/harness.c \
-		src/libvterm/t/run-test.pl \
+                src/proto/winclip.pro \
+                src/proto/window.pro
 
 
 # Source files for Unix-like only.
@@ -978,7 +921,6 @@ IGNORE = \
 		ci/unlisted.make \
 		ci/hlgroups.make \
 		ci/hlgroups.ignore \
-		src/libvterm/CODE-MAP \
 		runtime/syntax/testdir/input/html_html \
 
 # vim: set ft=make:
