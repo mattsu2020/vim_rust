@@ -2256,6 +2256,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_exeval"
+version = "0.1.0"
+dependencies = [
+ "rust_excmds",
+]
+
+[[package]]
 name = "rust_ffi"
 version = "0.1.0"
 
@@ -2484,6 +2491,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_misc"
+version = "0.1.0"
+
+[[package]]
 name = "rust_mouse"
 version = "0.1.0"
 dependencies = [
@@ -2631,6 +2642,13 @@ dependencies = [
  "criterion 0.5.1",
  "regex",
  "rust_fuzzy",
+]
+
+[[package]]
+name = "rust_register"
+version = "0.1.0"
+dependencies = [
+ "rust_clipboard",
 ]
 
 [[package]]
@@ -3426,6 +3444,7 @@ dependencies = [
  "rust_gc",
  "rust_job",
  "rust_message",
+ "rust_misc",
  "rust_os_amiga",
  "rust_os_qnx",
  "rust_os_unix",

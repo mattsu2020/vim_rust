@@ -95,8 +95,6 @@ SRC_ALL =	\
                 src/rust/mem/Cargo.toml \
                 src/rust/mem/src/lib.rs \
                 src/menu.c \
-		src/misc1.c \
-		src/misc2.c \
 		src/mouse.c \
 		src/move.c \
 		src/mysign \
@@ -270,8 +268,6 @@ SRC_ALL =	\
 		src/proto/memline.pro \
 		src/proto/menu.pro \
 		src/proto/message.pro \
-		src/proto/misc1.pro \
-		src/proto/misc2.pro \
 		src/proto/mouse.pro \
 		src/proto/move.pro \
 		src/proto/netbeans.pro \

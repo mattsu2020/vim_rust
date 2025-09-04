@@ -1823,8 +1823,6 @@ BASIC_SRC = \
         memfile.c \
         memline.c \
         menu.c \
-        misc1.c \
-        misc2.c \
         mouse.c \
         move.c \
         normal.c \
@@ -1970,11 +1968,9 @@ OBJ_COMMON = \
 	objects/match.o \
 	objects/mbyte.o \
 	objects/memline.o \
-	objects/menu.o \
-	objects/misc1.o \
-	objects/misc2.o \
-	objects/mouse.o \
-	objects/move.o \
+        objects/menu.o \
+        objects/mouse.o \
+        objects/move.o \
 	objects/normal.o \
 	objects/ops.o \
 	objects/option.o \
@@ -2114,11 +2110,9 @@ PRO_AUTO = \
 	memfile.pro \
 	memline.pro \
 	menu.pro \
-	message.pro \
-	misc1.pro \
-	misc2.pro \
-	mouse.pro \
-	move.pro \
+        message.pro \
+        mouse.pro \
+        move.pro \
 	netbeans.pro \
 	normal.pro \
 	ops.pro \
@@ -3485,14 +3479,8 @@ objects/menu.o: menu.c
 	$(CCC) -o $@ menu.c
 
 
-objects/misc1.o: misc1.c
-	$(CCC) -o $@ misc1.c
-
-objects/misc2.o: misc2.c
-	$(CCC) -o $@ misc2.c
-
 objects/mouse.o: mouse.c
-	$(CCC) -o $@ mouse.c
+        $(CCC) -o $@ mouse.c
 
 objects/move.o: move.c
 	$(CCC) -o $@ move.c
@@ -4001,16 +3989,6 @@ objects/memline.o: memline.c vim.h protodef.h auto/config.h feature.h os_unix.h 
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
 objects/menu.o: menu.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
-objects/misc1.o: misc1.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h version.h
-objects/misc2.o: misc2.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
