@@ -2112,6 +2112,7 @@ dependencies = [
 name = "rust_clientserver"
 version = "0.1.0"
 dependencies = [
+ "once_cell",
  "tokio",
 ]
 
@@ -2210,6 +2211,19 @@ name = "rust_edit"
 version = "0.1.0"
 dependencies = [
  "cbindgen",
+]
+
+[[package]]
+name = "rust_editor"
+version = "0.0.1"
+
+[[package]]
+name = "rust_entry"
+version = "0.1.0"
+dependencies = [
+ "once_cell",
+ "rust_bufwrite",
+ "rust_vim9class",
 ]
 
 [[package]]
@@ -2677,7 +2691,10 @@ name = "rust_regex_engine"
 version = "0.1.0"
 dependencies = [
  "criterion 0.4.0",
+ "once_cell",
  "regex",
+ "serde",
+ "toml 0.8.2",
 ]
 
 [[package]]
@@ -3578,6 +3595,7 @@ dependencies = [
  "rust_job",
  "rust_message",
  "rust_misc1",
+ "rust_move",
  "rust_netbeans",
  "rust_os_amiga",
  "rust_os_qnx",

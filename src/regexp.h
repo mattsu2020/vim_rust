@@ -29,15 +29,10 @@
 #define NSUBEXP  10
 
 /*
- * In the NFA engine: how many braces are allowed.
- * TODO(RE): Use dynamic memory allocation instead of static, like here
+ * Legacy limits for the old in-tree NFA engine have been removed.  The
+ * Rust implementation manages its own allocation and reads limits from a
+ * configuration file, so hard coded values are no longer defined here.
  */
-#define NFA_MAX_BRACES 20
-
-/*
- * In the NFA engine: how many states are allowed
- */
-#define NFA_MAX_STATES 100000
 #define NFA_TOO_EXPENSIVE (-1)
 
 // Which regexp engine to use? Needed for vim_regcomp().
@@ -47,7 +42,7 @@
 #define	    NFA_ENGINE		2
 
 #ifdef USE_RUST_REGEX
-# include "../rust_regexp/include/rust_regexp.h"
+# include "../rust_regex_engine/include/rust_regex_engine.h"
 typedef RegProg regprog_T;
 #else
 typedef struct regengine regengine_T;
