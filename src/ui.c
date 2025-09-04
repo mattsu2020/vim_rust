@@ -17,15 +17,6 @@
 
 #include "vim.h"
 
-    // Bridge to Rust for outputting UI text.
-extern void rs_ui_write(char *msg, int len);
-
-    void
-ui_write(char_u *s, int len)
-{
-    rs_ui_write((char *)s, len);
-}
-
 #if defined(UNIX) || defined(VMS) || defined(PROTO) || defined(MSWIN)
 /*
  * When executing an external program, there may be some typed characters that
