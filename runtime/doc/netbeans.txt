@@ -34,6 +34,11 @@ NetBeans Java IDE, using the external editor plugin.  This NetBeans plugin no
 longer exists for recent versions of NetBeans but the protocol was developed
 in such a way that any IDE can use it to integrate Vim.
 
+Note: The NetBeans interface in Vim is no longer actively maintained.
+      The "setStyle" command and automatic highlight/sign initialization
+      for guarded regions have been removed; integrations should handle
+      styling themselves.
+
 The NetBeans protocol of Vim is a text based communication protocol, over a
 classical TCP socket. There is no dependency on Java or NetBeans. Any language
 or environment providing a socket interface can control Vim using this
@@ -567,8 +572,6 @@ setReadOnly readonly
 		When the boolean argument "readonly" is "T" for True, mark the
 		buffer as readonly, when it is "F" for False, mark it as not
 		readonly.  Implemented in version 2.3.
-
-setStyle	Not implemented.
 
 setTitle name
 		Set the title for the buffer to "name", a string argument.

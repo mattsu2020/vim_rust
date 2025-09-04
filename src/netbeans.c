@@ -53,7 +53,6 @@ static void special_keys(char_u *args);
 
 static int getConnInfo(char *file, char **host, char **port, char **password);
 
-static void nb_init_graphics(void);
 static void coloncmd(char *cmd, ...) ATTRIBUTE_FORMAT_PRINTF(1, 2);
 static void nb_set_curbuf(buf_T *buf);
 static void nb_parse_cmd(char_u *);
@@ -1892,11 +1891,6 @@ nb_do_cmd(
 	    do_update = 1;
 // =====================================================================
 	}
-	else if (streq((char *)cmd, "setStyle")) // obsolete...
-	{
-	    nbdebug(("    setStyle is obsolete!\n"));
-// =====================================================================
-	}
 	else if (streq((char *)cmd, "setExitDelay"))
 	{
 	    // Only used in version 2.1.
@@ -2055,8 +2049,6 @@ nb_do_cmd(
 		nbdebug(("    Skipping %s command\n", (char *) cmd));
 		return OK;
 	    }
-
-	    nb_init_graphics();
 
 	    if (buf == NULL || buf->bufp == NULL)
 	    {
@@ -2360,23 +2352,6 @@ ex_nbstart(
     netbeans_open((char *)eap->arg, FALSE);
 }
 
-/*
- * Initialize highlights and signs for use by netbeans  (mostly obsolete)
- */
-    static void
-nb_init_graphics(void)
-{
-    static int did_init = FALSE;
-
-    if (did_init)
-	return;
-
-    coloncmd(":highlight NBGuarded guibg=Cyan guifg=Black"
-	    " ctermbg=LightCyan ctermfg=Black");
-    coloncmd(":sign define %d linehl=NBGuarded", GUARDED);
-
-    did_init = TRUE;
-}
 
 /*
  * Convert key to netbeans name.  This uses the global "mod_mask".
