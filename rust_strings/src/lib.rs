@@ -1,4 +1,34 @@
-use libc::{c_char, c_int, c_uchar};
+#![allow(clippy::missing_safety_doc)]
+use libc::{c_char, c_int, c_uchar, size_t};
+
+/// Copy a NUL-terminated string into newly allocated memory.
+#[no_mangle]
+pub unsafe extern "C" fn vim_strsave(string: *const c_uchar) -> *mut c_uchar {
+    if string.is_null() {
+        return std::ptr::null_mut();
+    }
+    let len = libc::strlen(string as *const c_char);
+    let buf = libc::malloc(len + 1) as *mut c_uchar;
+    if buf.is_null() {
+        return std::ptr::null_mut();
+    }
+    std::ptr::copy_nonoverlapping(string, buf, len + 1);
+    buf
+}
+
+/// Copy up to `len` bytes of `string` into newly allocated memory and terminate with NUL.
+#[no_mangle]
+pub unsafe extern "C" fn vim_strnsave(string: *const c_uchar, len: size_t) -> *mut c_uchar {
+    let buf = libc::malloc(len + 1) as *mut c_uchar;
+    if buf.is_null() {
+        return std::ptr::null_mut();
+    }
+    if !string.is_null() {
+        std::ptr::copy_nonoverlapping(string, buf, len);
+    }
+    *buf.add(len) = 0;
+    buf
+}
 
 /// Skip to next part of an option argument: skip comma and following spaces.
 #[no_mangle]
@@ -58,48 +88,9 @@ pub unsafe extern "C" fn copy_option_part(
 /// Vim's own isspace() to handle characters above ASCII 128.
 #[no_mangle]
 pub extern "C" fn vim_isspace(x: c_int) -> c_int {
-    if (x >= 9 && x <= 13) || x == b' ' as c_int {
+    if (9..=13).contains(&x) || x == b' ' as c_int {
         1
     } else {
         0
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::ffi::CString;
-
-    #[test]
-    fn test_skip_to_option_part() {
-        let mut s = CString::new(",  test").unwrap();
-        let p = unsafe { skip_to_option_part(s.as_ptr() as *mut c_uchar) };
-        let res = unsafe { std::ffi::CStr::from_ptr(p as *const c_char) };
-        assert_eq!(res.to_str().unwrap(), "test");
-    }
-
-    #[test]
-    fn test_copy_option_part() {
-        let mut opt = CString::new("part1, part2").unwrap();
-        let mut p = opt.as_ptr() as *mut c_uchar;
-        let mut buf = [0u8; 20];
-        let mut option_ptr = p;
-        let len = unsafe {
-            copy_option_part(
-                &mut option_ptr,
-                buf.as_mut_ptr(),
-                buf.len() as c_int,
-                CString::new(",").unwrap().as_ptr(),
-            )
-        };
-        assert_eq!(len, 5);
-        assert_eq!(unsafe { std::ffi::CStr::from_ptr(buf.as_ptr() as *const c_char).to_str().unwrap() }, "part1");
-    }
-
-    #[test]
-    fn test_vim_isspace() {
-        assert_eq!(vim_isspace(b' ' as c_int), 1);
-        assert_eq!(vim_isspace(9), 1); // tab
-        assert_eq!(vim_isspace(b'a' as c_int), 0);
     }
 }

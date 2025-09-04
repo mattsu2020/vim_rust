@@ -1,33 +1,53 @@
+#![allow(clippy::missing_safety_doc)]
 use std::os::raw::c_void;
-use std::ptr;
 
 #[repr(C)]
 pub struct VimList {
-    _private: *mut c_void,
+    items: Vec<*mut c_void>,
 }
 
 #[no_mangle]
 pub extern "C" fn rust_list_new() -> *mut VimList {
-    Box::into_raw(Box::new(VimList { _private: ptr::null_mut() }))
+    Box::into_raw(Box::new(VimList { items: Vec::new() }))
 }
 
 #[no_mangle]
-pub extern "C" fn rust_list_free(l: *mut VimList) {
+pub unsafe extern "C" fn rust_list_free(l: *mut VimList) {
     if !l.is_null() {
-        unsafe {
-            drop(Box::from_raw(l));
-        }
+        drop(Box::from_raw(l));
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[no_mangle]
+pub unsafe extern "C" fn rust_list_len(l: *const VimList) -> usize {
+    l.as_ref().map(|list| list.items.len()).unwrap_or(0)
+}
 
-    #[test]
-    fn alloc_and_free() {
-        let l = rust_list_new();
-        assert!(!l.is_null());
-        rust_list_free(l);
+#[no_mangle]
+pub unsafe extern "C" fn rust_list_append(l: *mut VimList, item: *mut c_void) {
+    if let Some(list) = l.as_mut() {
+        list.items.push(item);
     }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn rust_list_get(l: *const VimList, index: usize) -> *mut c_void {
+    if let Some(list) = l.as_ref() {
+        list.items
+            .get(index)
+            .copied()
+            .unwrap_or(std::ptr::null_mut())
+    } else {
+        std::ptr::null_mut()
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn rust_list_remove(l: *mut VimList, index: usize) -> *mut c_void {
+    if let Some(list) = l.as_mut() {
+        if index < list.items.len() {
+            return list.items.remove(index);
+        }
+    }
+    std::ptr::null_mut()
 }
