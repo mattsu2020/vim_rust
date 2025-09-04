@@ -6362,9 +6362,6 @@ buffer-list	windows.txt	/*buffer-list*
 buffer-reuse	windows.txt	/*buffer-reuse*
 buffer-variable	eval.txt	/*buffer-variable*
 buffer-write	editing.txt	/*buffer-write*
-buffer_exists()	builtin.txt	/*buffer_exists()*
-buffer_name()	builtin.txt	/*buffer_name()*
-buffer_number()	builtin.txt	/*buffer_number()*
 buffers	windows.txt	/*buffers*
 buffers-menu	gui.txt	/*buffers-menu*
 buflisted()	builtin.txt	/*buflisted()*
@@ -7299,7 +7296,6 @@ file-searching	editing.txt	/*file-searching*
 file-type	filetype.txt	/*file-type*
 file-types	filetype.txt	/*file-types*
 file-watcher	editing.txt	/*file-watcher*
-file_readable()	builtin.txt	/*file_readable()*
 filecopy()	builtin.txt	/*filecopy()*
 fileencoding-changed	version6.txt	/*fileencoding-changed*
 filename-backslash	cmdline.txt	/*filename-backslash*
@@ -8303,8 +8299,6 @@ highlight-guisp	syntax.txt	/*highlight-guisp*
 highlight-start	syntax.txt	/*highlight-start*
 highlight-stop	syntax.txt	/*highlight-stop*
 highlight-term	syntax.txt	/*highlight-term*
-highlightID()	builtin.txt	/*highlightID()*
-highlight_exists()	builtin.txt	/*highlight_exists()*
 highlighting-functions	usr_41.txt	/*highlighting-functions*
 hist-names	builtin.txt	/*hist-names*
 histadd()	builtin.txt	/*histadd()*
@@ -8765,7 +8759,6 @@ language-mapping	map.txt	/*language-mapping*
 language-server-protocol	channel.txt	/*language-server-protocol*
 last-pattern	pattern.txt	/*last-pattern*
 last-position-jump	usr_05.txt	/*last-position-jump*
-last_buffer_nr()	builtin.txt	/*last_buffer_nr()*
 latex-syntax	syntax.txt	/*latex-syntax*
 lc_time-variable	eval.txt	/*lc_time-variable*
 lcs-conceal	options.txt	/*lcs-conceal*

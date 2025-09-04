@@ -189,7 +189,7 @@ hi def link rebolError	Error
 
 
 if exists("my_rebol_file")
-  if file_readable(expand(my_rebol_file))
+  if filereadable(expand(my_rebol_file))
     execute "source " . my_rebol_file
   endif
 endif
