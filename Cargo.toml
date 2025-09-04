@@ -13,6 +13,7 @@ exclude = [
     "rust_excmd",
     "rust_float",
     "rust_blowfish",
+    "rust_spellsuggest",
 ]
 
 [package]
