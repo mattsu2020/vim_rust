@@ -48,36 +48,22 @@ ifndef WINVER
 WINVER = 0x0601
 endif
 CXX := $(CROSS_COMPILE)g++
-WINDRES := $(CROSS_COMPILE)windres
-# this used to have --preprocessor, but it's no longer supported
-WINDRES_FLAGS =
-LIBS :=  -luuid -lgdi32
-RES  := gvimext.res
-ifeq ($(findstring clang++,$(CXX)),)
-DEFFILE = gvimext_ming.def
-endif
-OBJ  := gvimext.o
+# Legacy build rules removed in favour of the Rust implementation.
 
 DLL  := gvimext.dll
 
-.PHONY: all all-before all-after clean clean-custom
+.PHONY: all clean install
 
-all: all-before $(DLL) all-after
+# Build the Rust-based shell extension instead of the legacy C++ one.
+all: gvimext.dll
 
-$(DLL): $(OBJ) $(RES) $(DEFFILE)
-	$(CXX) $(LDFLAGS) $(CXXFLAGS) -s -o $@ \
-		-Wl,--enable-auto-image-base \
-		-Wl,--enable-auto-import \
-		-Wl,--whole-archive \
-			$^ \
-		-Wl,--no-whole-archive \
-			$(LIBS)
+gvimext.dll:
+	cargo build --manifest-path ../../Cargo.toml -p rust_gvimext --release
+	cp ../../target/release/rust_gvimext.dll gvimext.dll
 
-gvimext.o: gvimext.cpp
-	$(CXX) $(CXXFLAGS) -DFEAT_GETTEXT -DWINVER=$(WINVER) -D_WIN32_WINNT=$(WINVER) -c $? -o $@
+# Register the DLL with the system shell.
+install: gvimext.dll
+	regsvr32 /s gvimext.dll
 
-$(RES): gvimext_ming.rc
-	$(WINDRES) $(WINDRES_FLAGS) --input-format=rc --output-format=coff -DMING $? -o $@
-
-clean: clean-custom
-	-$(DEL)  $(OBJ) $(RES) $(DLL)
+clean:
+	-$(DEL) $(DLL)

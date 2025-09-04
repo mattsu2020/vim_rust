@@ -79,24 +79,20 @@ OFFSET = 0x1C000000
 
 all: gvimext.dll
 
-gvimext.dll: gvimext.obj gvimext.res
-	$(link) $(lflags) -dll -def:gvimext.def -base:$(OFFSET) \
-		-out:$*.dll $** $(olelibsdll) shell32.lib comctl32.lib \
-		-subsystem:$(SUBSYSTEM)
+# Build the Rust-based shell extension and copy the resulting DLL
+# into the current directory.  The workspace root is two levels up
+# from this Makefile.
+gvimext.dll:
+	cargo build --manifest-path ..\..\Cargo.toml -p rust_gvimext --release
+	copy ..\..\target\release\rust_gvimext.dll gvimext.dll
 
-gvimext.obj: gvimext.h
-
-.cpp.obj:
-	$(cc) $(cflags) -DFEAT_GETTEXT $(cvarsmt) $*.cpp
-
-gvimext.res: gvimext.rc
-	$(rc) /nologo $(rcflags) $(rcvars) gvimext.rc
+# Register the DLL using regsvr32.  This mirrors the behaviour of the
+# original makefile which required manual registration of the compiled
+# extension.
+install: gvimext.dll
+	regsvr32 /s gvimext.dll
 
 clean:
 	- if exist gvimext.dll $(RM) gvimext.dll
-	- if exist gvimext.lib $(RM) gvimext.lib
-	- if exist gvimext.exp $(RM) gvimext.exp
-	- if exist gvimext.obj $(RM) gvimext.obj
-	- if exist gvimext.res $(RM) gvimext.res
 
 # vim: set noet sw=8 ts=8 sts=0 wm=0 tw=79 ft=make:
