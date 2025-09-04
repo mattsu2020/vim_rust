@@ -17,6 +17,7 @@ extern "C"
                  int flags);
     int writefile(const char *fname, const char *data, size_t len, int flags);
     char *rs_findfile(const char *name, const char *path);
+    void rs_findfile_free(char *s);
     char *rs_read_viminfo(const char *path);
     int rs_write_viminfo(const char *path, const char *data);
 
