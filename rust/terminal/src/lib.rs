@@ -1,4 +1,5 @@
 use libc::{c_char, c_int, size_t};
+pub use rust_termlib::{tgetent, tputs, tgoto};
 use std::ffi::{CStr, CString};
 use std::io;
 

@@ -146,7 +146,6 @@ SRC += \
         syntax.c \
         tag.c \
         term.c \
-        termlib.c \
         testing.c \
 	textformat.c \
 	textobject.c \

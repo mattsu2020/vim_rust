@@ -125,7 +125,6 @@ SRC_ALL =	\
                 src/tag.c \
                 src/terminal.c \
 		src/termdefs.h \
-		src/termlib.c \
 		src/testing.c \
 		src/textformat.c \
 		src/time.c \
@@ -297,7 +296,6 @@ SRC_ALL =	\
                 src/proto/tag.pro \
                 src/proto/term.pro \
 		src/proto/terminal.pro \
-		src/proto/termlib.pro \
 		src/proto/testing.pro \
 		src/proto/textformat.pro \
 		src/proto/textobject.pro \
