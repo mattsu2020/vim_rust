@@ -12,6 +12,7 @@
  */
 
 #include "vim.h"
+#include "rust_filepath.h"
 
 #ifdef MSWIN
 /*
@@ -2583,9 +2584,12 @@ do_browse(
     else
 # endif
     {
-	// TODO: non-GUI file selector here
-	emsg(_(e_sorry_no_file_browser_in_console_mode));
-	fname = NULL;
+        fname = (char_u *)rs_select_file_console((char *)initdir);
+        if (fname != NULL)
+        {
+            need_check_timestamps = TRUE;
+            did_check_timestamps = FALSE;
+        }
     }
 
     // keep the directory for next time
