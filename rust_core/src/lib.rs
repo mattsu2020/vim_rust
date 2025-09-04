@@ -21,6 +21,7 @@ pub enum Vartype {
 #[repr(C)]
 pub union ValUnion {
     pub v_number: i64,
+    pub v_float: f64,
     pub v_string: *mut c_char,
 }
 
@@ -34,6 +35,7 @@ pub struct typval_T {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     Number(i64),
+    Float(f64),
     Str(String),
 }
 
@@ -41,6 +43,15 @@ impl Value {
     pub fn as_number(&self) -> Result<i64, ()> {
         match self {
             Value::Number(n) => Ok(*n),
+            Value::Float(f) => Ok(*f as i64),
+            Value::Str(s) => s.parse().map_err(|_| ()),
+        }
+    }
+
+    pub fn as_float(&self) -> Result<f64, ()> {
+        match self {
+            Value::Number(n) => Ok(*n as f64),
+            Value::Float(f) => Ok(*f),
             Value::Str(s) => s.parse().map_err(|_| ()),
         }
     }
@@ -48,6 +59,7 @@ impl Value {
     pub fn to_string(&self) -> String {
         match self {
             Value::Number(n) => n.to_string(),
+            Value::Float(f) => f.to_string(),
             Value::Str(s) => s.clone(),
         }
     }
@@ -57,6 +69,7 @@ impl std::fmt::Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Value::Number(n) => write!(f, "{}", n),
+            Value::Float(fl) => write!(f, "{}", fl),
             Value::Str(s) => write!(f, "{}", s),
         }
     }
@@ -68,6 +81,11 @@ pub unsafe fn to_typval(val: Value, out: *mut typval_T) {
             (*out).v_type = Vartype::VAR_NUMBER;
             (*out).v_lock = 0;
             (*out).vval.v_number = n;
+        }
+        Value::Float(fl) => {
+            (*out).v_type = Vartype::VAR_FLOAT;
+            (*out).v_lock = 0;
+            (*out).vval.v_float = fl;
         }
         Value::Str(s) => {
             (*out).v_type = Vartype::VAR_STRING;
@@ -84,6 +102,7 @@ pub unsafe fn from_typval(tv: *const typval_T) -> Option<Value> {
     }
     match (*tv).v_type {
         Vartype::VAR_NUMBER => Some(Value::Number((*tv).vval.v_number)),
+        Vartype::VAR_FLOAT => Some(Value::Float((*tv).vval.v_float)),
         Vartype::VAR_STRING => {
             if (*tv).vval.v_string.is_null() {
                 Some(Value::Str(String::new()))

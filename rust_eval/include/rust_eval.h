@@ -19,6 +19,7 @@ bool eval_variable_rs(const char *name, typval_T *out);
 bool set_variable_rs(const char *name, const typval_T *val);
 bool call_function_rs(const char *name, const typval_T *args, size_t argc,
                       typval_T *out);
+bool eval_script_rs(const char *script, typval_T *out);
 
 #ifdef __cplusplus
 }

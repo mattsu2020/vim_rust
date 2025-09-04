@@ -1,6 +1,8 @@
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
-use std::ffi::{CStr, CString};
+use std::ffi::CStr;
+#[cfg(test)]
+use std::ffi::CString;
 use std::iter::Peekable;
 use std::os::raw::c_char;
 use std::str::Chars;
@@ -10,6 +12,7 @@ pub use rust_core::{typval_T, ValUnion, Vartype, Value, to_typval, from_typval, 
 #[derive(Debug, Clone)]
 enum Expr {
     Number(i64),
+    Float(f64),
     Str(String),
     Var(String),
     Call(String, Vec<Expr>),
@@ -31,15 +34,20 @@ impl Evaluator {
         fn add_func(args: &[Value]) -> Result<Value, ()> {
             let a = args
                 .get(0)
-                .map(|v| v.as_number())
-                .transpose()? 
-                .unwrap_or(0);
+                .map(|v| v.as_float())
+                .transpose()?
+                .unwrap_or(0.0);
             let b = args
                 .get(1)
-                .map(|v| v.as_number())
-                .transpose()? 
-                .unwrap_or(0);
-            Ok(Value::Number(a + b))
+                .map(|v| v.as_float())
+                .transpose()?
+                .unwrap_or(0.0);
+            let res = a + b;
+            if args.iter().any(|v| matches!(v, Value::Float(_))) || res.fract() != 0.0 {
+                Ok(Value::Float(res))
+            } else {
+                Ok(Value::Number(res as i64))
+            }
         }
         fn concat_func(args: &[Value]) -> Result<Value, ()> {
             let mut s = String::new();
@@ -76,6 +84,30 @@ impl Evaluator {
         }
         eval(&ast, self)
     }
+
+    pub fn eval_script(&mut self, script: &str) -> Result<Option<Value>, ()> {
+        let mut last = None;
+        for line in script.lines() {
+            let line = line.trim();
+            if line.is_empty() {
+                continue;
+            }
+            if let Some(rest) = line.strip_prefix("let ") {
+                if let Some((name, expr)) = rest.split_once('=') {
+                    let name = name.trim();
+                    let expr = expr.trim();
+                    let val = self.eval_expr(expr)?;
+                    self.set_var(name, val.clone());
+                    last = Some(val);
+                } else {
+                    return Err(());
+                }
+            } else {
+                last = Some(self.eval_expr(line)?);
+            }
+        }
+        Ok(last)
+    }
 }
 
 static GLOBAL_EVAL: Lazy<Mutex<Evaluator>> = Lazy::new(|| Mutex::new(Evaluator::new()));
@@ -109,10 +141,15 @@ impl<'a> Tokenizer<'a> {
         self.iter.peek().copied()
     }
 
-    fn parse_number(&mut self) -> Option<i64> {
+    fn parse_number(&mut self) -> Option<Expr> {
         let mut s = String::new();
+        let mut has_dot = false;
         while let Some(&c) = self.iter.peek() {
             if c.is_ascii_digit() {
+                s.push(c);
+                self.iter.next();
+            } else if c == '.' && !has_dot {
+                has_dot = true;
                 s.push(c);
                 self.iter.next();
             } else {
@@ -121,8 +158,10 @@ impl<'a> Tokenizer<'a> {
         }
         if s.is_empty() {
             None
+        } else if has_dot {
+            s.parse::<f64>().ok().map(Expr::Float)
         } else {
-            s.parse().ok()
+            s.parse::<i64>().ok().map(Expr::Number)
         }
     }
 
@@ -184,7 +223,7 @@ fn parse_primary(tokens: &mut Tokenizer) -> Result<Expr, ()> {
         }
     }
     if let Some(num) = tokens.parse_number() {
-        return Ok(Expr::Number(num));
+        return Ok(num);
     }
     if let Some(id) = tokens.parse_identifier() {
         if tokens.peek_non_ws() == Some('(') {
@@ -268,6 +307,7 @@ fn parse_concat(tokens: &mut Tokenizer) -> Result<Expr, ()> {
 fn eval(expr: &Expr, ctx: &Evaluator) -> Result<Value, ()> {
     match expr {
         Expr::Number(n) => Ok(Value::Number(*n)),
+        Expr::Float(f) => Ok(Value::Float(*f)),
         Expr::Str(s) => Ok(Value::Str(s.clone())),
         Expr::Var(name) => Ok(ctx.get_var(name).unwrap_or(Value::Number(0))),
         Expr::Call(name, args) => {
@@ -278,24 +318,48 @@ fn eval(expr: &Expr, ctx: &Evaluator) -> Result<Value, ()> {
             ctx.call_function(name, &vals)
         }
         Expr::Add(a, b) => {
-            let a = eval(a, ctx)?.as_number()?;
-            let b = eval(b, ctx)?.as_number()?;
-            Ok(Value::Number(a + b))
+            let a = eval(a, ctx)?;
+            let b = eval(b, ctx)?;
+            match (a, b) {
+                (Value::Number(n1), Value::Number(n2)) => Ok(Value::Number(n1 + n2)),
+                (Value::Float(f1), Value::Float(f2)) => Ok(Value::Float(f1 + f2)),
+                (Value::Float(f1), Value::Number(n2)) => Ok(Value::Float(f1 + n2 as f64)),
+                (Value::Number(n1), Value::Float(f2)) => Ok(Value::Float(n1 as f64 + f2)),
+                _ => Err(()),
+            }
         }
         Expr::Sub(a, b) => {
-            let a = eval(a, ctx)?.as_number()?;
-            let b = eval(b, ctx)?.as_number()?;
-            Ok(Value::Number(a - b))
+            let a = eval(a, ctx)?;
+            let b = eval(b, ctx)?;
+            match (a, b) {
+                (Value::Number(n1), Value::Number(n2)) => Ok(Value::Number(n1 - n2)),
+                (Value::Float(f1), Value::Float(f2)) => Ok(Value::Float(f1 - f2)),
+                (Value::Float(f1), Value::Number(n2)) => Ok(Value::Float(f1 - n2 as f64)),
+                (Value::Number(n1), Value::Float(f2)) => Ok(Value::Float(n1 as f64 - f2)),
+                _ => Err(()),
+            }
         }
         Expr::Mul(a, b) => {
-            let a = eval(a, ctx)?.as_number()?;
-            let b = eval(b, ctx)?.as_number()?;
-            Ok(Value::Number(a * b))
+            let a = eval(a, ctx)?;
+            let b = eval(b, ctx)?;
+            match (a, b) {
+                (Value::Number(n1), Value::Number(n2)) => Ok(Value::Number(n1 * n2)),
+                (Value::Float(f1), Value::Float(f2)) => Ok(Value::Float(f1 * f2)),
+                (Value::Float(f1), Value::Number(n2)) => Ok(Value::Float(f1 * n2 as f64)),
+                (Value::Number(n1), Value::Float(f2)) => Ok(Value::Float(n1 as f64 * f2)),
+                _ => Err(()),
+            }
         }
         Expr::Div(a, b) => {
-            let a = eval(a, ctx)?.as_number()?;
-            let b = eval(b, ctx)?.as_number()?;
-            Ok(Value::Number(a / b))
+            let a = eval(a, ctx)?;
+            let b = eval(b, ctx)?;
+            match (a, b) {
+                (Value::Number(n1), Value::Number(n2)) => Ok(Value::Number(n1 / n2)),
+                (Value::Float(f1), Value::Float(f2)) => Ok(Value::Float(f1 / f2)),
+                (Value::Float(f1), Value::Number(n2)) => Ok(Value::Float(f1 / n2 as f64)),
+                (Value::Number(n1), Value::Float(f2)) => Ok(Value::Float(n1 as f64 / f2)),
+                _ => Err(()),
+            }
         }
         Expr::Concat(a, b) => {
             let left = eval(a, ctx)?.to_string();
@@ -346,12 +410,12 @@ pub extern "C" fn eval_to_bool_rs(expr: *const c_char, error: *mut bool) -> bool
     };
     let eval = GLOBAL_EVAL.lock().unwrap();
     match eval.eval_expr(expr_str) {
-        Ok(val) => match val.as_number() {
+        Ok(val) => match val.as_float() {
             Ok(n) => {
                 if !error.is_null() {
                     unsafe { *error = false; }
                 }
-                n != 0
+                n != 0.0
             }
             Err(_) => {
                 if !error.is_null() {
@@ -438,6 +502,29 @@ pub extern "C" fn call_function_rs(name: *const c_char, args: *const typval_T, a
             unsafe { to_typval(v, out); }
             true
         }
+        Err(_) => false,
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn eval_script_rs(script: *const c_char, out: *mut typval_T) -> bool {
+    if script.is_null() {
+        return false;
+    }
+    let c_str = unsafe { CStr::from_ptr(script) };
+    let script_str = match c_str.to_str() {
+        Ok(s) => s,
+        Err(_) => return false,
+    };
+    let mut eval = GLOBAL_EVAL.lock().unwrap();
+    match eval.eval_script(script_str) {
+        Ok(Some(val)) => {
+            if !out.is_null() {
+                unsafe { to_typval(val, out); }
+            }
+            true
+        }
+        Ok(None) => true,
         Err(_) => false,
     }
 }
