@@ -88,7 +88,6 @@ SRC += \
         dict.c \
         diff.c \
 	digraph.c \
-	drawline.c \
 	drawscreen.c \
 	edit.c \
 	eval.c \

@@ -1789,7 +1789,6 @@ BASIC_SRC = \
         dict.c \
         diff.c \
         digraph.c \
-        drawline.c \
         drawscreen.c \
         edit.c \
         eval.c \
@@ -1935,7 +1934,6 @@ OBJ_COMMON = \
         objects/dict.o \
         objects/diff.o \
 	objects/digraph.o \
-	objects/drawline.o \
 	objects/drawscreen.o \
 	objects/edit.o \
 	objects/eval.o \
@@ -2069,7 +2067,6 @@ PRO_AUTO = \
         diff.pro \
 	linematch.pro \
 	digraph.pro \
-	drawline.pro \
 	drawscreen.pro \
 	edit.pro \
 	eval.pro \
@@ -3318,8 +3315,6 @@ objects/diff.o: diff.c $(XDIFF_INCL)
 objects/digraph.o: digraph.c
 	$(CCC) -o $@ digraph.c
 
-objects/drawline.o: drawline.c
-	$(CCC) -o $@ drawline.c
 
 objects/drawscreen.o: drawscreen.c
 	$(CCC) -o $@ drawscreen.c
@@ -3833,8 +3828,6 @@ objects/digraph.o: digraph.c vim.h protodef.h auto/config.h feature.h os_unix.h 
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/drawline.o: drawline.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h

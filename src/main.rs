@@ -1,5 +1,8 @@
 use std::ffi::CString;
 
+use rust_drawline;
+use rust_screen;
+
 /// Placeholder for platform specific early initialization.
 fn mch_early_init() {
     // In the original C implementation this prepares the OS layer.
@@ -37,6 +40,13 @@ fn main() {
     let class_src = CString::new("class Demo").expect("CString::new failed");
     let len = rust_vim9class::rs_vim9class_eval(class_src.as_ptr());
     println!("Class name length: {}", len);
+
+    // Demonstrate drawing a line using the Rust implementation.
+    let sb = rust_screen::rs_screen_new(40, 1);
+    let line = CString::new("Hello from rust_drawline").unwrap();
+    rust_drawline::rs_draw_line(sb, 0, line.as_ptr());
+    rust_screen::rs_screen_flush(sb, None);
+    rust_screen::rs_screen_free(sb);
 
     println!("Initialization complete");
 }
