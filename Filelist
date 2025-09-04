@@ -51,7 +51,6 @@ SRC_ALL =	\
                 src/diff.c \
 		src/linematch.c \
 		src/digraph.c \
-		src/drawline.c \
 		src/edit.c \
 		src/errors.h \
 		src/eval.c \
@@ -227,7 +226,6 @@ SRC_ALL =	\
                 src/proto/dict.pro \
                 src/proto/diff.pro \
 		src/proto/digraph.pro \
-		src/proto/drawline.pro \
 		src/proto/drawscreen.pro \
 		src/proto/edit.pro \
 		src/proto/eval.pro \

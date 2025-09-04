@@ -2185,6 +2185,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_drawline"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "rust_screen",
+]
+
+[[package]]
 name = "rust_drawscreen"
 version = "0.1.0"
 dependencies = [
@@ -2253,6 +2261,13 @@ version = "0.1.0"
 dependencies = [
  "once_cell",
  "rust_change",
+]
+
+[[package]]
+name = "rust_exeval"
+version = "0.1.0"
+dependencies = [
+ "rust_excmds",
 ]
 
 [[package]]
@@ -2631,6 +2646,13 @@ dependencies = [
  "criterion 0.5.1",
  "regex",
  "rust_fuzzy",
+]
+
+[[package]]
+name = "rust_register"
+version = "0.1.0"
+dependencies = [
+ "rust_clipboard",
 ]
 
 [[package]]
@@ -3418,6 +3440,7 @@ dependencies = [
  "rust_clipboard",
  "rust_cmdhist",
  "rust_debugger",
+ "rust_drawline",
  "rust_evalfunc_stubs",
  "rust_evalwindow",
  "rust_excmds",
@@ -3433,6 +3456,7 @@ dependencies = [
  "rust_profiler",
  "rust_pty",
  "rust_python",
+ "rust_screen",
  "rust_sha256",
  "rust_spell",
  "rust_vim9class",
