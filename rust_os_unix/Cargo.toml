@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+rust_os_api = { path = "../rust_os_api" }
 
 [lib]
 name = "rust_os_unix"

@@ -393,11 +393,7 @@ TERM_DEPS = \
 !ENDIF
 
 !IFNDEF SOUND
-! IF "$(FEATURES)" == "HUGE"
-SOUND = yes
-! ELSE
 SOUND = no
-! ENDIF
 !ENDIF
 
 !IFNDEF SODIUM
@@ -481,12 +477,6 @@ XPM_INC = -I $(XPM)\include
 ! ENDIF
 !ENDIF # GUI
 
-!IF "$(SOUND)" == "yes"
-SOUND_PRO = proto/sound.pro
-SOUND_OBJ = $(OBJDIR)/sound.obj
-SOUND_DEFS = -DFEAT_SOUND
-SOUND_LIB = winmm.lib
-!ENDIF
 
 !IF "$(CHANNEL)" == "yes"
 CHANNEL_PRO = proto/job.pro proto/channel.pro
@@ -514,7 +504,7 @@ CON_LIB = $(CON_LIB) /DELAYLOAD:comdlg32.dll /DELAYLOAD:ole32.dll DelayImp.lib
 #VIMRUNTIMEDIR = somewhere
 
 CFLAGS = -c /W3 /GF /nologo -I. -Iproto -DHAVE_PATHDEF -DWIN32 -DHAVE_STDINT_H \
-        $(CSCOPE_DEFS) $(TERM_DEFS) $(SOUND_DEFS) $(NETBEANS_DEFS) \
+        $(CSCOPE_DEFS) $(TERM_DEFS) $(NETBEANS_DEFS) \
         $(NBDEBUG_DEFS) $(XPM_DEFS) $(SOD_DEFS) $(SOD_INC) $(CHANNEL_DEFS) \
         $(DEFINES) $(CI_CFLAGS) -DWINVER=$(WINVER) -D_WIN32_WINNT=$(WINVER) \
         /source-charset:utf-8
@@ -1210,7 +1200,7 @@ PATHDEF_SRC = $(OUTDIR)\pathdef.c
 LINKARGS1 = /nologo
 LINKARGS2 = $(CON_LIB) $(GUI_LIB) $(LIBC) $(OLE_LIB) \
 	$(LUA_LIB) $(MZSCHEME_LIB) $(PERL_LIB) $(PYTHON_LIB) \
-	$(PYTHON3_LIB) $(RUBY_LIB) $(TCL_LIB) $(SOUND_LIB) \
+   $(PYTHON3_LIB) $(RUBY_LIB) $(TCL_LIB) \
 	$(NETBEANS_LIB) $(XPM_LIB) $(SOD_LIB) $(LINK_PDB)
 
 !IFDEF NODEBUG
@@ -1271,14 +1261,14 @@ all: $(MAIN_TARGET) \
 
 $(VIMDLLBASE).dll: $(OUTDIR) $(OBJ) $(XDIFF_OBJ) $(GUI_OBJ) $(CUI_OBJ) \
 		$(OLE_OBJ) $(OLE_IDL) $(MZSCHEME_OBJ) $(LUA_OBJ) $(PERL_OBJ) \
-		$(PYTHON_OBJ) $(PYTHON3_OBJ) $(RUBY_OBJ) $(TCL_OBJ) \
-		$(TERM_OBJ) $(SOUND_OBJ) $(NETBEANS_OBJ) $(CHANNEL_OBJ) \
+                $(PYTHON_OBJ) $(PYTHON3_OBJ) $(RUBY_OBJ) $(TCL_OBJ) \
+                $(TERM_OBJ) $(NETBEANS_OBJ) $(CHANNEL_OBJ) \
 		$(XPM_OBJ) version.c version.h
 	$(CC) $(CFLAGS_OUTDIR) version.c
 	$(LINK) @<<
 $(LINKARGS1) /dll -out:$(VIMDLLBASE).dll $(OBJ) $(XDIFF_OBJ)
 $(GUI_OBJ) $(CUI_OBJ) $(OLE_OBJ) $(LUA_OBJ) $(MZSCHEME_OBJ) $(PERL_OBJ)
-$(PYTHON_OBJ) $(PYTHON3_OBJ) $(RUBY_OBJ) $(TCL_OBJ) $(TERM_OBJ) $(SOUND_OBJ)
+$(PYTHON_OBJ) $(PYTHON3_OBJ) $(RUBY_OBJ) $(TCL_OBJ) $(TERM_OBJ)
 $(NETBEANS_OBJ) $(CHANNEL_OBJ) $(XPM_OBJ) $(OUTDIR)\version.obj $(LINKARGS2)
 <<
 
@@ -1294,14 +1284,14 @@ $(VIM).exe: $(OUTDIR) $(EXEOBJC) $(VIMDLLBASE).dll
 
 $(VIM).exe: $(OUTDIR) $(OBJ) $(XDIFF_OBJ) $(GUI_OBJ) $(CUI_OBJ) \
 		$(OLE_OBJ) $(OLE_IDL) $(MZSCHEME_OBJ) $(LUA_OBJ) $(PERL_OBJ) \
-		$(PYTHON_OBJ) $(PYTHON3_OBJ) $(RUBY_OBJ) $(TCL_OBJ) \
-		$(TERM_OBJ) $(SOUND_OBJ) $(NETBEANS_OBJ) $(CHANNEL_OBJ) \
+                $(PYTHON_OBJ) $(PYTHON3_OBJ) $(RUBY_OBJ) $(TCL_OBJ) \
+                $(TERM_OBJ) $(NETBEANS_OBJ) $(CHANNEL_OBJ) \
 		$(XPM_OBJ) version.c version.h
 	$(CC) $(CFLAGS_OUTDIR) version.c
 	$(LINK) @<<
 $(LINKARGS1) /subsystem:$(SUBSYSTEM) -out:$(VIM).exe $(OBJ) $(XDIFF_OBJ)
 $(GUI_OBJ) $(CUI_OBJ) $(OLE_OBJ) $(LUA_OBJ) $(MZSCHEME_OBJ) $(PERL_OBJ)
-$(PYTHON_OBJ) $(PYTHON3_OBJ) $(RUBY_OBJ) $(TCL_OBJ) $(TERM_OBJ) $(SOUND_OBJ)
+$(PYTHON_OBJ) $(PYTHON3_OBJ) $(RUBY_OBJ) $(TCL_OBJ) $(TERM_OBJ)
 $(NETBEANS_OBJ) $(CHANNEL_OBJ) $(XPM_OBJ) $(OUTDIR)\version.obj $(LINKARGS2)
 <<
 
@@ -1930,11 +1920,10 @@ proto.h: \
 	proto/vim9instr.pro \
 	proto/vim9script.pro \
 	proto/vim9type.pro \
-	proto/viminfo.pro \
-	proto/window.pro \
-	$(SOUND_PRO) \
-	$(NETBEANS_PRO) \
-	$(CHANNEL_PRO)
+        proto/viminfo.pro \
+        proto/window.pro \
+        $(NETBEANS_PRO) \
+        $(CHANNEL_PRO)
 
 .SUFFIXES: .cod .i
 

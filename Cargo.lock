@@ -2256,6 +2256,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_exeval"
+version = "0.1.0"
+dependencies = [
+ "rust_excmds",
+]
+
+[[package]]
 name = "rust_ffi"
 version = "0.1.0"
 
@@ -2545,6 +2552,9 @@ dependencies = [
 [[package]]
 name = "rust_os_unix"
 version = "0.1.0"
+dependencies = [
+ "rust_os_api",
+]
 
 [[package]]
 name = "rust_os_w32dll"
@@ -2558,6 +2568,7 @@ version = "0.1.0"
 name = "rust_os_win32"
 version = "0.1.0"
 dependencies = [
+ "rust_os_api",
  "windows",
 ]
 
@@ -2634,6 +2645,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_register"
+version = "0.1.0"
+dependencies = [
+ "rust_clipboard",
+]
+
+[[package]]
 name = "rust_screen"
 version = "0.1.0"
 dependencies = [
@@ -2666,6 +2684,15 @@ name = "rust_sign"
 version = "0.1.0"
 dependencies = [
  "once_cell",
+]
+
+[[package]]
+name = "rust_sound"
+version = "0.1.0"
+dependencies = [
+ "rust_os_api",
+ "rust_os_unix",
+ "rust_os_win32",
 ]
 
 [[package]]
@@ -3434,6 +3461,7 @@ dependencies = [
  "rust_pty",
  "rust_python",
  "rust_sha256",
+ "rust_sound",
  "rust_spell",
  "rust_vim9class",
  "rust_wayland",

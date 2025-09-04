@@ -3,6 +3,7 @@
 use std::ffi::CStr;
 use std::os::raw::c_char;
 use std::{env, fs};
+use rust_os_api::play_beep;
 
 #[no_mangle]
 pub extern "C" fn os_startup() {}
@@ -34,6 +35,25 @@ pub extern "C" fn os_chdir(path: *const c_char) -> i32 {
     }
 }
 
+#[no_mangle]
+pub extern "C" fn os_sound_playevent(_name: *const c_char) -> i32 {
+    match play_beep() {
+        Ok(_) => 0,
+        Err(_) => -1,
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn os_sound_playfile(_path: *const c_char) -> i32 {
+    -1
+}
+
+#[no_mangle]
+pub extern "C" fn os_sound_stop(_id: i64) {}
+
+#[no_mangle]
+pub extern "C" fn os_sound_clear() {}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -59,5 +79,11 @@ mod tests {
         assert_eq!(env::current_dir().unwrap(), dir);
         let c_orig = CString::new(orig.to_str().unwrap()).unwrap();
         assert_eq!(os_chdir(c_orig.as_ptr()), 0);
+    }
+
+    #[test]
+    fn beeps() {
+        let name = CString::new("beep").unwrap();
+        assert_eq!(os_sound_playevent(name.as_ptr()), 0);
     }
 }

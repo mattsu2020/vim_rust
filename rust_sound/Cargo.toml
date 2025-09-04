@@ -1,0 +1,17 @@
+[package]
+name = "rust_sound"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rust_os_api = { path = "../rust_os_api" }
+
+[target.'cfg(unix)'.dependencies]
+rust_os_unix = { path = "../rust_os_unix" }
+
+[target.'cfg(windows)'.dependencies]
+rust_os_win32 = { path = "../rust_os_win32" }
+
+[lib]
+name = "rust_sound"
+crate-type = ["staticlib", "rlib"]
