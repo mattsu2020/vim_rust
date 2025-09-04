@@ -1,6 +1,8 @@
 use crossterm::{cursor, terminal, ExecutableCommand};
 
-use std::io::{stdout, Write, Result};
+use std::io::{stdout, Result, Write};
+
+pub mod os;
 
 /// Move the cursor to the given position.
 pub fn move_cursor_to(x: u16, y: u16) -> Result<()> {
