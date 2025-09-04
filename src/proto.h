@@ -51,8 +51,6 @@ extern int _stricoll(char *a, char *b);
 #  include "os_vms.pro"
 # endif
 
-// xdiff の mmfile_t 定義が必要なプロトタイプに先行させる
-# include "xdiff/xdiff.h"
 
 # ifdef FEAT_CRYPT
 #  include "crypt.pro"

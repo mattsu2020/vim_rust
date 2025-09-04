@@ -1485,39 +1485,6 @@ EXTRA_IPATHS += -I$(RUST_TAG_DIR)/include
 ALL_LIB_DIRS =
 ALL_LIBS = $(LIBS)
 
-# ---------------------------------------------------------------------------
-# xdiff (internal diff algorithm) sources and objects
-# ---------------------------------------------------------------------------
-
-# Headers that, when changed, should trigger recompilation of diff-related code
-XDIFF_INCL = \
-	xdiff/xinclude.h \
-	xdiff/xdiff.h \
-	xdiff/xdiffi.h \
-	xdiff/xemit.h \
-	xdiff/xtypes.h \
-	xdiff/xprepare.h \
-	xdiff/xutils.h \
-	xdiff/xmacros.h
-
-# Source files for the built-in xdiff implementation
-XDIFF_SRC = \
-	xdiff/xemit.c \
-	xdiff/xutils.c \
-	xdiff/xdiffi.c \
-	xdiff/xpatience.c \
-	xdiff/xprepare.c \
-	xdiff/xhistogram.c
-
-# Object files used at link time (prefixed to avoid subdir creation under objects/)
-XDIFF_OBJS_USED = \
-	objects/xdiff_xemit.o \
-	objects/xdiff_xutils.o \
-	objects/xdiff_xdiffi.o \
-	objects/xdiff_xpatience.o \
-	objects/xdiff_xprepare.o \
-	objects/xdiff_xhistogram.o
-
 # abbreviations
 DEST_BIN = $(DESTDIR)$(BINDIR)
 DEST_VIM = $(DESTDIR)$(VIMLOC)
@@ -1855,7 +1822,6 @@ BASIC_SRC = \
 SRC =	$(BASIC_SRC) \
 	$(GUI_SRC) \
 	$(TERM_SRC) \
-	$(XDIFF_SRC) \
 	$(LUA_SRC) \
         $(MZSCHEME_SRC) \
         $(PERL_SRC) \
@@ -1888,7 +1854,7 @@ RUN_UNITTESTS = run_rust_testsupport
 # All sources, also the ones that are not configured
 ALL_LOCAL_SRC = $(BASIC_SRC) $(ALL_GUI_SRC) $(UNITTEST_SRC) $(EXTRA_SRC) \
 		$(WAYLAND_SRC)
-ALL_SRC = $(ALL_LOCAL_SRC) $(TERM_SRC) $(XDIFF_SRC)
+ALL_SRC = $(ALL_LOCAL_SRC) $(TERM_SRC)
 
 # Which files to check with lint.  Select one of these three lines.  ALL_SRC
 # checks more, but may not work well for checking a GUI that wasn't configured.
@@ -3028,10 +2994,7 @@ depend:
 		sed -e 's+^\([^ ]*\.o\)+objects/\1+' >> tmp_make; done
 	-for i in $(TERM_SRC); do echo $$i; \
 		$(CPP_DEPEND) $$i | \
-		sed -e 's+^\([^ ]*\.o\)+objects/vterm_\1+' >> tmp_make; done
-	-for i in $(XDIFF_SRC); do echo $$i; \
-		$(CPP_DEPEND) $$i | \
-	mv tmp_make Makefile
+		sed -e 's+^\([^ ]*\.o\)+objects/vterm_\1+' >> tmp_make; done	mv tmp_make Makefile
 
 # Run lint.  Clean up the *.ln files that are sometimes left behind.
 lint:
@@ -3159,7 +3122,7 @@ objects/debugger.o: debugger.c
 objects/dict.o: dict.c
 	$(CCC) -o $@ dict.c
 
-objects/diff.o: diff.c $(XDIFF_INCL)
+objects/diff.o: diff.c
 	$(CCC) -o $@ diff.c
 
 objects/digraph.o: digraph.c
@@ -3508,25 +3471,6 @@ print-obj:
 	@echo $(OBJ) > objects/obj_list.txt
 print-libs:
 	@echo $(ALL_LIBS) > objects/lib_list.txt
-# Build xdiff objects with a prefix to avoid subdirectories under objects/
-objects/xdiff_xemit.o: xdiff/xemit.c $(XDIFF_INCL)
-	$(CCCDIFF) -o $@ xdiff/xemit.c
-
-objects/xdiff_xutils.o: xdiff/xutils.c $(XDIFF_INCL)
-	$(CCCDIFF) -o $@ xdiff/xutils.c
-
-objects/xdiff_xdiffi.o: xdiff/xdiffi.c $(XDIFF_INCL)
-	$(CCCDIFF) -o $@ xdiff/xdiffi.c
-
-objects/xdiff_xpatience.o: xdiff/xpatience.c $(XDIFF_INCL)
-	$(CCCDIFF) -o $@ xdiff/xpatience.c
-
-objects/xdiff_xprepare.o: xdiff/xprepare.c $(XDIFF_INCL)
-	$(CCCDIFF) -o $@ xdiff/xprepare.c
-
-objects/xdiff_xhistogram.o: xdiff/xhistogram.c $(XDIFF_INCL)
-	$(CCCDIFF) -o $@ xdiff/xhistogram.c
-
 # Build stubbed undo compatibility layer
 objects/undo_stubs.o: undo_stubs.c $(VIM_H_DEPENDENCIES)
 	$(CCC) -o $@ undo_stubs.c

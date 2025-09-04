@@ -664,14 +664,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "diff"
-version = "0.1.0"
-dependencies = [
- "rust_alloc",
- "similar",
-]
-
-[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2183,7 +2175,7 @@ name = "rust_diff"
 version = "0.1.0"
 dependencies = [
  "rust_linematch",
- "similar",
+ "rust_xdiff",
 ]
 
 [[package]]
@@ -3026,7 +3018,6 @@ version = "0.1.0"
 name = "rust_xdiff"
 version = "0.1.0"
 dependencies = [
- "diff",
  "similar",
 ]
 
@@ -3591,7 +3582,6 @@ version = "0.1.0"
 dependencies = [
  "blowfish",
  "create_nvcmdidxs",
- "diff",
  "pbkdf2",
  "regex",
  "ring",
