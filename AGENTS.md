@@ -14,6 +14,7 @@
 - テスト（個別）: `cargo test -p rust_buffer` など。
 - 静的解析: `cargo clippy --workspace -D warnings`。
 - フォーマット: `cargo fmt --all`。
+- 補助タスク: `cargo xtask` で補助スクリプトを実行（例: `cargo xtask pathdef`、`cargo xtask which vim`）。
 
 ## コーディング規約 / 命名
 - フォーマット: rustfmt 準拠。未整形差分は PR 前に整形。
