@@ -10,3 +10,6 @@ crate-type = ["staticlib", "rlib"]
 [dependencies]
 once_cell = "1"
 rust_usercmd = { path = "../rust_usercmd" }
+
+[features]
+ffi = []

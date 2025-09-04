@@ -80,14 +80,12 @@ impl HistoryState {
 
 static STATE: Lazy<Mutex<HistoryState>> = Lazy::new(|| Mutex::new(HistoryState::new()));
 
-#[no_mangle]
-pub extern "C" fn rs_cmd_history_init(len: c_int) {
+pub fn cmd_history_init(len: c_int) {
     let mut state = STATE.lock().unwrap();
     state.init(len as usize);
 }
 
-#[no_mangle]
-pub extern "C" fn rs_cmd_history_add(cmd: *const c_char) {
+pub fn cmd_history_add(cmd: *const c_char) {
     if cmd.is_null() {
         return;
     }
@@ -98,8 +96,7 @@ pub extern "C" fn rs_cmd_history_add(cmd: *const c_char) {
     state.add_to_history(HIST_CMD, &cmd);
 }
 
-#[no_mangle]
-pub extern "C" fn rs_cmd_history_get(idx: c_int) -> *const c_char {
+pub fn cmd_history_get(idx: c_int) -> *const c_char {
     let state = STATE.lock().unwrap();
     if let Some(entry) = state.history[HIST_CMD].get(idx as usize) {
         CString::new(entry.hisstr.clone()).unwrap().into_raw()
@@ -108,17 +105,45 @@ pub extern "C" fn rs_cmd_history_get(idx: c_int) -> *const c_char {
     }
 }
 
-#[no_mangle]
-pub extern "C" fn rs_cmd_history_len() -> c_int {
+pub fn cmd_history_len() -> c_int {
     let state = STATE.lock().unwrap();
     state.history[HIST_CMD].len() as c_int
 }
 
-#[no_mangle]
-pub extern "C" fn rs_cmd_history_clear() {
+pub fn cmd_history_clear() {
     let mut state = STATE.lock().unwrap();
     let len = state.hislen;
     state.init(len);
+}
+
+#[cfg(feature = "ffi")]
+pub mod ffi {
+    use super::*;
+
+    #[no_mangle]
+    pub extern "C" fn rs_cmd_history_init(len: c_int) {
+        cmd_history_init(len);
+    }
+
+    #[no_mangle]
+    pub extern "C" fn rs_cmd_history_add(cmd: *const c_char) {
+        cmd_history_add(cmd);
+    }
+
+    #[no_mangle]
+    pub extern "C" fn rs_cmd_history_get(idx: c_int) -> *const c_char {
+        cmd_history_get(idx)
+    }
+
+    #[no_mangle]
+    pub extern "C" fn rs_cmd_history_len() -> c_int {
+        cmd_history_len()
+    }
+
+    #[no_mangle]
+    pub extern "C" fn rs_cmd_history_clear() {
+        cmd_history_clear();
+    }
 }
 
 #[cfg(test)]
@@ -128,23 +153,23 @@ mod tests {
 
     #[test]
     fn add_and_get() {
-        rs_cmd_history_clear();
-        rs_cmd_history_add(b"cmd1\0".as_ptr() as *const c_char);
-        let ptr = rs_cmd_history_get(0);
+        cmd_history_clear();
+        cmd_history_add(b"cmd1\0".as_ptr() as *const c_char);
+        let ptr = cmd_history_get(0);
         let cstr = unsafe { CStr::from_ptr(ptr) };
         assert_eq!(cstr.to_str().unwrap(), "cmd1");
     }
 
     #[test]
     fn limit_and_duplicates() {
-        rs_cmd_history_init(2);
-        rs_cmd_history_add(b"cmd1\0".as_ptr() as *const c_char);
-        rs_cmd_history_add(b"cmd2\0".as_ptr() as *const c_char);
-        rs_cmd_history_add(b"cmd3\0".as_ptr() as *const c_char); // cmd1 dropped
-        let first = unsafe { CStr::from_ptr(rs_cmd_history_get(0)) };
+        cmd_history_init(2);
+        cmd_history_add(b"cmd1\0".as_ptr() as *const c_char);
+        cmd_history_add(b"cmd2\0".as_ptr() as *const c_char);
+        cmd_history_add(b"cmd3\0".as_ptr() as *const c_char); // cmd1 dropped
+        let first = unsafe { CStr::from_ptr(cmd_history_get(0)) };
         assert_eq!(first.to_str().unwrap(), "cmd2");
-        rs_cmd_history_add(b"cmd2\0".as_ptr() as *const c_char); // move cmd2 to end
-        let last = unsafe { CStr::from_ptr(rs_cmd_history_get(1)) };
+        cmd_history_add(b"cmd2\0".as_ptr() as *const c_char); // move cmd2 to end
+        let last = unsafe { CStr::from_ptr(cmd_history_get(1)) };
         assert_eq!(last.to_str().unwrap(), "cmd2");
     }
 
