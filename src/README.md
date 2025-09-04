@@ -49,13 +49,11 @@ findfile.c	| search for files in 'path'
 fold.c		| folding
 getchar.c	| getting characters and key mapping
 help.c		| vim help related functions
-highlight.c	| syntax highlighting
+rust_highlight/	| highlight groups, marks, and matching
 indent.c	| text indentation
 insexpand.c	| Insert mode completion
 locale.c	| locale/language handling
 map.c		| mapping and abbreviations
-mark.c		| marks
-match.c		| highlight matching
 float.c		| floating point functions
 mbyte.c		| multi-byte character handling
 memfile.c	| storing lines for buffers in a swapfile

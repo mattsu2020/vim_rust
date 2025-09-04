@@ -1808,7 +1808,6 @@ BASIC_SRC = \
         hardcopy.c \
         hashtab.c \
         \
-        highlight.c \
         if_cscope.c \
         indent.c \
         insexpand.c \
@@ -1817,8 +1816,6 @@ BASIC_SRC = \
         locale.c \
         main.c \
         map.c \
-        mark.c \
-        match.c \
         mbyte.c \
         memfile.c \
         memline.c \
@@ -1958,7 +1955,6 @@ OBJ_COMMON = \
 	objects/hardcopy.o \
 	objects/hashtab.o \
 	objects/help.o \
-	objects/highlight.o \
 	objects/if_cscope.o \
 	objects/indent.o \
 	objects/insexpand.o \
@@ -1966,8 +1962,6 @@ OBJ_COMMON = \
 	objects/list.o \
 	objects/locale.o \
 	objects/map.o \
-	objects/mark.o \
-	objects/match.o \
 	objects/mbyte.o \
 	objects/memline.o \
 	objects/menu.o \
@@ -3412,8 +3406,6 @@ objects/gui_xim.o: gui_xim.c
 objects/gui_photon.o: gui_photon.c
 	$(CCC) -o $@ gui_photon.c
 
-objects/highlight.o: highlight.c
-	$(CCC) -o $@ highlight.c
 
 objects/if_cscope.o: if_cscope.c
 	$(CCC) -o $@ if_cscope.c
@@ -3466,11 +3458,6 @@ objects/main.o: main.c
 objects/map.o: map.c
 	$(CCC) -o $@ map.c
 
-objects/mark.o: mark.c
-	$(CCC) -o $@ mark.c
-
-objects/match.o: match.c
-	$(CCC) -o $@ match.c
 
 objects/memfile.o: memfile.c
 	$(CCC) -o $@ memfile.c
@@ -3930,11 +3917,6 @@ objects/help.o: help.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
 	$(CCC) -o $@ help.c
-objects/highlight.o: highlight.c vim.h protodef.h auto/config.h feature.h \
- os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
- beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
- libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \
- ex_cmds.h spell.h proto.h globals.h errors.h
 objects/if_cscope.o: if_cscope.c vim.h protodef.h auto/config.h feature.h \
  os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
@@ -3971,16 +3953,6 @@ objects/main.o: main.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
 objects/map.o: map.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
-objects/mark.o: mark.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
- proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
- libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
- globals.h errors.h
-objects/match.o: match.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \

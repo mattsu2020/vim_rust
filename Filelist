@@ -75,7 +75,6 @@ SRC_ALL =	\
 		src/hardcopy.c \
 		src/hashtab.c \
 		src/help.c \
-		src/highlight.c \
 		src/indent.c \
 		src/insexpand.c \
                 src/job.c \
@@ -86,8 +85,6 @@ SRC_ALL =	\
 		src/logfile.c \
 		src/macros.h \
 		src/map.c \
-		src/mark.c \
-		src/match.c \
 		src/mbyte.c \
 		src/memfile.c \
                 src/memfile_test.c \
@@ -253,7 +250,6 @@ SRC_ALL =	\
 		src/proto/hardcopy.pro \
 		src/proto/hashtab.pro \
 		src/proto/help.pro \
-		src/proto/highlight.pro \
 		src/proto/indent.pro \
                 src/proto/insexpand.pro \
                 src/proto/job.pro \
@@ -263,8 +259,6 @@ SRC_ALL =	\
 		src/proto/logfile.pro \
 		src/proto/main.pro \
 		src/proto/map.pro \
-		src/proto/mark.pro \
-		src/proto/match.pro \
 		src/proto/mbyte.pro \
 		src/proto/memfile.pro \
 		src/proto/memline.pro \

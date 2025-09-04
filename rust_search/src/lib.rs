@@ -3,6 +3,7 @@ use regex::Regex;
 use std::ffi::{CStr, CString};
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
+use rust_highlight::record_match;
 
 extern "C" {
     fn ml_get_buf(buf: *mut buf_T, lnum: c_long, will_change: c_int) -> *const c_uchar;
@@ -146,6 +147,7 @@ pub extern "C" fn rust_find_pattern_in_path(
                 if re.is_match(path_str) {
                     if let Ok(c_path) = CString::new(path_str) {
                         unsafe { report_match(c_path.as_ptr() as *const c_uchar) };
+                        record_match(pat_str);
                     }
                 }
             }

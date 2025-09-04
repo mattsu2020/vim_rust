@@ -109,7 +109,6 @@ SRC += \
         hardcopy.c \
         hashtab.c \
 	help.c \
-	highlight.c \
 	if_cscope.c \
         indent.c \
         insexpand.c \
@@ -118,9 +117,7 @@ SRC += \
 	locale.c \
 	logfile.c \
 	main.c \
-	mark.c \
-	map.c \
-	match.c \
+        map.c \
 	mbyte.c \
 	memfile.c \
 	memline.c \
