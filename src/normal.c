@@ -284,7 +284,7 @@ getcount:
 		--no_mapping;
 		--allow_keys;
 	    }
-	    *need_flushbuf |= add_to_showcmd(c);
+	    *need_flushbuf |= rs_add_to_showcmd(c);
 	}
 
 	// If we got CTRL-W there may be a/another count
@@ -299,7 +299,7 @@ getcount:
 	    LANGMAP_ADJUST(c, TRUE);
 	    --no_mapping;
 	    --allow_keys;
-	    *need_flushbuf |= add_to_showcmd(c);
+	    *need_flushbuf |= rs_add_to_showcmd(c);
 	    goto getcount;		// jump back
 	}
     }
@@ -400,7 +400,7 @@ normal_cmd_get_more_chars(
 	 */
 	cap->nchar = plain_vgetc();
 	LANGMAP_ADJUST(cap->nchar, TRUE);
-	*need_flushbuf |= add_to_showcmd(cap->nchar);
+	*need_flushbuf |= rs_add_to_showcmd(cap->nchar);
 	if (cap->nchar == 'r' || cap->nchar == '\'' || cap->nchar == '`'
 		|| cap->nchar == Ctrl_BSL)
 	{
@@ -491,7 +491,7 @@ normal_cmd_get_more_chars(
 	p_smd = save_smd;
 #endif
 	State = MODE_NORMAL_BUSY;
-	*need_flushbuf |= add_to_showcmd(*cp);
+	*need_flushbuf |= rs_add_to_showcmd(*cp);
 
 	if (!lit)
 	{
@@ -508,7 +508,7 @@ normal_cmd_get_more_chars(
 		    *cp = c;
 		    // Guessing how to update showcmd here...
 		    rs_del_from_showcmd(3);
-		    *need_flushbuf |= add_to_showcmd(*cp);
+		    *need_flushbuf |= rs_add_to_showcmd(*cp);
 		}
 	    }
 #endif
@@ -1231,7 +1231,7 @@ may_clear_cmdline(void)
 
 static char_u	old_showcmd_buf[SHOWCMD_BUFLEN];  // For push_showcmd()
 static int	showcmd_is_clear = TRUE;
-static int	showcmd_visual = FALSE;
+int showcmd_visual = FALSE;
 
 static void display_showcmd(void);
 
@@ -1337,83 +1337,6 @@ clear_showcmd(void)
     display_showcmd();
 }
 
-/*
- * Add 'c' to string of shown command chars.
- * Return TRUE if output has been written (and setcursor() has been called).
- */
-    int
-add_to_showcmd(int c)
-{
-    char_u	*p;
-    int		old_len;
-    int		extra_len;
-    int		overflow;
-    int		i;
-    char_u	mbyte_buf[MB_MAXBYTES];
-    static int	ignore[] =
-    {
-#ifdef FEAT_GUI
-	K_VER_SCROLLBAR, K_HOR_SCROLLBAR,
-	K_LEFTMOUSE_NM, K_LEFTRELEASE_NM,
-#endif
-	K_IGNORE, K_PS,
-	K_LEFTMOUSE, K_LEFTDRAG, K_LEFTRELEASE, K_MOUSEMOVE,
-	K_MIDDLEMOUSE, K_MIDDLEDRAG, K_MIDDLERELEASE,
-	K_RIGHTMOUSE, K_RIGHTDRAG, K_RIGHTRELEASE,
-	K_MOUSEDOWN, K_MOUSEUP, K_MOUSELEFT, K_MOUSERIGHT,
-	K_X1MOUSE, K_X1DRAG, K_X1RELEASE, K_X2MOUSE, K_X2DRAG, K_X2RELEASE,
-	K_CURSORHOLD,
-	0
-    };
-
-    if (!p_sc || msg_silent != 0)
-	return FALSE;
-
-    if (showcmd_visual)
-    {
-	showcmd_buf[0] = NUL;
-	showcmd_visual = FALSE;
-    }
-
-    // Ignore keys that are scrollbar updates and mouse clicks
-    if (IS_SPECIAL(c))
-	for (i = 0; ignore[i] != 0; ++i)
-	    if (ignore[i] == c)
-		return FALSE;
-
-    if (c <= 0x7f || !vim_isprintc(c))
-    {
-	p = transchar(c);
-	if (*p == ' ')
-	    STRCPY(p, "<20>");
-    }
-    else
-    {
-	mbyte_buf[(*mb_char2bytes)(c, mbyte_buf)] = NUL;
-	p = mbyte_buf;
-    }
-    old_len = (int)STRLEN(showcmd_buf);
-    extra_len = (int)STRLEN(p);
-    overflow = old_len + extra_len - SHOWCMD_COLS;
-    if (overflow > 0)
-	mch_memmove(showcmd_buf, showcmd_buf + overflow,
-						      old_len - overflow + 1);
-    STRCAT(showcmd_buf, p);
-
-    if (char_avail())
-	return FALSE;
-
-    display_showcmd();
-
-    return TRUE;
-}
-
-    void
-add_to_showcmd_c(int c)
-{
-    if (!add_to_showcmd(c))
-	setcursor();
-}
 
 /*
  * push_showcmd() and pop_showcmd() are used when waiting for the user to type
@@ -2132,7 +2055,7 @@ nv_z_get_count(cmdarg_T *cap, int *nchar_arg)
 	LANGMAP_ADJUST(nchar, TRUE);
 	--no_mapping;
 	--allow_keys;
-	(void)add_to_showcmd(nchar);
+	(void)rs_add_to_showcmd(nchar);
 
 	if (nchar == K_DEL || nchar == K_KDEL)
 	    n /= 10;
@@ -2194,7 +2117,7 @@ nv_zg_zw(cmdarg_T *cap, int nchar)
 	LANGMAP_ADJUST(nchar, TRUE);
 	--no_mapping;
 	--allow_keys;
-	(void)add_to_showcmd(nchar);
+	(void)rs_add_to_showcmd(nchar);
 
 	if (vim_strchr((char_u *)"gGwW", nchar) == NULL)
 	{
