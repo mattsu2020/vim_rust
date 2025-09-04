@@ -805,13 +805,10 @@ fp_typval2type(typval_T *tv, garray_T *type_gap)
 	int idx = find_internal_func(name);
 
 	if (idx >= 0)
-	{
-	    type_T *decl_type;  // unused
-
-	    internal_func_get_argcount(idx, &argcount, &min_argcount);
-	    member_type = internal_func_ret_type(idx, 0, NULL, &decl_type,
-		    type_gap);
-	}
+        {
+            internal_func_get_argcount(idx, &argcount, &min_argcount);
+            member_type = internal_func_ret_type(idx, 0, NULL, NULL, type_gap);
+        }
 	else
 	{
 	    // Check if name contains "<".  If it does, then replace "<" with
