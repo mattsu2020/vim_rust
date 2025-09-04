@@ -1619,7 +1619,7 @@ ins_ctrl_v(void)
     }
     AppendToRedobuff((char_u *)CTRL_V_STR);	// CTRL-V
 
-    add_to_showcmd_c(Ctrl_V);
+    rs_add_to_showcmd_c(Ctrl_V);
 
     // Do not change any modifyOtherKeys ESC sequence to a normal key for
     // CTRL-SHIFT-V.
@@ -1964,7 +1964,7 @@ get_literal(int noReduceKeys)
 	    break;
 
 	if ((State & MODE_CMDLINE) == 0 && MB_BYTE2LEN_CHECK(nc) == 1)
-	    add_to_showcmd(nc);
+	    rs_add_to_showcmd(nc);
 	if (nc == 'x' || nc == 'X')
 	    hex = TRUE;
 	else if (nc == 'o' || nc == 'O')
@@ -3463,7 +3463,7 @@ ins_reg(void)
 	ins_redraw(FALSE);
 
 	edit_putchar('"', TRUE);
-	add_to_showcmd_c(Ctrl_R);
+	rs_add_to_showcmd_c(Ctrl_R);
     }
 
 #ifdef USE_ON_FLY_SCROLL
@@ -3482,7 +3482,7 @@ ins_reg(void)
     {
 	// Get a third key for literal register insertion
 	literally = regname;
-	add_to_showcmd_c(literally);
+	rs_add_to_showcmd_c(literally);
 	regname = plain_vgetc();
 	LANGMAP_ADJUST(regname, TRUE);
     }
@@ -5311,7 +5311,7 @@ ins_digraph(void)
 
 	edit_putchar('?', TRUE);
 	did_putchar = TRUE;
-	add_to_showcmd_c(Ctrl_K);
+	rs_add_to_showcmd_c(Ctrl_K);
     }
 
 #ifdef USE_ON_FLY_SCROLL
@@ -5350,7 +5350,7 @@ ins_digraph(void)
 		edit_putchar(c, TRUE);
 		did_putchar = TRUE;
 	    }
-	    add_to_showcmd_c(c);
+	    rs_add_to_showcmd_c(c);
 	}
 	++no_mapping;
 	++allow_keys;

@@ -182,7 +182,7 @@ get_digraph(
 	    putcmdline(c, TRUE);
     }
     else
-	add_to_showcmd(c);
+	rs_add_to_showcmd(c);
     ++no_mapping;
     ++allow_keys;
     cc = plain_vgetc();

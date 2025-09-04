@@ -1831,7 +1831,7 @@ merge_modifyOtherKeys(int c_arg, int *modifiers)
 
 /*
  * Add a single byte to 'showcmd' for a partially matched mapping.
- * Call add_to_showcmd() if a full key has been received.
+ * Call rs_add_to_showcmd() if a full key has been received.
  */
     static void
 add_byte_to_showcmd(char_u byte)
@@ -1880,14 +1880,14 @@ add_byte_to_showcmd(char_u byte)
     // modifiers and special keys?
     if (modifiers != 0)
     {
-	add_to_showcmd(K_SPECIAL);
-	add_to_showcmd(KS_MODIFIER);
-	add_to_showcmd(modifiers);
+	rs_add_to_showcmd(K_SPECIAL);
+	rs_add_to_showcmd(KS_MODIFIER);
+	rs_add_to_showcmd(modifiers);
     }
     if (c != NUL)
-	add_to_showcmd(c);
+	rs_add_to_showcmd(c);
     while (*ptr != NUL)
-	add_to_showcmd(*ptr++);
+	rs_add_to_showcmd(*ptr++);
 }
 
 /*
@@ -3480,7 +3480,7 @@ vgetorpeek(int advance)
     /*
      * This function doesn't work very well when called recursively.  This may
      * happen though, because of:
-     * 1. The call to add_to_showcmd().	char_avail() is then used to check if
+     * 1. The call to rs_add_to_showcmd().	char_avail() is then used to check if
      * there is a character available, which calls this function.  In that
      * case we must return NUL, to indicate no character is available.
      * 2. A GUI callback function writes to the screen, causing a
