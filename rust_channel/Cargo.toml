@@ -5,7 +5,7 @@ edition = "2021"
 
 [lib]
 name = "rust_channel"
-crate-type = ["staticlib"]
+crate-type = ["staticlib", "rlib"]
 
 [dependencies]
 tokio = { version = "1", features = ["rt", "rt-multi-thread", "net", "io-util"] }

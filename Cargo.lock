@@ -2256,6 +2256,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_exeval"
+version = "0.1.0"
+dependencies = [
+ "rust_excmds",
+]
+
+[[package]]
 name = "rust_ffi"
 version = "0.1.0"
 
@@ -2495,6 +2502,22 @@ name = "rust_move"
 version = "0.1.0"
 
 [[package]]
+name = "rust_nbdebug"
+version = "0.1.0"
+dependencies = [
+ "once_cell",
+]
+
+[[package]]
+name = "rust_netbeans"
+version = "0.1.0"
+dependencies = [
+ "rust_channel",
+ "rust_nbdebug",
+ "tokio",
+]
+
+[[package]]
 name = "rust_normal"
 version = "0.1.0"
 
@@ -2631,6 +2654,13 @@ dependencies = [
  "criterion 0.5.1",
  "regex",
  "rust_fuzzy",
+]
+
+[[package]]
+name = "rust_register"
+version = "0.1.0"
+dependencies = [
+ "rust_clipboard",
 ]
 
 [[package]]
@@ -3426,6 +3456,8 @@ dependencies = [
  "rust_gc",
  "rust_job",
  "rust_message",
+ "rust_nbdebug",
+ "rust_netbeans",
  "rust_os_amiga",
  "rust_os_qnx",
  "rust_os_unix",

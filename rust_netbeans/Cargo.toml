@@ -1,0 +1,9 @@
+[package]
+name = "rust_netbeans"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1", features = ["net", "io-util", "rt", "macros"] }
+rust_channel = { path = "../rust_channel" }
+rust_nbdebug = { path = "../rust_nbdebug" }
