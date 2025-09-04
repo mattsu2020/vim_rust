@@ -5,10 +5,23 @@ use std::sync::{Mutex, OnceLock};
 
 use rust_optionstr::is_valid as option_string_is_valid;
 
-mod bindings {
-    include!("bindings.rs");
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(non_camel_case_types)]
+pub enum rs_opt_type {
+    RS_OPT_BOOL = 0,
+    RS_OPT_NUMBER = 1,
+    RS_OPT_STRING = 2,
 }
-use bindings::rs_opt_t;
+
+#[repr(C)]
+#[derive(Debug, Clone, Copy)]
+#[allow(non_camel_case_types)]
+pub struct rs_opt_t {
+    pub name: *const c_char,
+    pub typ: rs_opt_type,
+    pub default_value: *const c_char,
+}
 unsafe impl Sync for rs_opt_t {}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
