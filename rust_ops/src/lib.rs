@@ -2,6 +2,119 @@
 
 use std::os::raw::{c_int, c_long};
 
+const OPF_LINES: u8 = 1; // operator always works on lines
+const OPF_CHANGE: u8 = 2; // operator changes text
+
+const CTRL_A: u8 = 0x01;
+const CTRL_X: u8 = 0x18;
+
+const OPCHARS: &[(u8, u8, u8)] = &[
+    (0, 0, 0),                             // OP_NOP
+    (b'd', 0, OPF_CHANGE),                 // OP_DELETE
+    (b'y', 0, 0),                          // OP_YANK
+    (b'c', 0, OPF_CHANGE),                 // OP_CHANGE
+    (b'<', 0, OPF_LINES | OPF_CHANGE),     // OP_LSHIFT
+    (b'>', 0, OPF_LINES | OPF_CHANGE),     // OP_RSHIFT
+    (b'!', 0, OPF_LINES | OPF_CHANGE),     // OP_FILTER
+    (b'g', b'~', OPF_CHANGE),              // OP_TILDE
+    (b'=', 0, OPF_LINES | OPF_CHANGE),     // OP_INDENT
+    (b'g', b'q', OPF_LINES | OPF_CHANGE),  // OP_FORMAT
+    (b':', 0, OPF_LINES),                  // OP_COLON
+    (b'g', b'U', OPF_CHANGE),              // OP_UPPER
+    (b'g', b'u', OPF_CHANGE),              // OP_LOWER
+    (b'J', 0, OPF_LINES | OPF_CHANGE),     // DO_JOIN
+    (b'g', b'J', OPF_LINES | OPF_CHANGE),  // DO_JOIN_NS
+    (b'g', b'?', OPF_CHANGE),              // OP_ROT13
+    (b'r', 0, OPF_CHANGE),                 // OP_REPLACE
+    (b'I', 0, OPF_CHANGE),                 // OP_INSERT
+    (b'A', 0, OPF_CHANGE),                 // OP_APPEND
+    (b'z', b'f', OPF_LINES),               // OP_FOLD
+    (b'z', b'o', OPF_LINES),               // OP_FOLDOPEN
+    (b'z', b'O', OPF_LINES),               // OP_FOLDOPENREC
+    (b'z', b'c', OPF_LINES),               // OP_FOLDCLOSE
+    (b'z', b'C', OPF_LINES),               // OP_FOLDCLOSEREC
+    (b'z', b'd', OPF_LINES),               // OP_FOLDDEL
+    (b'z', b'D', OPF_LINES),               // OP_FOLDDELREC
+    (b'g', b'w', OPF_LINES | OPF_CHANGE),  // OP_FORMAT2
+    (b'g', b'@', OPF_CHANGE),              // OP_FUNCTION
+    (CTRL_A, 0, OPF_CHANGE),               // OP_NR_ADD
+    (CTRL_X, 0, OPF_CHANGE),               // OP_NR_SUB
+];
+
+const OP_NOP: usize = 0;
+const OP_DELETE: usize = 1;
+const OP_YANK: usize = 2;
+const OP_LSHIFT: usize = 4;
+const OP_TILDE: usize = 7;
+const OP_REPLACE: usize = 16;
+const OP_NR_ADD: usize = 28;
+const OP_NR_SUB: usize = 29;
+
+#[no_mangle]
+pub extern "C" fn get_op_type(char1: c_int, char2: c_int) -> c_int {
+    if char1 == b'r' as c_int {
+        return OP_REPLACE as c_int;
+    }
+    if char1 == b'~' as c_int {
+        return OP_TILDE as c_int;
+    }
+    if char1 == b'g' as c_int && char2 == CTRL_A as c_int {
+        return OP_NR_ADD as c_int;
+    }
+    if char1 == b'g' as c_int && char2 == CTRL_X as c_int {
+        return OP_NR_SUB as c_int;
+    }
+    if char1 == b'z' as c_int && char2 == b'y' as c_int {
+        return OP_YANK as c_int;
+    }
+    for (i, &(c1, c2, _)) in OPCHARS.iter().enumerate() {
+        if c1 as c_int == char1 && c2 as c_int == char2 {
+            return i as c_int;
+        }
+    }
+    OP_NOP as c_int
+}
+
+#[no_mangle]
+pub extern "C" fn rs_op_on_lines(op: c_int) -> c_int {
+    if op < 0 || (op as usize) >= OPCHARS.len() {
+        return 0;
+    }
+    if OPCHARS[op as usize].2 & OPF_LINES != 0 {
+        1
+    } else {
+        0
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn op_is_change(op: c_int) -> c_int {
+    if op < 0 || (op as usize) >= OPCHARS.len() {
+        return 0;
+    }
+    if OPCHARS[op as usize].2 & OPF_CHANGE != 0 {
+        1
+    } else {
+        0
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn get_op_char(optype: c_int) -> c_int {
+    if optype < 0 || (optype as usize) >= OPCHARS.len() {
+        return 0;
+    }
+    OPCHARS[optype as usize].0 as c_int
+}
+
+#[no_mangle]
+pub extern "C" fn get_extra_op_char(optype: c_int) -> c_int {
+    if optype < 0 || (optype as usize) >= OPCHARS.len() {
+        return 0;
+    }
+    OPCHARS[optype as usize].1 as c_int
+}
+
 #[repr(C)]
 pub struct oparg_T {
     _private: [u8; 0],
@@ -101,5 +214,16 @@ mod tests {
     fn smoke_test() {
         let res = unsafe { rs_op_change(std::ptr::null_mut()) };
         assert_eq!(res, 0);
+    }
+
+    #[test]
+    fn get_op_type_basic() {
+        assert_eq!(get_op_type(b'd' as c_int, 0), OP_DELETE as c_int);
+    }
+
+    #[test]
+    fn op_on_lines_checks_flag() {
+        assert_eq!(rs_op_on_lines(OP_LSHIFT as c_int), 1);
+        assert_eq!(rs_op_on_lines(OP_YANK as c_int), 0);
     }
 }

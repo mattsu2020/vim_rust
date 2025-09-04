@@ -26,119 +26,6 @@ static void	pbyte(pos_T lp, int c);
 #define PBYTE(lp, c) pbyte(lp, c)
 
 
-// Flags for third item in "opchars".
-#define OPF_LINES  1	// operator always works on lines
-#define OPF_CHANGE 2	// operator changes text
-
-/*
- * The names of operators.
- * IMPORTANT: Index must correspond with defines in vim.h!!!
- * The third field holds OPF_ flags.
- */
-static char opchars[][3] =
-{
-    {NUL, NUL, 0},			// OP_NOP
-    {'d', NUL, OPF_CHANGE},		// OP_DELETE
-    {'y', NUL, 0},			// OP_YANK
-    {'c', NUL, OPF_CHANGE},		// OP_CHANGE
-    {'<', NUL, OPF_LINES | OPF_CHANGE},	// OP_LSHIFT
-    {'>', NUL, OPF_LINES | OPF_CHANGE},	// OP_RSHIFT
-    {'!', NUL, OPF_LINES | OPF_CHANGE},	// OP_FILTER
-    {'g', '~', OPF_CHANGE},		// OP_TILDE
-    {'=', NUL, OPF_LINES | OPF_CHANGE},	// OP_INDENT
-    {'g', 'q', OPF_LINES | OPF_CHANGE},	// OP_FORMAT
-    {':', NUL, OPF_LINES},		// OP_COLON
-    {'g', 'U', OPF_CHANGE},		// OP_UPPER
-    {'g', 'u', OPF_CHANGE},		// OP_LOWER
-    {'J', NUL, OPF_LINES | OPF_CHANGE},	// DO_JOIN
-    {'g', 'J', OPF_LINES | OPF_CHANGE},	// DO_JOIN_NS
-    {'g', '?', OPF_CHANGE},		// OP_ROT13
-    {'r', NUL, OPF_CHANGE},		// OP_REPLACE
-    {'I', NUL, OPF_CHANGE},		// OP_INSERT
-    {'A', NUL, OPF_CHANGE},		// OP_APPEND
-    {'z', 'f', OPF_LINES},		// OP_FOLD
-    {'z', 'o', OPF_LINES},		// OP_FOLDOPEN
-    {'z', 'O', OPF_LINES},		// OP_FOLDOPENREC
-    {'z', 'c', OPF_LINES},		// OP_FOLDCLOSE
-    {'z', 'C', OPF_LINES},		// OP_FOLDCLOSEREC
-    {'z', 'd', OPF_LINES},		// OP_FOLDDEL
-    {'z', 'D', OPF_LINES},		// OP_FOLDDELREC
-    {'g', 'w', OPF_LINES | OPF_CHANGE},	// OP_FORMAT2
-    {'g', '@', OPF_CHANGE},		// OP_FUNCTION
-    {Ctrl_A, NUL, OPF_CHANGE},		// OP_NR_ADD
-    {Ctrl_X, NUL, OPF_CHANGE},		// OP_NR_SUB
-};
-
-/*
- * Translate a command name into an operator type.
- * Must only be called with a valid operator name!
- */
-    int
-get_op_type(int char1, int char2)
-{
-    int		i;
-
-    if (char1 == 'r')		// ignore second character
-	return OP_REPLACE;
-    if (char1 == '~')		// when tilde is an operator
-	return OP_TILDE;
-    if (char1 == 'g' && char2 == Ctrl_A)	// add
-	return OP_NR_ADD;
-    if (char1 == 'g' && char2 == Ctrl_X)	// subtract
-	return OP_NR_SUB;
-    if (char1 == 'z' && char2 == 'y')	// OP_YANK
-	return OP_YANK;
-    for (i = 0; ; ++i)
-    {
-	if (opchars[i][0] == char1 && opchars[i][1] == char2)
-	    break;
-	if (i == (int)ARRAY_LENGTH(opchars) - 1)
-	{
-	    internal_error("get_op_type()");
-	    break;
-	}
-    }
-    return i;
-}
-
-/*
- * Return TRUE if operator "op" always works on whole lines.
- */
-    static int
-op_on_lines(int op)
-{
-    return opchars[op][2] & OPF_LINES;
-}
-
-#if defined(FEAT_JOB_CHANNEL) || defined(PROTO)
-/*
- * Return TRUE if operator "op" changes text.
- */
-    int
-op_is_change(int op)
-{
-    return opchars[op][2] & OPF_CHANGE;
-}
-#endif
-
-/*
- * Get first operator command character.
- * Returns 'g' or 'z' if there is another command character.
- */
-    int
-get_op_char(int optype)
-{
-    return opchars[optype][0];
-}
-
-/*
- * Get second operator command character.
- */
-    int
-get_extra_op_char(int optype)
-{
-    return opchars[optype][1];
-}
 
 /*
  * op_shift - handle a shift operation
@@ -4201,7 +4088,7 @@ do_pending_operator(cmdarg_T *cap, int old_col, int gui_yank)
 		    // Try to include the newline, unless it's an operator
 		    // that works on lines only.
 		    if (*p_sel != 'o'
-			    && !op_on_lines(oap->op_type)
+			    && !rs_op_on_lines(oap->op_type)
 			    && oap->end.lnum < curbuf->b_ml.ml_line_count)
 		    {
 			++oap->end.lnum;
