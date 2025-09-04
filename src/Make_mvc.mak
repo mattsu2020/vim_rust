@@ -825,8 +825,6 @@ RCFLAGS = $(RCFLAGS) -DFEAT_GUI_MSWIN
 ! IF "$(VIMDLL)" == "yes"
 SUBSYSTEM_CON = console
 GVIM = g$(VIM)
-CUI_INCL = iscygpty.h
-CUI_OBJ = $(OUTDIR)\iscygpty.obj
 RCFLAGS = $(RCFLAGS) -DVIMDLL
 ! ELSE
 VIM = g$(VIM)
@@ -841,8 +839,6 @@ GUI_LIB = \
 	version.lib $(IME_LIB) winspool.lib comctl32.lib
 !ELSE
 SUBSYSTEM = console
-CUI_INCL = iscygpty.h
-CUI_OBJ = $(OUTDIR)\iscygpty.obj
 !ENDIF
 SUBSYSTEM_TOOLS = console
 
@@ -1269,7 +1265,7 @@ all: $(MAIN_TARGET) \
 
 !IF "$(VIMDLL)" == "yes"
 
-$(VIMDLLBASE).dll: $(OUTDIR) $(OBJ) $(XDIFF_OBJ) $(GUI_OBJ) $(CUI_OBJ) \
+$(VIMDLLBASE).dll: $(OUTDIR) $(OBJ) $(XDIFF_OBJ) $(GUI_OBJ)  \
 		$(OLE_OBJ) $(OLE_IDL) $(MZSCHEME_OBJ) $(LUA_OBJ) $(PERL_OBJ) \
 		$(PYTHON_OBJ) $(PYTHON3_OBJ) $(RUBY_OBJ) $(TCL_OBJ) \
 		$(TERM_OBJ) $(SOUND_OBJ) $(NETBEANS_OBJ) $(CHANNEL_OBJ) \
@@ -1277,7 +1273,7 @@ $(VIMDLLBASE).dll: $(OUTDIR) $(OBJ) $(XDIFF_OBJ) $(GUI_OBJ) $(CUI_OBJ) \
 	$(CC) $(CFLAGS_OUTDIR) version.c
 	$(LINK) @<<
 $(LINKARGS1) /dll -out:$(VIMDLLBASE).dll $(OBJ) $(XDIFF_OBJ)
-$(GUI_OBJ) $(CUI_OBJ) $(OLE_OBJ) $(LUA_OBJ) $(MZSCHEME_OBJ) $(PERL_OBJ)
+$(GUI_OBJ)  $(OLE_OBJ) $(LUA_OBJ) $(MZSCHEME_OBJ) $(PERL_OBJ)
 $(PYTHON_OBJ) $(PYTHON3_OBJ) $(RUBY_OBJ) $(TCL_OBJ) $(TERM_OBJ) $(SOUND_OBJ)
 $(NETBEANS_OBJ) $(CHANNEL_OBJ) $(XPM_OBJ) $(OUTDIR)\version.obj $(LINKARGS2)
 <<
@@ -1292,7 +1288,7 @@ $(VIM).exe: $(OUTDIR) $(EXEOBJC) $(VIMDLLBASE).dll
 
 !ELSE
 
-$(VIM).exe: $(OUTDIR) $(OBJ) $(XDIFF_OBJ) $(GUI_OBJ) $(CUI_OBJ) \
+$(VIM).exe: $(OUTDIR) $(OBJ) $(XDIFF_OBJ) $(GUI_OBJ)  \
 		$(OLE_OBJ) $(OLE_IDL) $(MZSCHEME_OBJ) $(LUA_OBJ) $(PERL_OBJ) \
 		$(PYTHON_OBJ) $(PYTHON3_OBJ) $(RUBY_OBJ) $(TCL_OBJ) \
 		$(TERM_OBJ) $(SOUND_OBJ) $(NETBEANS_OBJ) $(CHANNEL_OBJ) \
@@ -1300,7 +1296,7 @@ $(VIM).exe: $(OUTDIR) $(OBJ) $(XDIFF_OBJ) $(GUI_OBJ) $(CUI_OBJ) \
 	$(CC) $(CFLAGS_OUTDIR) version.c
 	$(LINK) @<<
 $(LINKARGS1) /subsystem:$(SUBSYSTEM) -out:$(VIM).exe $(OBJ) $(XDIFF_OBJ)
-$(GUI_OBJ) $(CUI_OBJ) $(OLE_OBJ) $(LUA_OBJ) $(MZSCHEME_OBJ) $(PERL_OBJ)
+$(GUI_OBJ)  $(OLE_OBJ) $(LUA_OBJ) $(MZSCHEME_OBJ) $(PERL_OBJ)
 $(PYTHON_OBJ) $(PYTHON3_OBJ) $(RUBY_OBJ) $(TCL_OBJ) $(TERM_OBJ) $(SOUND_OBJ)
 $(NETBEANS_OBJ) $(CHANNEL_OBJ) $(XPM_OBJ) $(OUTDIR)\version.obj $(LINKARGS2)
 <<
@@ -1587,7 +1583,6 @@ $(OUTDIR)/if_ruby.obj: $(OUTDIR) if_ruby.c $(INCL) version.h
 $(OUTDIR)/if_tcl.obj: $(OUTDIR) if_tcl.c $(INCL)
 	$(CC) $(CFLAGS_OUTDIR) $(TCL_INC) if_tcl.c
 
-$(OUTDIR)/iscygpty.obj: $(OUTDIR) iscygpty.c $(CUI_INCL)
 
 $(OUTDIR)/job.obj: $(OUTDIR) job.c $(INCL)
 
@@ -1599,7 +1594,7 @@ $(OUTDIR)/locale.obj: $(OUTDIR) locale.c $(INCL)
 
 $(OUTDIR)/logfile.obj: $(OUTDIR) logfile.c $(INCL)
 
-$(OUTDIR)/main.obj: $(OUTDIR) main.c $(INCL) $(CUI_INCL)
+$(OUTDIR)/main.obj: $(OUTDIR) main.c $(INCL) 
 
 $(OUTDIR)/map.obj: $(OUTDIR) map.c $(INCL)
 

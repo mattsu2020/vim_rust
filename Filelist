@@ -490,8 +490,6 @@ SRC_DOS =	\
                 src/gui_dwrite.h \
 		src/gui_w32.c \
 		src/gui_w32_rc.h \
-		src/iscygpty.c \
-		src/iscygpty.h \
 		src/os_dos.h \
 		src/os_win32.h \
 		src/proto/gui_w32.pro \

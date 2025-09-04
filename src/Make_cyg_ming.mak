@@ -765,10 +765,9 @@ endif
 
 LIB = -lkernel32 -luser32 -lgdi32 -ladvapi32 -lcomdlg32 -lcomctl32 -lnetapi32 -lversion
 GUIOBJ =  $(OUTDIR)/gui.o $(OUTDIR)/gui_w32.o $(OUTDIR)/gui_beval.o
-CUIOBJ = $(OUTDIR)/iscygpty.o
 OBJ = \
         $(OUTDIR)/alloc.o \
-	$(OUTDIR)/arabic.o \
+        $(OUTDIR)/arabic.o \
 	$(OUTDIR)/arglist.o \
 	$(OUTDIR)/autocmd.o \
 	$(OUTDIR)/beval.o \
@@ -1006,7 +1005,7 @@ EXELFLAGS += -nostdlib
 EXECFLAGS = -DUSE_OWNSTARTUP
  endif
 DEFINES += $(DEF_GUI) -DVIMDLL
-OBJ += $(GUIOBJ) $(CUIOBJ)
+OBJ += $(GUIOBJ)
 OUTDIR = dobj$(DEBUG_SUFFIX)$(MZSCHEME_SUFFIX)$(ARCH)
 MAIN_TARGET = $(GVIMEXE) $(VIMEXE) $(VIMDLLBASE).dll
 else ifeq ($(GUI),yes)
@@ -1017,7 +1016,6 @@ LFLAGS += -mwindows
 OUTDIR = gobj$(DEBUG_SUFFIX)$(MZSCHEME_SUFFIX)$(ARCH)
 MAIN_TARGET = $(TARGET)
 else
-OBJ += $(CUIOBJ)
 TARGET := vim$(DEBUG_SUFFIX).exe
 OUTDIR = obj$(DEBUG_SUFFIX)$(MZSCHEME_SUFFIX)$(ARCH)
 MAIN_TARGET = $(TARGET)
@@ -1221,8 +1219,6 @@ GUI_INCL = gui.h
 ifeq ($(DIRECTX),yes)
 GUI_INCL += gui_dwrite.h
 endif
-CUI_INCL = iscygpty.h
-
 PATHDEF_SRC = $(OUTDIR)/pathdef.c
 
 $(OUTDIR)/if_python.o:	if_python.c if_py_both.h $(INCL)
@@ -1343,10 +1339,7 @@ ifeq (16, $(RUBY))
 	$(CC) $(CFLAGS) -U_WIN32 -c -o $@ if_ruby.c
 endif
 
-$(OUTDIR)/iscygpty.o:	iscygpty.c $(CUI_INCL)
-	$(CC) -c $(CFLAGS) iscygpty.c -o $@
-
-$(OUTDIR)/main.o:	main.c $(INCL) $(CUI_INCL)
+$(OUTDIR)/main.o:	main.c $(INCL)
 	$(CC) -c $(CFLAGS) main.c -o $@
 
 $(OUTDIR)/netbeans.o:	netbeans.c $(INCL) $(NBDEBUG_INCL) $(NBDEBUG_SRC)
