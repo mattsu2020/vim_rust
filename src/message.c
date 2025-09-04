@@ -135,40 +135,71 @@ verb_msg(char *s)
         rs_queue_message(s, 0);
 }
 
-// Stubs for unused functionality
+// Basic implementations for previously empty stubs -----------------------
+// Clear from the current message position to the end of the screen.
 void
 msg_clr_eos(void)
 {
+    // Use a simple ANSI escape sequence to clear to the end of the screen.
+    rs_queue_message("\033[J", 0);
 }
+
+// Mark the start of a message.  For this minimal implementation we only
+// reset the "msg_didout" flag so that following output is displayed on a new
+// line, similar to the real Vim behaviour.
 void
 msg_start(void)
 {
+    msg_didout = FALSE;
 }
+
+// Finish putting a message on the screen.  Nothing special needs to happen
+// here but the function is kept for compatibility.
 void
 msg_end(void)
 {
 }
+
+// Return non-zero when the message should be filtered out.  We simply check
+// if messages are silenced globally.
 int
 message_filtered(char_u *s)
 {
     (void)s;
-    return 0;
+    return msg_silent > 0;
 }
+
+// Enter/leave a verbose section.  We adjust "msg_silent" so that nested
+// calls keep track of the current level.
 void
 verbose_enter(void)
 {
+    ++msg_silent;
 }
 void
 verbose_leave(void)
 {
+    if (msg_silent > 0)
+        --msg_silent;
 }
+
+// Truncate a message and return the (possibly truncated) string.  The
+// truncation happens using a static buffer so the caller must use or copy the
+// result before the next call.
 char *
 msg_trunc_attr(char *s, int use_history, int attr)
 {
+    static char buf[IOSIZE];
+
     (void)use_history;
     (void)attr;
+
+    if (s == NULL)
+        return NULL;
+
+    trunc_string(s, buf, IOSIZE - 1, IOSIZE);
     msg_hist_off = FALSE;
-    return s;
+    return buf;
 }
 void
 set_keep_msg(char_u *p, int attr)
@@ -186,10 +217,12 @@ trunc_string(const char *src, char *dst, int maxlen, int dstlen)
 void
 verbose_enter_scroll(void)
 {
+    verbose_enter();
 }
 void
 verbose_leave_scroll(void)
 {
+    verbose_leave();
 }
 void
 msg_warn_missing_clipboard(void)
