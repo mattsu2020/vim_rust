@@ -18,9 +18,9 @@
  */
 
 #include "vim.h"
+#include "rust_move.h"
 
 static void redraw_for_cursorline(win_T *wp);
-static int scrolljump_value(void);
 static int check_top_offset(void);
 static void curs_rows(win_T *wp);
 
@@ -394,7 +394,7 @@ update_topline(void)
 		scroll_cursor_halfway(FALSE, FALSE);
 	    else
 	    {
-		scroll_cursor_top(scrolljump_value(), FALSE);
+                scroll_cursor_top(scrolljump_value(curwin->w_height), FALSE);
 		check_botline = TRUE;
 	    }
 	}
@@ -492,7 +492,7 @@ update_topline(void)
 		    line_count = curwin->w_cursor.lnum - curwin->w_botline
 								 + 1 + *so_ptr;
 		if (line_count <= curwin->w_height + 1)
-		    scroll_cursor_bot(scrolljump_value(), FALSE);
+                    scroll_cursor_bot(scrolljump_value(curwin->w_height), FALSE);
 		else
 		    scroll_cursor_halfway(FALSE, FALSE);
 	    }
@@ -524,19 +524,6 @@ update_topline(void)
     }
 
     *so_ptr = save_so;
-}
-
-/*
- * Return the scrolljump value to use for the current window.
- * When 'scrolljump' is positive use it as-is.
- * When 'scrolljump' is negative use it as a percentage of the window height.
- */
-    static int
-scrolljump_value(void)
-{
-    if (p_sj >= 0)
-	return (int)p_sj;
-    return (curwin->w_height * -p_sj) / 100;
 }
 
 /*
