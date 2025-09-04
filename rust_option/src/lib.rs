@@ -20,6 +20,7 @@ pub enum OptType {
 
 #[derive(Debug, Clone, Copy)]
 pub struct OptionDef {
+    pub id: OptionId,
     pub name: &'static str,
     pub short: &'static str,
     pub opt_type: OptType,
@@ -88,8 +89,12 @@ pub extern "C" fn rs_apply_option(name: *const c_char, value: *const c_char) -> 
     }
     let name = unsafe { CStr::from_ptr(name) };
     let value = unsafe { CStr::from_ptr(value) };
-    let Ok(name) = name.to_str() else { return false };
-    let Ok(value) = value.to_str() else { return false };
+    let Ok(name) = name.to_str() else {
+        return false;
+    };
+    let Ok(value) = value.to_str() else {
+        return false;
+    };
     apply_option(name, value)
 }
 
@@ -119,14 +124,18 @@ pub extern "C" fn rs_get_option(name: *const c_char) -> *mut c_char {
 #[no_mangle]
 pub extern "C" fn rs_free_cstring(s: *mut c_char) {
     if !s.is_null() {
-        unsafe { drop(CString::from_raw(s)); }
+        unsafe {
+            drop(CString::from_raw(s));
+        }
     }
 }
 
 #[no_mangle]
 pub extern "C" fn rs_get_option_defs(len: *mut usize) -> *const rs_opt_t {
     if !len.is_null() {
-        unsafe { *len = OPTION_DEFS.len(); }
+        unsafe {
+            *len = OPTION_DEFS.len();
+        }
     }
     OPTION_DEFS.as_ptr()
 }
@@ -137,8 +146,12 @@ pub extern "C" fn rs_verify_option(name: *const c_char) -> bool {
         return false;
     }
     let cstr = unsafe { CStr::from_ptr(name) };
-    let Ok(name) = cstr.to_str() else { return false };
-    OPTION_TABLE.iter().any(|opt| opt.name == name || (!opt.short.is_empty() && opt.short == name))
+    let Ok(name) = cstr.to_str() else {
+        return false;
+    };
+    OPTION_TABLE
+        .iter()
+        .any(|opt| opt.name == name || (!opt.short.is_empty() && opt.short == name))
 }
 
 #[no_mangle]
@@ -147,7 +160,9 @@ pub extern "C" fn rs_save_options(path: *const c_char) -> bool {
         return false;
     }
     let cpath = unsafe { CStr::from_ptr(path) };
-    let Ok(path) = cpath.to_str() else { return false };
+    let Ok(path) = cpath.to_str() else {
+        return false;
+    };
     let opts = options().lock().unwrap();
     let mut file = match std::fs::File::create(path) {
         Ok(f) => f,
@@ -167,7 +182,9 @@ pub extern "C" fn rs_load_options(path: *const c_char) -> bool {
         return false;
     }
     let cpath = unsafe { CStr::from_ptr(path) };
-    let Ok(path) = cpath.to_str() else { return false };
+    let Ok(path) = cpath.to_str() else {
+        return false;
+    };
     let content = match std::fs::read_to_string(path) {
         Ok(c) => c,
         Err(_) => return false,
@@ -214,7 +231,9 @@ mod tests {
         let name = CString::new("shell").unwrap();
         let val_ptr = rs_get_option(name.as_ptr());
         assert!(!val_ptr.is_null());
-        unsafe { drop(CString::from_raw(val_ptr)); }
+        unsafe {
+            drop(CString::from_raw(val_ptr));
+        }
     }
 
     #[test]
@@ -295,4 +314,3 @@ mod tests {
         assert!(!rs_set_option(name.as_ptr(), bad.as_ptr()));
     }
 }
-
