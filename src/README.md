@@ -65,7 +65,7 @@ rust_message	| (error) messages
 mouse.c		| handling the mouse
 ops.c		| handling operators ("d", "y", "p")
 option.c	| options
-optionstr.c	| handling string options
+rust_optionstr	| handling string options
 popupmenu.c	| popup menu
 popupwin.c	| popup window
 profiler.c	| Vim script profiler

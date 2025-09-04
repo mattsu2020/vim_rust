@@ -1830,7 +1830,6 @@ BASIC_SRC = \
         normal.c \
         ops.c \
         option.c \
-        optionstr.c \
         os_unix.c \
         auto/pathdef.c \
         popupmenu.c \
@@ -1978,7 +1977,6 @@ OBJ_COMMON = \
 	objects/normal.o \
 	objects/ops.o \
 	objects/option.o \
-	objects/optionstr.o \
 	objects/os_unix.o \
 	objects/pathdef.o \
 	objects/popupmenu.o \
@@ -2123,7 +2121,6 @@ PRO_AUTO = \
 	normal.pro \
 	ops.pro \
 	option.pro \
-	optionstr.pro \
 	os_mac_conv.pro \
 	os_unix.pro \
 	popupmenu.pro \
@@ -3509,8 +3506,6 @@ objects/ops.o: ops.c
 objects/option.o: option.c optiondefs.h
 	$(CCC_NF) $(ALL_IF_CFLAGS) $(ALL_CFLAGS) $(ALL_IF_CFLAGS_EXTRA) -o $@ option.c
 
-objects/optionstr.o: optionstr.c
-	$(CCC_NF) $(ALL_IF_CFLAGS) $(ALL_CFLAGS) $(ALL_IF_CFLAGS_EXTRA) -o $@ optionstr.c
 
 objects/os_qnx.o: os_qnx.c $(VIM_H_DEPENDENCIES)
 	$(CCC) -o $@ os_qnx.c
@@ -4040,7 +4035,6 @@ objects/option.o: option.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h optiondefs.h
-objects/optionstr.o: optionstr.c vim.h protodef.h auto/config.h feature.h \
  os_unix.h auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h \
  beval.h proto/gui_beval.pro structs.h regexp.h gui.h \
  libvterm/include/vterm.h libvterm/include/vterm_keycodes.h alloc.h \

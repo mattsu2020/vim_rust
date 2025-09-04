@@ -527,7 +527,7 @@ EXTERN unsigned	cot_flags;	// flags from 'completeopt'
 EXTERN int	p_ac;		// 'autocomplete'
 EXTERN long	p_act;		// 'autocompletetimeout'
 EXTERN long	p_acl;		// 'autocompletedelay'
-// Keep in sync with p_cot_values in optionstr.c
+// Keep in sync with p_cot_values in rust_optionstr
 #define COT_MENU	0x001
 #define COT_MENUONE	0x002
 #define COT_ANY_MENU	0x003	// combination of menu flags
@@ -987,7 +987,7 @@ EXTERN char_u	*p_su;		// 'suffixes'
 EXTERN char_u	*p_sws;		// 'swapsync'
 EXTERN char_u	*p_swb;		// 'switchbuf'
 EXTERN unsigned	swb_flags;
-// Keep in sync with p_swb_values in optionstr.c
+// Keep in sync with p_swb_values in rust_optionstr
 #define SWB_USEOPEN		0x001
 #define SWB_USETAB		0x002
 #define SWB_SPLIT		0x004
