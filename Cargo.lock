@@ -2863,7 +2863,11 @@ version = "0.1.0"
 name = "rust_vim9"
 version = "0.1.0"
 dependencies = [
- "rust_vim9script",
+ "rust_vim9execute",
+ "rust_vim9expr",
+ "rust_vim9generics",
+ "rust_vim9instr",
+ "rust_vim9type",
 ]
 
 [[package]]
@@ -2886,7 +2890,36 @@ name = "rust_vim9compile"
 version = "0.1.0"
 
 [[package]]
+name = "rust_vim9execute"
+version = "0.1.0"
+dependencies = [
+ "rust_vim9instr",
+ "rust_vim9type",
+]
+
+[[package]]
+name = "rust_vim9expr"
+version = "0.1.0"
+dependencies = [
+ "rust_vim9execute",
+ "rust_vim9instr",
+ "rust_vim9type",
+]
+
+[[package]]
+name = "rust_vim9generics"
+version = "0.1.0"
+
+[[package]]
+name = "rust_vim9instr"
+version = "0.1.0"
+
+[[package]]
 name = "rust_vim9script"
+version = "0.1.0"
+
+[[package]]
+name = "rust_vim9type"
 version = "0.1.0"
 
 [[package]]

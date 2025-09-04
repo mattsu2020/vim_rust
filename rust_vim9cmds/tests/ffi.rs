@@ -19,7 +19,7 @@ fn ffi_eval_int() {
 
 #[test]
 fn ffi_exec_expression() {
-    let expr = CString::new("echo 4 + 5").unwrap();
+    let expr = CString::new("4 + 5").unwrap();
     let mut out = typval_T {
         v_type: Vartype::VAR_UNKNOWN,
         v_lock: 0,
