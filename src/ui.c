@@ -972,8 +972,6 @@ fill_input_buf(void)
 #endif
 	    settmode(m);
 	}
-	if (!exit_on_error)
-	    return;
     }
     if (len <= 0 && !got_int)
 	read_error_exit();
