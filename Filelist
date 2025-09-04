@@ -147,7 +147,6 @@ SRC_ALL =	\
                 src/vim9script.c \
                 src/vim9type.c \
                 src/viminfo.c \
-                src/winclip.c \
                 src/testdir/*.in \
                 src/testdir/*.py \
 		src/testdir/Make_all.mak \
@@ -502,7 +501,6 @@ SRC_DOS =	\
                 src/vim.rc \
                 src/vim.manifest \
                 src/vimrun.c \
-		src/xpm_w32.c \
 		src/xpm_w32.h \
 		src/tee/Make_ming.mak \
 		src/tee/Make_mvc.mak \

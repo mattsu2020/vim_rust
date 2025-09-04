@@ -474,7 +474,7 @@ XPM = rust\xpm
 ! IF "$(XPM)" != "no"
 # XPM - Include support for XPM signs
 # See the xpm directory for more information.
-XPM_OBJ = $(OBJDIR)/xpm_w32.obj
+XPM_OBJ =
 XPM_DEFS = -DFEAT_XPM_W32
 XPM_LIB = $(XPM)\target\release\libvim_xpm.a
 XPM_INC = -I $(XPM)\include
@@ -776,7 +776,6 @@ OBJ = \
 	$(OUTDIR)\vim9script.obj \
 	$(OUTDIR)\vim9type.obj \
 	$(OUTDIR)\viminfo.obj \
-	$(OUTDIR)\winclip.obj \
 	$(OUTDIR)\window.obj \
 
 !IF "$(VIMDLL)" == "yes"
@@ -1639,8 +1638,6 @@ $(OUTDIR)/os_mswin.obj: $(OUTDIR) os_mswin.c $(INCL)
 
 $(OUTDIR)/terminal.obj: $(OUTDIR) terminal.c $(INCL) $(TERM_DEPS)
 
-$(OUTDIR)/winclip.obj: $(OUTDIR) winclip.c $(INCL)
-
 $(OUTDIR)/os_win32.obj: $(OUTDIR) os_win32.c $(INCL) $(MZSCHEME_INCL)
 
 $(OUTDIR)/os_w32dll.obj: $(OUTDIR) os_w32dll.c
@@ -1730,9 +1727,6 @@ $(OUTDIR)/vim9type.obj: $(OUTDIR) vim9type.c $(INCL) vim9.h
 $(OUTDIR)/viminfo.obj: $(OUTDIR) viminfo.c $(INCL) version.h
 
 $(OUTDIR)/window.obj: $(OUTDIR) window.c $(INCL)
-
-$(OUTDIR)/xpm_w32.obj: $(OUTDIR) xpm_w32.c
-	$(CC) $(CFLAGS_OUTDIR) $(XPM_INC) xpm_w32.c
 
 !IF "$(VIMDLL)" == "yes"
 $(OUTDIR)/vimc.res: $(OUTDIR) vim.rc vim.manifest version.h gui_w32_rc.h \
@@ -1894,7 +1888,6 @@ proto.h: \
 	proto/option.pro \
 	proto/optionstr.pro \
 	proto/os_mswin.pro \
-	proto/winclip.pro \
 	proto/os_win32.pro \
 	proto/popupmenu.pro \
 	proto/popupwin.pro \

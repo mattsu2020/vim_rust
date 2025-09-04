@@ -2171,7 +2171,7 @@ PRO_AUTO = \
 	$(TCL_PRO)
 
 PRO_MANUAL = os_win32.pro \
-        os_mswin.pro winclip.pro $(PERL_PRO)
+        os_mswin.pro $(PERL_PRO)
 
 # Default target is making the executable and tools
 all: $(VIMTARGET) languages $(GUI_BUNDLE)
@@ -2344,9 +2344,6 @@ os_mswin.pro: os_mswin.c
 	$(CPROTO) -DWIN32 -UHAVE_CONFIG_H $< > proto/$@
 	echo "/* vim: set ft=c : */" >> proto/$@
 
-winclip.pro: winclip.c
-	$(CPROTO) -DWIN32 -UHAVE_CONFIG_H $< > proto/$@
-	echo "/* vim: set ft=c : */" >> proto/$@
 
 # if_perl.pro is special: Use the generated if_perl.c for input and remove
 # prototypes for local functions.
@@ -3530,8 +3527,6 @@ objects/os_unix.o: os_unix.c
 objects/os_mswin.o: os_mswin.c $(VIM_H_DEPENDENCIES)
 	$(CCC) -o $@ os_mswin.c
 
-objects/winclip.o: winclip.c $(VIM_H_DEPENDENCIES)
-	$(CCC) -o $@ winclip.c
 
 objects/pathdef.o: auto/pathdef.c
 	$(CCC) -o $@ auto/pathdef.c

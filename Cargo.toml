@@ -54,6 +54,8 @@ default = []
 
 [target.'cfg(windows)'.dependencies]
 rust_os_win32 = { path = "rust_os_win32" }
+rust_winclip = { path = "rust_winclip" }
+rust_xpm_w32 = { path = "rust_xpm_w32" }
 
 [target.'cfg(unix)'.dependencies]
 rust_os_unix = { path = "rust_os_unix" }
