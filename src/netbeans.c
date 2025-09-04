@@ -2193,19 +2193,10 @@ nb_do_cmd(
 	    special_keys(args);
 // =====================================================================
 	}
-	else if (streq((char *)cmd, "actionMenuItem"))
-	{
-	    // not used yet
-// =====================================================================
-	}
-	else if (streq((char *)cmd, "version"))
-	{
-	    // not used yet
-	}
-	else
-	{
-	    nbdebug(("Unrecognised command: %s\n", cmd));
-	}
+        else
+        {
+            nbdebug(("Unrecognised command: %s\n", cmd));
+        }
 	/*
 	 * Unrecognized command is ignored.
 	 */
