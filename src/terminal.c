@@ -1,22 +1,26 @@
 #include "vim.h"
 
-// Stub implementations for terminal support in minimal builds.
+extern void rust_terminal_free_unused(void);
+extern int rust_terminal_none_open(void *term);
+extern void rust_terminal_clear_status_text(void *term);
+extern char_u *rust_terminal_get_status_text(void *term);
 
 void free_unused_terminals(void)
 {
-    // No terminals to free in this build.
+    rust_terminal_free_unused();
 }
 
 int term_none_open(void *term UNUSED)
 {
-    return FAIL;
+    return rust_terminal_none_open(term);
 }
 
-void term_clear_status_text(void *term UNUSED)
+void term_clear_status_text(void *term)
 {
+    rust_terminal_clear_status_text(term);
 }
 
-char_u *term_get_status_text(void *term UNUSED)
+char_u *term_get_status_text(void *term)
 {
-    return NULL;
+    return rust_terminal_get_status_text(term);
 }

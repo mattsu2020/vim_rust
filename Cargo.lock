@@ -2798,6 +2798,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_terminal"
+version = "0.1.0"
+dependencies = [
+ "rust_term",
+ "rust_termlib",
+]
+
+[[package]]
 name = "rust_termlib"
 version = "0.1.0"
 
