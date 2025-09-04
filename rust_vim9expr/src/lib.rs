@@ -26,6 +26,7 @@ pub fn compile(tokens: &[String]) -> Vim9Program {
                 instrs.push(Vim9Instr::PushNumber(n));
                 match op.as_str() {
                     "+" => instrs.push(Vim9Instr::Add),
+                    "-" => instrs.push(Vim9Instr::Sub),
                     "<" => {
                         instrs.push(Vim9Instr::CompareLT);
                         result_type = Vim9Type::Bool;
@@ -66,6 +67,11 @@ mod tests {
     #[test]
     fn eval_add() {
         assert_eq!(eval_expr("1 + 2 + 3"), Some(6));
+    }
+
+    #[test]
+    fn eval_subtract() {
+        assert_eq!(eval_expr("5 - 2"), Some(3));
     }
 
     #[test]

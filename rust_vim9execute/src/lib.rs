@@ -7,24 +7,44 @@ pub struct Vim9Program {
     pub result_type: Vim9Type,
 }
 
-pub fn execute(prog: &Vim9Program) -> i64 {
-    let mut stack: Vec<i64> = Vec::new();
-    for instr in &prog.instrs {
-        match *instr {
-            Vim9Instr::PushNumber(n) => stack.push(n),
-            Vim9Instr::Add => {
-                if let (Some(b), Some(a)) = (stack.pop(), stack.pop()) {
-                    stack.push(a + b);
+#[derive(Default)]
+pub struct Interpreter {
+    stack: Vec<i64>,
+}
+
+impl Interpreter {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn run(&mut self, prog: &Vim9Program) -> i64 {
+        self.stack.clear();
+        for instr in &prog.instrs {
+            match *instr {
+                Vim9Instr::PushNumber(n) => self.stack.push(n),
+                Vim9Instr::Add => {
+                    if let (Some(b), Some(a)) = (self.stack.pop(), self.stack.pop()) {
+                        self.stack.push(a + b);
+                    }
                 }
-            }
-            Vim9Instr::CompareLT => {
-                if let (Some(b), Some(a)) = (stack.pop(), stack.pop()) {
-                    stack.push((a < b) as i64);
+                Vim9Instr::Sub => {
+                    if let (Some(b), Some(a)) = (self.stack.pop(), self.stack.pop()) {
+                        self.stack.push(a - b);
+                    }
+                }
+                Vim9Instr::CompareLT => {
+                    if let (Some(b), Some(a)) = (self.stack.pop(), self.stack.pop()) {
+                        self.stack.push((a < b) as i64);
+                    }
                 }
             }
         }
+        self.stack.pop().unwrap_or(0)
     }
-    stack.pop().unwrap_or(0)
+}
+
+pub fn execute(prog: &Vim9Program) -> i64 {
+    Interpreter::new().run(prog)
 }
 
 #[cfg(test)]
@@ -55,5 +75,18 @@ mod tests {
             result_type: Vim9Type::Bool,
         };
         assert_eq!(execute(&prog), 1);
+    }
+
+    #[test]
+    fn executes_subtraction() {
+        let prog = Vim9Program {
+            instrs: vec![
+                Vim9Instr::PushNumber(5),
+                Vim9Instr::PushNumber(2),
+                Vim9Instr::Sub,
+            ],
+            result_type: Vim9Type::Number,
+        };
+        assert_eq!(execute(&prog), 3);
     }
 }
