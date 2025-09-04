@@ -4,7 +4,7 @@
 #include <string.h>
 
 // FFI bridge to Rust message handling
-extern void rs_queue_message(char *msg, int level);
+extern void rs_queue_message(const char *msg, int level);
 
 static void
 send_formatted(int level, const char *fmt, va_list ap)

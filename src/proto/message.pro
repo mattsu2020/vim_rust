@@ -40,14 +40,20 @@ int vim_dialog_yesno(int type, char_u *title, char_u *message, int buttons);
 void msg_prt_line(char_u *s, int list);
 void ch_logfile(char_u *fname, char_u *mode);
 void may_clear_sb_text(void);
-int do_dialog(int type, char_u *title, char_u *message, char_u *buttons, int dfltbutton, char_u *textfield, int ex_cmd);
+int do_dialog(int type,
+              char_u *title,
+              char_u *message,
+              char_u *buttons,
+              int dfltbutton,
+              char_u *textfield,
+              int ex_cmd);
 void verb_msg(char *s);
 char_u *str2special_save(char_u *src, int do_special, int keep_screen_char);
 void msg_source(int attr);
 void windgoto(int row, int col);
 /* Optional Rust helpers if available */
 char *rs_pop_message(int *level);
-void rs_queue_message(char *msg, int level);
+void rs_queue_message(const char *msg, int level);
 char *rs_get_last_error(void);
 void rs_clear_messages(void);
 void rs_free_cstring(char *s);
