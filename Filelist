@@ -110,11 +110,11 @@ SRC_ALL =	\
 		src/option.c \
 		src/option.h \
                 src/optiondefs.h \
+
                 src/profiler.c \
                 src/regexp.h \
                 src/register.c \
-		src/scriptfile.c \
-		src/session.c \
+                src/session.c \
                 src/sound.c \
 		src/spell.c \
                 src/spell.h \
@@ -280,11 +280,11 @@ SRC_ALL =	\
 		src/proto/popupmenu.pro \
 		src/proto/popupwin.pro \
 		src/proto/profiler.pro \
+
                 src/proto/register.pro \
-                src/proto/scriptfile.pro \
-		src/proto/screen.pro \
-		src/proto/search.pro \
-		src/proto/session.pro \
+                src/proto/screen.pro \
+                src/proto/search.pro \
+                src/proto/session.pro \
 		src/proto/sha256.pro \
                 src/proto/sound.pro \
 		src/proto/spell.pro \

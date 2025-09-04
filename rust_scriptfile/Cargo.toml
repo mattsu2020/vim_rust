@@ -1,13 +1,13 @@
 [package]
-name = "rust_fileio"
+name = "rust_scriptfile"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-crate-type = ["staticlib", "rlib"]
+crate-type = ["staticlib"]
 
 [dependencies]
-rust_path = { path = "../rust_path" }
+rust_fileio = { path = "../rust_fileio" }
 
 [dev-dependencies]
 tempfile = "3"

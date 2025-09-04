@@ -184,7 +184,6 @@ void mbyte_im_set_active(int active_arg);
 # include "wayland.pro"
 #endif
 # include "register.pro"
-# include "scriptfile.pro"
 # include "screen.pro"
 # include "session.pro"
 # if defined(FEAT_CRYPT) || defined(FEAT_PERSISTENT_UNDO)
