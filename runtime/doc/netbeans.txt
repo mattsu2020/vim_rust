@@ -460,9 +460,11 @@ endAtomic	End an atomic operation.  The changes between "startAtomic"
 		implemented yet.  Redraw when necessary.
 
 guard off len
-		Mark an area in the buffer as guarded.  This means it cannot
-		be edited.  "off" and "len" are numbers and specify the text
-		to be guarded.
+                Mark an area in the buffer as guarded.  This means it cannot
+                be edited.  "off" and "len" are numbers and specify the text
+                to be guarded.  Vim no longer defines a highlight or sign for
+                guarded lines; the client must define its own if visual
+                indication is desired.
 
 initDone	Mark the buffer as ready for use.  Implicitly makes the buffer
 		the current buffer.  Fires the BufReadPost autocommand event.
@@ -568,7 +570,7 @@ setReadOnly readonly
 		buffer as readonly, when it is "F" for False, mark it as not
 		readonly.  Implemented in version 2.3.
 
-setStyle	Not implemented.
+setStyle	Removed.  Previously not implemented.
 
 setTitle name
 		Set the title for the buffer to "name", a string argument.

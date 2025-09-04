@@ -563,12 +563,6 @@ func Nb_basic(port)
   call assert_fails('normal 2GIbaz', 'E463:')
   call assert_fails('normal 2GAbaz', 'E463:')
   call assert_fails('normal dd', 'E463:')
-  call assert_equal([{'name': '1', 'texthl': 'NB_s1', 'text': '=>'},
-        \ {'name': '10000', 'linehl': 'NBGuarded'}],
-        \ sign_getdefined())
-  let s = sign_getplaced()[0].signs[0]
-  call assert_equal(2, s.lnum)
-  call assert_equal('10000', s.name)
   let g:last += 3
 
   " setModified test
