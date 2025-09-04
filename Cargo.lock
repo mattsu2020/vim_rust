@@ -2135,6 +2135,7 @@ name = "rust_cmdhist"
 version = "0.1.0"
 dependencies = [
  "once_cell",
+ "rust_usercmd",
 ]
 
 [[package]]
@@ -2253,6 +2254,13 @@ version = "0.1.0"
 dependencies = [
  "once_cell",
  "rust_change",
+]
+
+[[package]]
+name = "rust_exeval"
+version = "0.1.0"
+dependencies = [
+ "rust_excmds",
 ]
 
 [[package]]
@@ -2634,6 +2642,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_register"
+version = "0.1.0"
+dependencies = [
+ "rust_clipboard",
+]
+
+[[package]]
 name = "rust_screen"
 version = "0.1.0"
 dependencies = [
@@ -2776,6 +2791,13 @@ version = "0.1.0"
 dependencies = [
  "libc",
  "rust_memline",
+]
+
+[[package]]
+name = "rust_usercmd"
+version = "0.1.0"
+dependencies = [
+ "once_cell",
 ]
 
 [[package]]
@@ -3435,6 +3457,7 @@ dependencies = [
  "rust_python",
  "rust_sha256",
  "rust_spell",
+ "rust_usercmd",
  "rust_vim9class",
  "rust_wayland",
  "serde",

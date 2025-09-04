@@ -90,7 +90,7 @@ textprop.c	| text properties
 time.c		| time and timer functions
 typval.c	| Vim script type/value functions
 undo.c		| undo and redo
-usercmd.c	| user defined commands
+rust_usercmd     | user defined commands
 userfunc.c	| user defined functions
 viminfo.c	| viminfo handling
 window.c	| handling split windows

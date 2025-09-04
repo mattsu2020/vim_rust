@@ -764,7 +764,6 @@ OBJ = \
 	$(OUTDIR)\typval.obj \
 	$(OUTDIR)\ui.obj \
 	$(OUTDIR)\undo.obj \
-	$(OUTDIR)\usercmd.obj \
 	$(OUTDIR)\userfunc.obj \
 	$(OUTDIR)\vim9class.obj \
 	$(OUTDIR)\vim9cmds.obj \
@@ -1703,8 +1702,6 @@ $(OUTDIR)/ui.obj: $(OUTDIR) ui.c $(INCL)
 
 $(OUTDIR)/undo.obj: $(OUTDIR) undo.c $(INCL)
 
-$(OUTDIR)/usercmd.obj: $(OUTDIR) usercmd.c $(INCL)
-
 $(OUTDIR)/userfunc.obj: $(OUTDIR) userfunc.c $(INCL)
 
 $(OUTDIR)/version.obj: $(OUTDIR) version.c $(INCL) version.h
@@ -1919,7 +1916,6 @@ proto.h: \
 	proto/typval.pro \
 	proto/ui.pro \
 	proto/undo.pro \
-	proto/usercmd.pro \
 	proto/userfunc.pro \
 	proto/vim9class.pro \
 	proto/vim9cmds.pro \

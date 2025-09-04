@@ -1,12 +1,11 @@
 [package]
-name = "rust_cmdhist"
+name = "rust_usercmd"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "rust_cmdhist"
+name = "rust_usercmd"
 crate-type = ["staticlib", "rlib"]
 
 [dependencies]
 once_cell = "1"
-rust_usercmd = { path = "../rust_usercmd" }
