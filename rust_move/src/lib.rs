@@ -1,30 +1,48 @@
-use std::os::raw::c_int;
+use std::os::raw::{c_int, c_long};
 
-#[repr(C)]
-#[derive(Clone, Copy)]
-pub struct Position {
-    pub row: c_int,
-    pub col: c_int,
+// Definition derived from Vim's option handling where `p_sj` represents the
+// value of the 'scrolljump' option.  It is declared in Vim's C sources and
+// accessed here through FFI.
+extern "C" {
+    static mut p_sj: c_long;
 }
 
+/// Return the scrolljump value to use for a window of height `height`.
+///
+/// This mirrors the logic from `src/move.c` where a non-negative 'scrolljump'
+/// value is used as-is and a negative value is treated as a percentage of the
+/// window height.
 #[no_mangle]
-pub extern "C" fn rs_move_cursor(mut pos: Position, drow: c_int, dcol: c_int) -> Position {
-    pos.row += drow;
-    pos.col += dcol;
-    if pos.row < 0 { pos.row = 0; }
-    if pos.col < 0 { pos.col = 0; }
-    pos
+pub extern "C" fn scrolljump_value(height: c_int) -> c_int {
+    unsafe {
+        if p_sj >= 0 {
+            p_sj as c_int
+        } else {
+            // When 'scrolljump' is negative it is the percentage of the
+            // window height, rounded down.
+            height * (-p_sj as c_int) / 100
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    // Provide a definition for the external `p_sj` option when running tests.
+    #[no_mangle]
+    static mut p_sj: c_long = 0;
+
     #[test]
-    fn move_within_bounds() {
-        let start = Position { row: 1, col: 2 };
-        let end = rs_move_cursor(start, 2, -1);
-        assert_eq!(end.row, 3);
-        assert_eq!(end.col, 1);
+    fn positive_scrolljump_used_directly() {
+        unsafe { p_sj = 5; }
+        assert_eq!(scrolljump_value(40), 5);
+    }
+
+    #[test]
+    fn negative_scrolljump_uses_percentage() {
+        unsafe { p_sj = -10; }
+        // Ten percent of 50 yields 5.
+        assert_eq!(scrolljump_value(50), 5);
     }
 }
