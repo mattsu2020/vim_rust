@@ -8,4 +8,5 @@ crate-type = ["staticlib"]
 
 [dependencies]
 similar = "2"
+rust_linematch = { path = "../rust_linematch" }
 

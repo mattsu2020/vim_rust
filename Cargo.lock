@@ -2174,6 +2174,7 @@ dependencies = [
 name = "rust_diff"
 version = "0.1.0"
 dependencies = [
+ "rust_linematch",
  "similar",
 ]
 
@@ -2253,6 +2254,13 @@ version = "0.1.0"
 dependencies = [
  "once_cell",
  "rust_change",
+]
+
+[[package]]
+name = "rust_exeval"
+version = "0.1.0"
+dependencies = [
+ "rust_excmds",
 ]
 
 [[package]]
@@ -2422,6 +2430,10 @@ dependencies = [
  "serde_json",
  "tokio",
 ]
+
+[[package]]
+name = "rust_linematch"
+version = "0.1.0"
 
 [[package]]
 name = "rust_list"
@@ -2631,6 +2643,13 @@ dependencies = [
  "criterion 0.5.1",
  "regex",
  "rust_fuzzy",
+]
+
+[[package]]
+name = "rust_register"
+version = "0.1.0"
+dependencies = [
+ "rust_clipboard",
 ]
 
 [[package]]

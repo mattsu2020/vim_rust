@@ -1812,7 +1812,6 @@ BASIC_SRC = \
         if_cscope.c \
         indent.c \
         insexpand.c \
-        linematch.c \
         list.c \
         locale.c \
         main.c \
@@ -1962,8 +1961,7 @@ OBJ_COMMON = \
 	objects/if_cscope.o \
 	objects/indent.o \
 	objects/insexpand.o \
-	objects/linematch.o \
-	objects/list.o \
+        objects/list.o \
 	objects/locale.o \
 	objects/map.o \
 	objects/mark.o \
@@ -2067,8 +2065,7 @@ PRO_AUTO = \
         debugger.pro \
         dict.pro \
         diff.pro \
-	linematch.pro \
-	digraph.pro \
+        digraph.pro \
 	drawline.pro \
 	drawscreen.pro \
 	edit.pro \
@@ -3447,9 +3444,6 @@ objects/insexpand.o: insexpand.c
 
 objects/job.o: job.c
 	$(CCC) -o $@ job.c
-
-objects/linematch.o: linematch.c
-	$(CCC) -o $@ linematch.c
 
 objects/list.o: list.c
 	$(CCC) -o $@ list.c

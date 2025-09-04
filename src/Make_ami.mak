@@ -113,8 +113,7 @@ SRC += \
 	if_cscope.c \
         indent.c \
         insexpand.c \
-        linematch.c\
-	list.c \
+        list.c \
 	locale.c \
 	logfile.c \
 	main.c \

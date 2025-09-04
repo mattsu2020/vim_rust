@@ -66,6 +66,9 @@ int xdiff_out_unified(void *priv_, mmbuffer_t *mb, int nbuf);
 int xdiff_out_indices(long start_a, long count_a,
                       long start_b, long count_b, void *priv_);
 
+size_t linematch_nbuffers(const mmfile_t **diff_blk, const int *diff_len,
+                          size_t ndiffs, int **decisions, int iwhite);
+
 void rs_diff_update_screen(void);
 
 #ifdef __cplusplus
