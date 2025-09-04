@@ -1,0 +1,11 @@
+[package]
+name = "rust_ex_eval"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rust_exeval = { path = "../rust_exeval" }
+rust_usercmd = { path = "../rust_usercmd" }
+
+[dev-dependencies]
+

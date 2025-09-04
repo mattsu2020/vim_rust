@@ -1,0 +1,10 @@
+[package]
+name = "rust_optionstr"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rust_option = { path = "../rust_option" }
+
+[dev-dependencies]
+

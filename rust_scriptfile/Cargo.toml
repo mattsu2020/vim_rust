@@ -1,0 +1,12 @@
+[package]
+name = "rust_scriptfile"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rust_ex_eval = { path = "../rust_ex_eval" }
+rust_ex_getln = { path = "../rust_ex_getln" }
+
+[dev-dependencies]
+tempfile = "3"
+
