@@ -1468,6 +1468,8 @@ RUST_ENTRY_DIR = ../rust_entry
 RUST_ENTRY_LIB = $(RUST_ENTRY_DIR)/target/release/librust_entry.a
 RUST_VERSION_DIR = ../rust_version
 RUST_VERSION_LIB = $(RUST_VERSION_DIR)/target/release/librust_version.a
+RUST_EDITOR_DIR = ../rust_editor
+RUST_EDITOR_LIB = $(RUST_EDITOR_DIR)/target/release/librust_editor.a
 
 # Additional Rust crates used by this configuration
 RUST_CHANGE_DIR = ../rust_change
@@ -1635,6 +1637,10 @@ $(RUST_ENTRY_LIB):
 $(RUST_VERSION_LIB):
 	@mkdir -p $(RUST_VERSION_DIR)/target/release
 	rustc --crate-type staticlib -O -o $(RUST_VERSION_LIB) $(RUST_VERSION_DIR)/src/lib.rs
+
+$(RUST_EDITOR_LIB):
+	@mkdir -p $(RUST_EDITOR_DIR)/target/release
+	rustc --crate-type staticlib -O -o $(RUST_EDITOR_LIB) $(RUST_EDITOR_DIR)/src/lib.rs
 
 # Additional Rust libraries providing rs_* APIs used across the C codebase
 RUST_ARGLIST_DIR = ../rust_arglist
@@ -2141,8 +2147,8 @@ CCC = $(CCC_NF) $(ALL_CFLAGS)
 RUST_VERSION_DIR = ../rust_version
 RUST_VERSION_LIB = $(RUST_VERSION_DIR)/target/release/librust_version.a
 
-$(VIMTARGET): auto/config.mk $(OBJ) $(RUST_VERSION_LIB)
-	$(CClink) $(LDFLAGS) -o $(VIMTARGET) $(OBJ) $(RUST_VERSION_LIB)
+$(VIMTARGET): auto/config.mk $(OBJ) $(RUST_VERSION_LIB) $(RUST_EDITOR_LIB)
+	$(CClink) $(LDFLAGS) -o $(VIMTARGET) $(OBJ) $(RUST_VERSION_LIB) $(RUST_EDITOR_LIB)
 
 
 # Build the language specific files if they were unpacked.
