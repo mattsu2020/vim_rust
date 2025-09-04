@@ -2187,6 +2187,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_drawline"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "rust_screen",
+]
+
+[[package]]
 name = "rust_drawscreen"
 version = "0.1.0"
 dependencies = [
