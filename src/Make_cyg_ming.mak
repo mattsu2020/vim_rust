@@ -837,7 +837,6 @@ OBJ = \
 	$(OUTDIR)/normal.o \
 	$(OUTDIR)/ops.o \
 	$(OUTDIR)/option.o \
-	$(OUTDIR)/optionstr.o \
 	$(OUTDIR)/os_mswin.o \
 	$(OUTDIR)/os_win32.o \
 	$(OUTDIR)/pathdef.o \

@@ -132,7 +132,6 @@ SRC += \
 	normal.c \
 	ops.c \
 	option.c \
-	optionstr.c \
 	os_amiga.c \
         popupmenu.c \
         popupwin.c \

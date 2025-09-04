@@ -2256,6 +2256,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_exeval"
+version = "0.1.0"
+dependencies = [
+ "rust_excmds",
+]
+
+[[package]]
 name = "rust_ffi"
 version = "0.1.0"
 
@@ -2507,8 +2514,13 @@ name = "rust_option"
 version = "0.1.0"
 dependencies = [
  "bindgen",
+ "rust_optionstr",
  "tempfile",
 ]
+
+[[package]]
+name = "rust_optionstr"
+version = "0.1.0"
 
 [[package]]
 name = "rust_os_amiga"
@@ -2631,6 +2643,13 @@ dependencies = [
  "criterion 0.5.1",
  "regex",
  "rust_fuzzy",
+]
+
+[[package]]
+name = "rust_register"
+version = "0.1.0"
+dependencies = [
+ "rust_clipboard",
 ]
 
 [[package]]
