@@ -14,30 +14,11 @@
 
 static char_u	*username = NULL; // cached result of mch_get_user_name()
 
-static int coladvance2(pos_T *pos, int addspaces, int finetune, colnr_T wcol);
+int coladvance2(pos_T *pos, int addspaces, int finetune, colnr_T wcol);
 
 // FFI: implemented in rust_strings crate
 extern int copy_option_part(char_u **option, char_u *buf, int maxlen, char *sep_chars);
 extern int vim_isspace(int x);
-
-/*
- * Return TRUE if in the current mode we need to use virtual.
- */
-    int
-virtual_active(void)
-{
-    unsigned int cur_ve_flags = get_ve_flags();
-
-    // While an operator is being executed we return "virtual_op", because
-    // VIsual_active has already been reset, thus we can't check for "block"
-    // being used.
-    if (virtual_op != MAYBE)
-	return virtual_op;
-    return (cur_ve_flags == VE_ALL
-	    || ((cur_ve_flags & VE_BLOCK) && VIsual_active
-						      && VIsual_mode == Ctrl_V)
-	    || ((cur_ve_flags & VE_INSERT) && (State & MODE_INSERT)));
-}
 
 /*
  * Get the screen position of the cursor.
@@ -56,20 +37,23 @@ getviscol(void)
  * cursor in that column.
  * The caller must have saved the cursor line for undo!
  */
-    int
-coladvance_force(colnr_T wcol)
-{
-    int rc = coladvance2(&curwin->w_cursor, TRUE, FALSE, wcol);
 
-    if (wcol == MAXCOL)
-	curwin->w_valid &= ~VALID_VIRTCOL;
-    else
-    {
-	// Virtcol is valid
-	curwin->w_valid |= VALID_VIRTCOL;
-	curwin->w_virtcol = wcol;
-    }
-    return rc;
+pos_T *
+curwin_w_cursor(void)
+{
+    return &curwin->w_cursor;
+}
+
+int *
+curwin_w_valid(void)
+{
+    return &curwin->w_valid;
+}
+
+colnr_T *
+curwin_w_virtcol(void)
+{
+    return &curwin->w_virtcol;
 }
 
 /*
@@ -124,7 +108,7 @@ getvpos(pos_T *pos, colnr_T wantcol)
     return coladvance2(pos, FALSE, virtual_active(), wantcol);
 }
 
-    static int
+int
 coladvance2(
     pos_T	*pos,
     int		addspaces,	// change the text to achieve our goal?
