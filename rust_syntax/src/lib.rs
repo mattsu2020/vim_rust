@@ -1,7 +1,10 @@
 use std::ffi::{c_void, CStr};
-use std::os::raw::{c_char, c_short};
+use std::os::raw::{c_char, c_int, c_long, c_short};
 use std::sync::Mutex;
 use rust_highlight::register_rule;
+
+/// Flag indicating a match continues from the previous line.
+pub const HL_MATCHCONT: c_int = 0x8000;
 
 /// State tracking for syntax highlighting.
 ///
@@ -12,24 +15,24 @@ use rust_highlight::register_rule;
 /// can be implemented on the Rust side while exposing a C-compatible API.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Lpos {
-    pub lnum: i64,
-    pub col: i32,
+    pub lnum: c_long,
+    pub col: c_int,
 }
 
 #[derive(Clone, Debug)]
 pub struct SyntaxRule {
-    pub id: i32,
+    pub id: c_int,
     pub pattern: String,
 }
 
 #[derive(Clone, Debug)]
 pub struct StateItem {
-    pub id: i32,
+    pub id: c_int,
     pub m_end: Lpos,
     pub h_start: Lpos,
     pub h_end: Lpos,
     pub ends: bool,
-    pub flags: i64,
+    pub flags: c_int,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -41,9 +44,9 @@ pub struct SyntaxState {
     /// Opaque pointer to the syntax block.
     pub block: *mut c_void,
     /// Current line number being parsed.
-    pub lnum: i64,
+    pub lnum: c_long,
     /// Current column within the line.
-    pub col: i32,
+    pub col: c_int,
     /// Whether the current state was stored for reuse.
     pub state_stored: bool,
     /// Flag indicating that the current line has been finished.
@@ -51,7 +54,7 @@ pub struct SyntaxState {
     /// Next group list pointer, mirroring `current_next_list` in C.
     pub next_list: *mut c_short,
     /// Flags for the next group list.
-    pub next_flags: i32,
+    pub next_flags: c_int,
     /// Registered matching rules.
     pub rules: Vec<SyntaxRule>,
     /// Active state items after rule evaluation.
@@ -80,7 +83,7 @@ static SYNTAX_STATE: Mutex<SyntaxState> = Mutex::new(SyntaxState {
 
 /// Start syntax parsing for line `lnum` in window `wp`.
 #[no_mangle]
-pub extern "C" fn rs_syntax_start(wp: *mut c_void, lnum: i64) {
+pub extern "C" fn rs_syntax_start(wp: *mut c_void, lnum: c_long) {
     let mut state = SYNTAX_STATE.lock().unwrap();
     state.window = wp;
     state.buffer = std::ptr::null_mut();
@@ -97,7 +100,7 @@ pub extern "C" fn rs_syntax_start(wp: *mut c_void, lnum: i64) {
 /// Update the parser position.  When `startofline` is non-zero the parser moves
 /// to the beginning of the next line; otherwise the column advances by one.
 #[no_mangle]
-pub extern "C" fn rs_syn_update(startofline: i32) {
+pub extern "C" fn rs_syn_update(startofline: c_int) {
     let mut state = SYNTAX_STATE.lock().unwrap();
     if startofline != 0 {
         state.lnum += 1;
@@ -114,7 +117,7 @@ pub extern "C" fn rs_syn_update(startofline: i32) {
 
 /// Register a simple match rule with ID `id` and textual `pattern`.
 #[no_mangle]
-pub extern "C" fn rs_add_rule(id: i32, pattern: *const c_char) {
+pub extern "C" fn rs_add_rule(id: c_int, pattern: *const c_char) {
     let cstr = unsafe { CStr::from_ptr(pattern) };
     if let Ok(pat) = cstr.to_str() {
         let mut state = SYNTAX_STATE.lock().unwrap();
@@ -134,7 +137,7 @@ pub extern "C" fn rs_clear_rules() {
 /// Evaluate registered rules against `line`.  Returns the ID of the first
 /// matching rule or 0 when no rule matches.
 #[no_mangle]
-pub extern "C" fn rs_eval_line(line: *const c_char) -> i32 {
+pub extern "C" fn rs_eval_line(line: *const c_char) -> c_int {
     let cstr = unsafe { CStr::from_ptr(line) };
     let line = match cstr.to_str() {
         Ok(l) => l,
@@ -145,8 +148,8 @@ pub extern "C" fn rs_eval_line(line: *const c_char) -> i32 {
     let rules = state.rules.clone();
     for rule in rules {
         if let Some(pos) = line.find(&rule.pattern) {
-            let start = pos as i32;
-            let end = start + rule.pattern.len() as i32;
+            let start = pos as c_int;
+            let end = start + rule.pattern.len() as c_int;
             state.stack.push(StateItem {
                 id: rule.id,
                 m_end: Lpos { lnum, col: end },
@@ -170,9 +173,13 @@ fn get_state() -> SyntaxState {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::Mutex;
+
+    static TEST_MUTEX: Mutex<()> = Mutex::new(());
 
     #[test]
     fn start_and_update_progression() {
+        let _guard = TEST_MUTEX.lock().unwrap();
         rs_clear_rules();
         rs_syntax_start(std::ptr::null_mut(), 10);
         let s = get_state();
@@ -193,6 +200,7 @@ mod tests {
 
     #[test]
     fn finished_flag() {
+        let _guard = TEST_MUTEX.lock().unwrap();
         rs_clear_rules();
         rs_syntax_start(std::ptr::null_mut(), 1);
         assert!(!get_state().finished);
@@ -203,6 +211,7 @@ mod tests {
 
     #[test]
     fn regression_major_syntax_rules() {
+        let _guard = TEST_MUTEX.lock().unwrap();
         use std::ffi::CString;
 
         rs_clear_rules();
@@ -225,5 +234,25 @@ mod tests {
 
         let py_line = CString::new("def main(): pass").unwrap();
         assert_eq!(rs_eval_line(py_line.as_ptr()), 3);
+    }
+
+    #[test]
+    fn highlight_positions_recorded() {
+        let _guard = TEST_MUTEX.lock().unwrap();
+        use std::ffi::CString;
+
+        rs_clear_rules();
+        let kw = CString::new("highlight").unwrap();
+        rs_add_rule(99, kw.as_ptr());
+        rs_syntax_start(std::ptr::null_mut(), 5);
+        let line = CString::new("test highlight here").unwrap();
+        assert_eq!(rs_eval_line(line.as_ptr()), 99);
+        let st = get_state();
+        assert_eq!(st.stack.len(), 1);
+        let item = &st.stack[0];
+        assert_eq!(item.h_start.lnum, 5);
+        assert_eq!(item.h_start.col, 5);
+        assert_eq!(item.h_end.col, 14);
+        assert!(item.ends);
     }
 }
