@@ -11,6 +11,9 @@ use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, Borders, Paragraph};
 use regex::{Regex, RegexBuilder};
 
+#[derive(Clone)]
+struct View { kind: ViewKind, cx: usize, cy: usize, scroll: usize, buf: Option<usize> }
+
 fn open_file(path: &Path) -> Vec<String> {
     match fs::read_to_string(path) {
         Ok(content) => content.replace('\r', "").split('\n').map(|s| s.to_string()).collect(),
@@ -138,6 +141,63 @@ fn prev_char_pos(lines: &Vec<String>, x: usize, y: usize) -> Option<(usize, usiz
     if x > 0 { Some((x - 1, y)) } else if y > 0 { let py = y - 1; let plen = lines[py].len(); if plen == 0 { None } else { Some((plen - 1, py)) } } else { None }
 }
 
+// 汎用ヘルパ: 分割レイアウトの領域計算
+fn split_rect(layout: SplitLayout, rect: Rect, n: usize) -> Vec<Rect> {
+    if n <= 1 { return vec![rect]; }
+    let mut constraints: Vec<Constraint> = Vec::with_capacity(n);
+    for i in 0..n {
+        let mut p = (100 / n) as u16;
+        if i == n - 1 { p = 100 - (p * (n as u16 - 1)); }
+        constraints.push(Constraint::Percentage(p));
+    }
+    match layout {
+        SplitLayout::Horizontal => Layout::default().direction(Direction::Vertical).constraints(constraints).split(rect).to_vec(),
+        SplitLayout::Vertical => Layout::default().direction(Direction::Horizontal).constraints(constraints).split(rect).to_vec(),
+    }
+}
+
+// アクティブなドキュメント（現在ビューが参照するバッファ or グローバル）へ読み取りアクセス
+fn with_active_ro<T>(buffers: &Vec<Buffer>, view_buf: Option<usize>, lines: &Vec<String>, f: impl FnOnce(&Vec<String>) -> T) -> T {
+    if let Some(bi) = view_buf { if let Some(b) = buffers.get(bi) { return f(&b.lines); } }
+    f(lines)
+}
+
+// アクティブなドキュメントへ書き込みアクセス（lines/filename/modified を一括で扱う）
+fn with_active_mut<T>(
+    buffers: &mut Vec<Buffer>,
+    view_buf: Option<usize>,
+    lines: &mut Vec<String>,
+    filename: &mut Option<PathBuf>,
+    modified: &mut bool,
+    f: impl FnOnce(&mut Vec<String>, &mut Option<PathBuf>, &mut bool) -> T,
+) -> T {
+    if let Some(bi) = view_buf {
+        if let Some(b) = buffers.get_mut(bi) {
+            return f(&mut b.lines, &mut b.filename, &mut b.modified);
+        }
+    }
+    f(lines, filename, modified)
+}
+
+// 保存共通化: アクティブドキュメントを保存
+fn save_active(
+    buffers: &mut Vec<Buffer>,
+    view_buf: Option<usize>,
+    lines: &mut Vec<String>,
+    filename: &mut Option<PathBuf>,
+    modified: &mut bool,
+) -> Result<(), String> {
+    with_active_mut(buffers, view_buf, lines, filename, modified, |ls, fname, m| {
+        if let Some(ref p) = fname {
+            save_file(p, ls).map_err(|_| "write error".to_string())?;
+            *m = false;
+            Ok(())
+        } else {
+            Err("No file name".to_string())
+        }
+    })
+}
+
 pub fn run(args: &[String]) -> std::io::Result<()> {
     // initial state
     let mut filename: Option<PathBuf> = None;
@@ -175,8 +235,6 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
     let mut undo_snap: Option<UndoSnap> = None;
 
     // window splits (logical only for now; rendering is single view)
-    #[derive(Clone)]
-    struct View { kind: ViewKind, cx: usize, cy: usize, scroll: usize, buf: Option<usize> }
     let mut views: Vec<View> = vec![View { kind: ViewKind::Normal, cx, cy, scroll, buf: None }];
     let mut cur_view: usize = 0;
     let mut layout = SplitLayout::Horizontal;
@@ -218,17 +276,7 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
             let sel_style = Style::default().add_modifier(Modifier::REVERSED | Modifier::BOLD);
 
             // areas to render
-            let areas: Vec<Rect> = if views.len() <= 1 {
-                vec![chunks[0]]
-            } else {
-                let n = views.len();
-                let mut constraints: Vec<Constraint> = Vec::with_capacity(n);
-                for i in 0..n { let mut p = (100 / n) as u16; if i == n - 1 { p = 100 - (p * (n as u16 - 1)); } constraints.push(Constraint::Percentage(p)); }
-                match layout {
-                    SplitLayout::Horizontal => Layout::default().direction(Direction::Vertical).constraints(constraints).split(chunks[0]).to_vec(),
-                    SplitLayout::Vertical => Layout::default().direction(Direction::Horizontal).constraints(constraints).split(chunks[0]).to_vec(),
-                }
-            };
+            let areas: Vec<Rect> = split_rect(layout, chunks[0], views.len());
 
             let n = views.len();
             for i in 0..n {

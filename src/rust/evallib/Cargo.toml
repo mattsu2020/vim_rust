@@ -1,9 +1,0 @@
-[package]
-name = "vim_evallib"
-version = "0.1.0"
-edition = "2021"
-
-[lib]
-name = "vim_evallib"
-crate-type = ["staticlib", "rlib"]
-
