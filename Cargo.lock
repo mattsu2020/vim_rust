@@ -2564,6 +2564,7 @@ name = "rust_option"
 version = "0.1.0"
 dependencies = [
  "bindgen",
+ "regex",
  "rust_optionstr",
  "tempfile",
 ]

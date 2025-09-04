@@ -11,6 +11,7 @@ rust_optionstr = { path = "../rust_optionstr" }
 
 [build-dependencies]
 bindgen = "0.69"
+regex = "1"
 
 [dev-dependencies]
 tempfile = "3"

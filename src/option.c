@@ -44,16 +44,6 @@
 int spell_check_msm(void);
 int spell_check_sps(void);
 
-static const rs_opt_t *rs_option_table = NULL;
-static size_t rs_option_count = 0;
-
-static void
-init_rs_options(void)
-{
-    if (rs_option_table == NULL)
-        rs_option_table = rs_get_option_defs(&rs_option_count);
-}
-
 static void set_options_default(int opt_flags);
 static void set_string_default_esc(char *name, char_u *val, int escape);
 static char_u *find_dup_item(char_u *origval, char_u *newval, size_t newvallen, long_u flags);
@@ -775,7 +765,6 @@ set_options_default(
     int		opt_flags)	// OPT_FREE, OPT_LOCAL and/or OPT_GLOBAL
 {
     int		i;
-    init_rs_options();
     win_T	*wp;
     tabpage_T	*tp;
 
