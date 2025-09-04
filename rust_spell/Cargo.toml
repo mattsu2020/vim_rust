@@ -7,5 +7,4 @@ edition = "2021"
 crate-type = ["staticlib", "rlib"]
 
 [dependencies]
-# The trie and suggestion engine are implemented directly in this crate, so
-# no external crates are required.
+rust_spellfile = { path = "../rust_spellfile" }

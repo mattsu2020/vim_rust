@@ -1,13 +1,15 @@
 use rust_spell::{
     rs_spell_check, rs_spell_free_suggestions, rs_spell_load_dict, rs_spell_suggest,
 };
+use rust_spellfile::{build_from_words, write_spellfile};
 use std::ffi::{CStr, CString};
 
 #[test]
 fn load_check_and_suggest() {
     let mut path = std::env::temp_dir();
-    path.push("dict_test.txt");
-    std::fs::write(&path, b"apple\napply\nbanana\n").unwrap();
+    path.push("dict_test.rspf");
+    let data = build_from_words(&["apple", "apply", "banana"]);
+    write_spellfile(&path, &data).unwrap();
 
     let cpath = CString::new(path.to_str().unwrap()).unwrap();
     assert!(rs_spell_load_dict(cpath.as_ptr()));
