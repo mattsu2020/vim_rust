@@ -224,6 +224,35 @@ pub extern "C" fn rs_screen_highlight(
     screen.highlight_range(row as usize, col as usize, len as usize, attr);
 }
 
+/// C-compatible description of a highlighted range on screen.
+///
+/// This mirrors the tuple of `(row, col, len, attr)` previously passed to
+/// [`rs_screen_highlight`] and allows C callers to prepare the values in a
+/// reusable struct.
+#[repr(C)]
+pub struct HighlightInfo {
+    pub row: c_int,
+    pub col: c_int,
+    pub len: c_int,
+    pub attr: u8,
+}
+
+/// Apply highlighting described by [`HighlightInfo`] to the screen buffer.
+#[no_mangle]
+pub extern "C" fn rs_screen_highlight_info(buf: *mut ScreenBuffer, info: *const HighlightInfo) {
+    if buf.is_null() || info.is_null() {
+        return;
+    }
+    let screen = unsafe { &mut *buf };
+    let info = unsafe { &*info };
+    screen.highlight_range(
+        info.row as usize,
+        info.col as usize,
+        info.len as usize,
+        info.attr,
+    );
+}
+
 /// Callback used by [`rs_screen_flush`].
 pub type FlushCallback =
     extern "C" fn(row: c_int, text: *const c_char, attr: *const u8, len: c_int);
@@ -319,6 +348,26 @@ mod tests {
         assert_eq!(diff[0].text, "abcdef");
         // highlight attr applied to cde
         assert_eq!(diff[0].attrs[2..5], [3, 3, 3]);
+    }
+
+    #[test]
+    fn highlight_via_struct() {
+        use std::ffi::CString;
+
+        let sb = rs_screen_new(5, 1);
+        let txt = CString::new("hello").unwrap();
+        rs_screen_draw_text(sb, 0, 0, txt.as_ptr(), 1);
+        let info = HighlightInfo {
+            row: 0,
+            col: 1,
+            len: 3,
+            attr: 7,
+        };
+        rs_screen_highlight_info(sb, &info);
+        let diff = unsafe { (&mut *sb).flush_diff() };
+        assert_eq!(diff.len(), 1);
+        assert_eq!(diff[0].attrs[1..4], [7, 7, 7]);
+        rs_screen_free(sb);
     }
 
     #[test]
