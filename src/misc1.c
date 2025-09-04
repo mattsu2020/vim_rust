@@ -2861,21 +2861,7 @@ may_trigger_modechanged(void)
 #endif
 }
 
-// For overflow detection, add a digit safely to a long value.
-    int
-vim_append_digit_long(long *value, int digit)
-{
-    long x = *value;
-    if (x > ((LONG_MAX - (long)digit) / 10))
-	return FAIL;
-    *value = x * 10 + (long)digit;
-    return OK;
-}
-
-// Return something that fits into an int.
-    int
-trim_to_int(vimlong_T x)
-{
-    return x > INT_MAX ? INT_MAX : x < INT_MIN ? INT_MIN : x;
-}
+// FFI: implemented in rust_misc1 crate
+// vim_append_digit_long()
+// trim_to_int()
 

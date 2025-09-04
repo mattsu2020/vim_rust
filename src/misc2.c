@@ -745,15 +745,8 @@ vim_memset(void *ptr, int c, size_t size)
 }
 #endif
 
-/*
- * Vim has its own isspace() function, because on some machines isspace()
- * can't handle characters above 128.
- */
-    int
-vim_isspace(int x)
-{
-    return ((x >= 9 && x <= 13) || x == ' ');
-}
+// FFI: implemented in rust_misc2 crate
+// vim_isspace()
 
 /************************************************************************
  * functions that use lookup tables for various things, generally to do with
