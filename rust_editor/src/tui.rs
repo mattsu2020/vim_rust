@@ -28,7 +28,7 @@ fn save_file(path: &Path, lines: &Vec<String>) -> std::io::Result<()> {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum Mode { Normal, Insert, Command, SearchFwd, SearchBwd }
+enum Mode { Normal, Insert, Command, SearchFwd, SearchBwd, VisualChar, VisualLine }
 
 struct SearchState {
     regex: Option<Regex>,
@@ -40,6 +40,9 @@ struct SearchState {
 impl SearchState {
     fn new() -> Self { Self { regex: None, pattern: String::new(), case_insensitive: false, last_dir: 1 } }
 }
+
+#[derive(Clone)]
+enum Register { Charwise(String), Linewise(Vec<String>) }
 
 pub fn run(args: &[String]) -> std::io::Result<()> {
     // initial state
@@ -56,6 +59,13 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
     let mut cmdline: String = String::new(); // used for :cmd and /search
     let mut tabstop: usize = 4;
     let mut search = SearchState::new();
+    // visual/select + clipboard for basic y/d/p
+    let mut visual_anchor: Option<(usize, usize)> = None; // (cx, cy)
+    let mut clipboard: Option<Register> = None;
+    // last substitute
+    let mut last_pat: String = String::new();
+    let mut last_repl: String = String::new();
+    let mut last_flags: String = String::new();
 
     // setup terminal
     terminal::enable_raw_mode().map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
@@ -89,28 +99,56 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
             if cy < scroll { scroll = cy; }
             if cy >= scroll + view_rows { scroll = cy + 1 - view_rows; }
 
-            // compose visible text with optional search highlight
+            // compose visible text with optional search/visual highlight
             let mut text = Text::default();
             let hl_style = Style::default().add_modifier(Modifier::REVERSED);
+            let sel_style = Style::default().add_modifier(Modifier::REVERSED | Modifier::BOLD);
             for i in 0..view_rows {
                 let li = scroll + i;
                 if li < lines.len() {
+                    let line = &lines[li];
+                    let mut spans: Vec<Span> = Vec::new();
+                    let mut last = 0usize;
+                    // gather search matches as segments
+                    let mut matches: Vec<(usize, usize, Style)> = Vec::new();
                     if let Some(re) = &search.regex {
-                        let line = &lines[li];
-                        let mut spans: Vec<Span> = Vec::new();
-                        let mut last = 0usize;
-                        for m in re.find(line) {
-                            let s = m.start();
-                            let e = m.end();
-                            if s > last { spans.push(Span::raw(line[last..s].to_string())); }
-                            spans.push(Span::styled(line[s..e].to_string(), hl_style));
-                            last = e;
+                        let mut start_at = 0usize;
+                        while let Some(m) = re.find_at(line, start_at) {
+                            let s = m.start(); let e = m.end();
+                            matches.push((s, e, hl_style));
+                            if e == start_at { break; }
+                            start_at = e;
                         }
-                        if last < line.len() { spans.push(Span::raw(line[last..].to_string())); }
-                        text.lines.push(Line::from(spans));
-                    } else {
-                        text.lines.push(Line::from(lines[li].clone()));
                     }
+                    // visual selection overlay
+                    if matches!(mode, Mode::VisualChar | Mode::VisualLine) {
+                        if let Some((ax, ay)) = visual_anchor {
+                            let (bx, by) = (cx, cy);
+                            // compute range on this line
+                            if (li >= ay && li <= by) || (li >= by && li <= ay) {
+                                let (sx, sy, ex, ey) = ordered_region(ax, ay, bx, by);
+                                let (s, e) = if sy == ey {
+                                    if li == sy { (sx.min(line.len()), (ex + 1).min(line.len())) } else { (0, 0) }
+                                } else if li == sy {
+                                    (sx.min(line.len()), line.len())
+                                } else if li == ey {
+                                    (0, (ex + 1).min(line.len()))
+                                } else {
+                                    (0, line.len())
+                                };
+                                if e > s { matches.push((s, e, sel_style)); }
+                            }
+                        }
+                    }
+                    // merge matches/spans sorted by start
+                    matches.sort_by_key(|m| m.0);
+                    for (s, e, st) in matches {
+                        if s > last { spans.push(Span::raw(line[last..s].to_string())); }
+                        spans.push(Span::styled(line[s..e].to_string(), st));
+                        last = e;
+                    }
+                    if last < line.len() { spans.push(Span::raw(line[last..].to_string())); }
+                    text.lines.push(Line::from(spans));
                 } else {
                     text.lines.push(Line::from("~"));
                 }
@@ -122,7 +160,7 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
             // status
             let name = filename.as_ref().map(|p| p.to_string_lossy().to_string()).unwrap_or_else(|| "[No Name]".to_string());
             let m = if modified { " [+]" } else { "" };
-            let mode_tag = match mode { Mode::Normal => "[N]", Mode::Insert => "[I]", Mode::Command => ":", Mode::SearchFwd => "/", Mode::SearchBwd => "?" };
+            let mode_tag = match mode { Mode::Normal => "[N]", Mode::Insert => "[I]", Mode::Command => ":", Mode::SearchFwd => "/", Mode::SearchBwd => "?", Mode::VisualChar => "[V]", Mode::VisualLine => "[VL]" };
             let right = status.clone().unwrap_or_default();
             let status_line = Line::from(vec![
                 Span::raw(format!(" {} {} - {}:{}{} ", mode_tag, name, cy + 1, cx + 1, m)),
@@ -192,6 +230,27 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                                     if parts.len() >= 2 { filename = Some(PathBuf::from(parts[1])); }
                                     if let Some(ref p) = filename { match save_file(p, &lines) { Ok(_) => { modified = false; status = Some("written".into()); }, Err(_) => status = Some("write error".into()) } } else { status = Some("No file name".into()); }
                                 }
+                                else if cmd == "&" || cmd == ":&" || cmd == "&&" || cmd == ":&&" {
+                                    if last_pat.is_empty() {
+                                        status = Some("no previous substitute".into());
+                                    } else {
+                                        let range = if cmd.ends_with("&&") { (1, lines.len()) } else { (cy+1, cy+1) };
+                                        match substitute_lines(&mut lines, range, &last_pat, &last_repl, &last_flags) {
+                                            Ok(n) => { if n>0 { modified=true; } status = Some(format!("substitutions: {}", n)); }
+                                            Err(e) => status = Some(e),
+                                        }
+                                    }
+                                }
+                                else if cmd.starts_with('s') || cmd.starts_with(":s") || cmd.contains('s') && cmd.find('s').unwrap_or(usize::MAX) < 6 {
+                                    if let Some((range_str, pat, repl_raw, flags)) = parse_substitute(cmd) {
+                                        let (start,end) = if let Some(rs)=range_str { parse_range(&rs, lines.len(), cy).unwrap_or((cy+1, cy+1)) } else { (cy+1, cy+1) };
+                                        let repl = convert_repl_to_rust(&repl_raw, &last_repl);
+                                        match substitute_lines(&mut lines, (start,end), &pat, &repl, &flags) {
+                                            Ok(n) => { if n>0 { modified=true; } status = Some(format!("substitutions: {}", n)); last_pat = pat; last_repl = repl_raw; last_flags = flags; }
+                                            Err(e) => status = Some(e),
+                                        }
+                                    }
+                                }
                                 else if cmd.starts_with("e!") || cmd.starts_with(":e!") {
                                     let parts: Vec<&str> = cmd.trim_start_matches(':').split_whitespace().collect();
                                     if parts.len() >= 2 {
@@ -233,6 +292,8 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                         (KeyCode::Char(':'), _, Mode::Normal) => { mode = Mode::Command; cmdline.clear(); }
                         ,(KeyCode::Char('/'), _, Mode::Normal) => { mode = Mode::SearchFwd; cmdline.clear(); }
                         ,(KeyCode::Char('?'), _, Mode::Normal) => { mode = Mode::SearchBwd; cmdline.clear(); }
+                        ,(KeyCode::Char('v'), _, Mode::Normal) => { if matches!(mode, Mode::VisualChar) { mode = Mode::Normal; visual_anchor=None; } else { mode = Mode::VisualChar; visual_anchor = Some((cx, cy)); } }
+                        ,(KeyCode::Char('V'), _, Mode::Normal) => { if matches!(mode, Mode::VisualLine) { mode = Mode::Normal; visual_anchor=None; } else { mode = Mode::VisualLine; visual_anchor = Some((cx, cy)); } }
                         ,(KeyCode::Char('i'), _, Mode::Normal) => { mode = Mode::Insert; }
                         ,(KeyCode::Esc, _, Mode::Insert) => { mode = Mode::Normal; }
                         ,(KeyCode::Char('h'), _, Mode::Normal) | (KeyCode::Left, _, _) => { if cx>0 { cx-=1; } else if cy>0 { cy-=1; cx = lines[cy].len(); } }
@@ -243,6 +304,18 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                         ,(KeyCode::End, _, _) | (KeyCode::Char('$'), _, Mode::Normal) => { cx = lines[cy].len(); }
                         ,(KeyCode::Char('G'), _, Mode::Normal) => { cy = lines.len().saturating_sub(1); cx = 0; }
                         ,(KeyCode::Char('g'), _, Mode::Normal) => { cy = 0; cx = 0; }
+                        ,(KeyCode::Char('d'), _, m) if matches!(m, Mode::VisualChar | Mode::VisualLine) => {
+                            if let Some((ax, ay)) = visual_anchor { let (sx, sy, ex, ey) = ordered_region(ax, ay, cx, cy); delete_selection(&mut lines, sx, sy, ex, ey, matches!(m, Mode::VisualChar)); modified = true; mode = Mode::Normal; visual_anchor=None; cx = sx; cy = sy; }
+                        }
+                        ,(KeyCode::Char('y'), _, m) if matches!(m, Mode::VisualChar | Mode::VisualLine) => {
+                            if let Some((ax, ay)) = visual_anchor { let (sx, sy, ex, ey) = ordered_region(ax, ay, cx, cy); clipboard = Some(yank_selection(&lines, sx, sy, ex, ey, matches!(m, Mode::VisualChar))); mode = Mode::Normal; visual_anchor=None; }
+                        }
+                        ,(KeyCode::Char('c'), _, m) if matches!(m, Mode::VisualChar | Mode::VisualLine) => {
+                            if let Some((ax, ay)) = visual_anchor { let (sx, sy, ex, ey) = ordered_region(ax, ay, cx, cy); clipboard = Some(yank_selection(&lines, sx, sy, ex, ey, matches!(m, Mode::VisualChar))); delete_selection(&mut lines, sx, sy, ex, ey, matches!(m, Mode::VisualChar)); modified = true; mode = Mode::Insert; visual_anchor=None; cx = sx; cy = sy; }
+                        }
+                        ,(KeyCode::Char('p'), _, Mode::Normal) => {
+                            if let Some(reg) = clipboard.clone() { match reg { Register::Charwise(s) => { for ch in s.chars() { lines[cy].insert(cx, ch); cx+=1; } }, Register::Linewise(mut ls) => { let insert_at = cy+1; for (i,l) in ls.drain(..).enumerate(){ lines.insert(insert_at+i, l);} cy = insert_at; cx = 0; } } modified = true; }
+                        }
                         ,(KeyCode::Enter, _, Mode::Insert) => { let cur = lines[cy].clone(); let (l, r) = cur.split_at(cx); lines[cy] = l.to_string(); lines.insert(cy+1, r.to_string()); cy+=1; cx=0; modified = true; }
                         ,(KeyCode::Backspace, _, Mode::Insert) => { if cx>0 { lines[cy].remove(cx-1); cx-=1; modified = true; } else if cy>0 { let prev_len = lines[cy-1].len(); let line = lines.remove(cy); lines[cy-1].push_str(&line); cy-=1; cx=prev_len; modified=true; } }
                         ,(KeyCode::Char(c), KeyModifiers::NONE, Mode::Insert) => { if c == '\t' { let spaces = " ".repeat(tabstop); for ch in spaces.chars() { lines[cy].insert(cx, ch); cx+=1; } } else { lines[cy].insert(cx, c); cx+=1; } modified = true; }
@@ -294,4 +367,149 @@ fn find_next(lines: &Vec<String>, cy: usize, cx: usize, search: &SearchState, di
             y -= 1; x_end = lines[y].len();
         }
     }
+}
+
+// helpers ported from ANSI mode
+fn ordered_region(ax: usize, ay: usize, bx: usize, by: usize) -> (usize, usize, usize, usize) {
+    if (by < ay) || (by == ay && bx < ax) { (bx, by, ax, ay) } else { (ax, ay, bx, by) }
+}
+
+fn yank_selection(lines: &Vec<String>, sx: usize, sy: usize, ex: usize, ey: usize, charwise: bool) -> Register {
+    if sy == ey {
+        if charwise {
+            let line = &lines[sy];
+            let start = sx.min(line.len());
+            let end = (ex + 1).min(line.len());
+            let s = if start <= end { line[start..end].to_string() } else { String::new() };
+            Register::Charwise(s)
+        } else {
+            Register::Linewise(vec![lines[sy].clone()])
+        }
+    } else {
+        if charwise {
+            let mut out = String::new();
+            let first = &lines[sy];
+            let start = sx.min(first.len());
+            out.push_str(&first[start..]);
+            out.push('\n');
+            for i in (sy + 1)..ey { out.push_str(&lines[i]); out.push('\n'); }
+            let last = &lines[ey];
+            let end = (ex + 1).min(last.len());
+            out.push_str(&last[..end]);
+            Register::Charwise(out)
+        } else {
+            let mut out = Vec::new();
+            for i in sy..=ey { out.push(lines[i].clone()); }
+            Register::Linewise(out)
+        }
+    }
+}
+
+fn delete_selection(lines: &mut Vec<String>, sx: usize, sy: usize, ex: usize, ey: usize, charwise: bool) {
+    if sy == ey {
+        if charwise {
+            let line = &mut lines[sy];
+            let start = sx.min(line.len());
+            let end = (ex + 1).min(line.len());
+            if start < end { line.replace_range(start..end, ""); }
+        } else {
+            lines.remove(sy);
+            if lines.is_empty() { lines.push(String::new()); }
+        }
+    } else {
+        if charwise {
+            let first_tail = {
+                let first = &lines[sy];
+                let start = sx.min(first.len());
+                first[..start].to_string()
+            };
+            let last_head = {
+                let last = &lines[ey];
+                let end = (ex + 1).min(last.len());
+                last[end..].to_string()
+            };
+            for _ in (sy + 1)..=ey { lines.remove(sy + 1); }
+            lines[sy] = first_tail + &last_head;
+        } else {
+            for _ in sy..=ey { lines.remove(sy); }
+            if lines.is_empty() { lines.push(String::new()); }
+        }
+    }
+}
+
+fn convert_repl_to_rust(repl: &str, last_repl: &str) -> String {
+    let mut out = String::with_capacity(repl.len());
+    let mut chars = repl.chars().peekable();
+    let mut escape = false;
+    while let Some(ch) = chars.next() {
+        if escape {
+            out.push(ch);
+            escape = false;
+            continue;
+        }
+        if ch == '\\' {
+            if let Some(nc) = chars.peek().copied() {
+                if nc.is_ascii_digit() { out.push('$'); out.push(nc); let _ = chars.next(); continue; }
+                else { escape = true; continue; }
+            } else { out.push(ch); continue; }
+        } else if ch == '&' { out.push('$'); out.push('0'); continue; }
+        else if ch == '~' { out.push_str(last_repl); continue; }
+        out.push(ch);
+    }
+    out
+}
+
+fn substitute_lines(lines: &mut Vec<String>, range: (usize, usize), pat: &str, repl: &str, flags: &str) -> Result<usize, String> {
+    let mut builder = RegexBuilder::new(pat);
+    if flags.contains('i') { builder.case_insensitive(true); }
+    let re = builder.build().map_err(|e| format!("regex error: {}", e))?;
+    let start = range.0.saturating_sub(1);
+    let end = range.1.saturating_sub(1).min(lines.len().saturating_sub(1));
+    let mut total = 0usize;
+    let global = flags.contains('g');
+    for i in start..=end {
+        let count = if global { re.find_iter(&lines[i]).count() } else { if re.is_match(&lines[i]) { 1 } else { 0 } };
+        if count > 0 {
+            let new_line = if global { re.replace_all(&lines[i], repl).to_string() } else { re.replace(&lines[i], repl).to_string() };
+            lines[i] = new_line; total += count;
+        }
+    }
+    Ok(total)
+}
+
+fn parse_substitute(cmd: &str) -> Option<(Option<String>, String, String, String)> {
+    let c = cmd.trim_start_matches(':').trim();
+    // collect possible range prefix until 's'
+    let mut idx = 0usize; let bytes = c.as_bytes();
+    while idx < bytes.len() {
+        let ch = bytes[idx] as char; if ch == 's' { break; }
+        if !(ch == '%' || ch == '.' || ch == '$' || ch == ',' || ch == '+' || ch == '-' || ch.is_ascii_digit() || ch.is_whitespace()) { return None; }
+        idx += 1;
+    }
+    if idx >= bytes.len() || bytes[idx] as char != 's' { return None; }
+    let range_str = if idx == 0 { None } else { Some(c[..idx].trim().to_string()) };
+    let mut i = idx + 1; if i >= c.len() { return None; }
+    let sep = c.as_bytes()[i] as char; if sep.is_ascii_whitespace() { return None; } i += 1;
+    let mut collect = |i: &mut usize| {
+        let mut out = String::new(); let mut esc = false; while *i < c.len() { let ch = c.as_bytes()[*i] as char; *i += 1; if esc { out.push(ch); esc = false; continue; } if ch == '\\' { esc = true; continue; } if ch == sep { break; } out.push(ch); } out
+    };
+    let pat = collect(&mut i); if i >= c.len() { return None; }
+    let repl = collect(&mut i);
+    let flags = c[i..].trim().to_string();
+    Some((range_str, pat, repl, flags))
+}
+
+fn parse_line_ref(tok: &str, max: usize, current: usize) -> Option<usize> {
+    let t = tok.trim(); if t.is_empty() { return None; }
+    let (mut base, mut rest) = if t.starts_with('.') { (current + 1, &t[1..]) }
+        else if t.starts_with('$') { (max.max(1), &t[1..]) }
+        else if let Ok(n) = t.parse::<usize>() { (n, "") } else { return None };
+    let mut i = 0usize; while i < rest.len() { let sign = rest.as_bytes()[i] as char; if sign != '+' && sign != '-' { break; } i+=1; let mut j = i; while j < rest.len() && rest.as_bytes()[j].is_ascii_digit() { j+=1; } if i==j { break; } let n: usize = rest[i..j].parse().ok()?; if sign=='+' { base = base.saturating_add(n); } else { base = base.saturating_sub(n); } i=j; }
+    Some(base.clamp(1, max.max(1)))
+}
+
+fn parse_range(arg: &str, max: usize, current: usize) -> Option<(usize, usize)> {
+    let s = arg.trim(); if s.is_empty() { return None; }
+    if s == "%" { return Some((1, max.max(1))); }
+    if let Some((a,b)) = s.split_once(',') { let start = parse_line_ref(a, max, current)?; let end = parse_line_ref(b, max, current)?; Some((start.min(end), start.max(end))) } else { let n = parse_line_ref(s, max, current)?; Some((n,n)) }
 }
