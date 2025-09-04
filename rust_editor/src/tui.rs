@@ -34,7 +34,7 @@ enum Mode { Normal, Insert, Command, SearchFwd, SearchBwd, VisualChar, VisualLin
 enum SplitLayout { Horizontal, Vertical }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum ViewKind { Normal, BuffersList }
+enum ViewKind { Normal, BuffersList, Help }
 
 struct SearchState {
     regex: Option<Regex>,
@@ -84,6 +84,7 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
     let mut views: Vec<View> = vec![View { kind: ViewKind::Normal, cx, cy, scroll, buf: None }];
     let mut cur_view: usize = 0;
     let mut layout = SplitLayout::Horizontal;
+    let mut last_normal_view: usize = 0;
 
     // setup terminal
     terminal::enable_raw_mode().map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
@@ -182,6 +183,26 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                         }
                         while text.lines.len() < view_rows { text.lines.push(Line::from("~")); }
                     }
+                    ViewKind::Help => {
+                        let help = [
+                            "Rust TUI Vim (mini) Help",
+                            "",
+                            ":e {file} / :e! {file} / :w / :wq / :q / :q!",
+                            ":badd {file} / :bn / :bp / :buffer {n} / :buffers",
+                            ":split / :vsplit / :only / :close / :wincmd w (Ctrl-W w)",
+                            ":read {file} / :write [range] {file}",
+                            ":%s/pat/repl/[g][i]  (:& / :&& で再実行)",
+                            "検索: /pattern (?pattern) / n / N  (\\c:ignore, \\C:match)",
+                            "モード: Normal / Insert / Visual(v/V) / Command(:)",
+                            "操作: h j k l / 0 $ gg G / i a I A / o O / x J / p / u",
+                            "q でこのウィンドウを閉じる",
+                        ];
+                        for s in help.iter().skip(v.scroll) {
+                            if text.lines.len() >= view_rows { break; }
+                            text.lines.push(Line::from((*s).to_string()));
+                        }
+                        while text.lines.len() < view_rows { text.lines.push(Line::from("~")); }
+                    }
                 }
                 let content = Paragraph::new(text).block(Block::default().borders(Borders::NONE));
                 f.render_widget(content, area);
@@ -247,11 +268,13 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                                 if mode == Mode::SearchFwd || mode == Mode::SearchBwd {
                                     // build regex from cmdline and jump
                                     let raw = cmdline.clone();
-                                    let mut pat = raw.as_str();
+                                    let pat = raw.as_str();
                                     let mut case_insensitive = false;
-                                    // support \c for ignore case
+                                    // support \c (ignore case) and \C (match case)
                                     if pat.contains("\\c") { case_insensitive = true; }
-                                    let pat_clean = pat.replace("\\c", "");
+                                    if pat.contains("\\C") { case_insensitive = false; }
+                                    let mut pat_clean = pat.replace("\\c", "");
+                                    pat_clean = pat_clean.replace("\\C", "");
                                     let mut builder = RegexBuilder::new(&pat_clean);
                                     if case_insensitive { builder.case_insensitive(true); }
                                     match builder.build() {
@@ -379,7 +402,9 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                                     if !views.is_empty() { let k = views[cur_view].kind; let b = views[cur_view].buf; views[cur_view] = View { kind: k, cx, cy, scroll, buf: b }; cur_view = (cur_view + 1) % views.len(); let v = views[cur_view].clone(); cx = v.cx; cy = v.cy; scroll = v.scroll; }
                                 }
                                 else if cmd == "help" || cmd == ":help" {
-                                    status = Some("Use h j k l, i/ESC, :w :q".into());
+                                    last_normal_view = cur_view;
+                                    views.push(View { kind: ViewKind::Help, cx: 0, cy: 0, scroll: 0, buf: None });
+                                    cur_view = views.len() - 1;
                                 }
                                 cmdline.clear(); mode = Mode::Normal;
                             }
