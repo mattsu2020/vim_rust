@@ -8,6 +8,7 @@ exclude = [
     "rust_mzsch",
     "rust_ole",
     "rust_cscope",
+    "rust_sound",
     "rust/terminal",
     "rust_alloc",
     "rust_excmd",
