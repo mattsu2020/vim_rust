@@ -2256,6 +2256,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_exeval"
+version = "0.1.0"
+dependencies = [
+ "rust_excmds",
+]
+
+[[package]]
 name = "rust_ffi"
 version = "0.1.0"
 
@@ -2373,6 +2380,13 @@ name = "rust_gui_xim"
 version = "0.1.0"
 dependencies = [
  "rust_gui_core",
+]
+
+[[package]]
+name = "rust_hardcopy"
+version = "0.1.0"
+dependencies = [
+ "libc",
 ]
 
 [[package]]
@@ -2634,6 +2648,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_register"
+version = "0.1.0"
+dependencies = [
+ "rust_clipboard",
+]
+
+[[package]]
 name = "rust_screen"
 version = "0.1.0"
 dependencies = [
@@ -2666,6 +2687,14 @@ name = "rust_sign"
 version = "0.1.0"
 dependencies = [
  "once_cell",
+]
+
+[[package]]
+name = "rust_sound"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "winapi",
 ]
 
 [[package]]
@@ -2709,6 +2738,13 @@ name = "rust_term"
 version = "0.1.0"
 dependencies = [
  "crossterm",
+ "libc",
+]
+
+[[package]]
+name = "rust_termlib"
+version = "0.1.0"
+dependencies = [
  "libc",
 ]
 
@@ -2824,10 +2860,25 @@ name = "rust_viminfo"
 version = "0.1.0"
 
 [[package]]
+name = "rust_vimrun"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "winapi",
+]
+
+[[package]]
 name = "rust_wayland"
 version = "0.1.0"
 dependencies = [
  "wayland-client 0.30.2",
+]
+
+[[package]]
+name = "rust_winclip"
+version = "0.1.0"
+dependencies = [
+ "winapi",
 ]
 
 [[package]]
@@ -2847,6 +2898,13 @@ version = "0.1.0"
 dependencies = [
  "diff",
  "similar",
+]
+
+[[package]]
+name = "rust_xpm_w32"
+version = "0.1.0"
+dependencies = [
+ "winapi",
 ]
 
 [[package]]
@@ -3424,6 +3482,7 @@ dependencies = [
  "rust_fold",
  "rust_fuzzy",
  "rust_gc",
+ "rust_hardcopy",
  "rust_job",
  "rust_message",
  "rust_os_amiga",
@@ -3434,9 +3493,14 @@ dependencies = [
  "rust_pty",
  "rust_python",
  "rust_sha256",
+ "rust_sound",
  "rust_spell",
+ "rust_termlib",
  "rust_vim9class",
+ "rust_vimrun",
  "rust_wayland",
+ "rust_winclip",
+ "rust_xpm_w32",
  "serde",
  "serde_json",
  "tokio",

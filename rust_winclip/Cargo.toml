@@ -1,0 +1,11 @@
+[package]
+name = "rust_winclip"
+version = "0.1.0"
+edition = "2021"
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["winuser"] }
+
+[lib]
+name = "rust_winclip"
+crate-type = ["staticlib", "rlib"]

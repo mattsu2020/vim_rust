@@ -43,6 +43,9 @@ rust_evalwindow = { path = "rust_evalwindow" }
 rust_fuzzy = { path = "rust_fuzzy" }
 rust_gc = { path = "rust_gc" }
 rust_clipboard = { path = "rust_clipboard" }
+rust_hardcopy = { path = "rust_hardcopy" }
+rust_sound = { path = "rust_sound" }
+rust_termlib = { path = "rust_termlib" }
 regex = "1"
 blowfish = "0.8"
 pbkdf2 = "0.12"
@@ -54,6 +57,9 @@ default = []
 
 [target.'cfg(windows)'.dependencies]
 rust_os_win32 = { path = "rust_os_win32" }
+rust_winclip = { path = "rust_winclip" }
+rust_xpm_w32 = { path = "rust_xpm_w32" }
+rust_vimrun = { path = "rust_vimrun" }
 
 [target.'cfg(unix)'.dependencies]
 rust_os_unix = { path = "rust_os_unix" }
