@@ -1372,7 +1372,7 @@ MKDIR_P = $(SHELL) install-sh -c -d
 .SUFFIXES:
 .SUFFIXES: .c .o .pro
 
-VTERM_CFLAGS = -Ilibvterm/include
+VTERM_CFLAGS =
 
 # $(RUST_TERMINAL_LIB) is disabled in the minimal build
 
@@ -1388,8 +1388,8 @@ ALL_IF_CFLAGS_EXTRA = $(LUA_CFLAGS_EXTRA) $(PERL_CFLAGS_EXTRA) $(PYTHON_CFLAGS_E
 # with "-E".
 OSDEF_CFLAGS = $(PRE_DEFS) $(POST_DEFS)
 
-LINT_CFLAGS = -DLINT -I. $(PRE_DEFS) $(POST_DEFS) $(ALL_IF_CFLAGS) $(VTERM_CFLAGS) \
-	      -Dinline= -D__extension__= -Dalloca=alloca
+LINT_CFLAGS = -DLINT -I. $(PRE_DEFS) $(POST_DEFS) $(ALL_IF_CFLAGS) \
+              -Dinline= -D__extension__= -Dalloca=alloca
 
 LINT_EXTRA = -D"__attribute__(x)="
 

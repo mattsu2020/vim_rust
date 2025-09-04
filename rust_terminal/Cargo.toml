@@ -4,8 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-rust_term = { path = "../rust_term" }
-rust_termlib = { path = "../rust_termlib" }
+vte = "0.15"
 
 [lib]
 name = "rust_terminal"
