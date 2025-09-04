@@ -4,8 +4,15 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+typedef enum {
+    RS_OPT_BOOL = 0,
+    RS_OPT_NUMBER = 1,
+    RS_OPT_STRING = 2,
+} rs_opt_type;
+
 typedef struct rs_opt_t {
     const char *name;
+    rs_opt_type typ;
     const char *default_value;
 } rs_opt_t;
 
