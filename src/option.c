@@ -38,7 +38,7 @@
 #define IN_OPTION_C
 #include "vim.h"
 #include "optiondefs.h"
-#include "option_rs.h"
+#include "rust_option.h"
 
 // 最小構成用：スペル設定検証関数の前方宣言（実体は Rust/別実装想定）
 int spell_check_msm(void);
@@ -128,16 +128,7 @@ set_init_default_shell(void)
 	set_string_default_esc("sh", p, TRUE);
 #endif
     if (rs_verify_option("shell"))
-    {
-        size_t len = STRLEN(p) + 7; // "shell=" + NUL
-        char *buf = (char *)alloc(len);
-        if (buf != NULL)
-        {
-            vim_snprintf(buf, len, "shell=%s", p);
-            rs_parse_option(buf);
-            vim_free(buf);
-        }
-    }
+        rs_set_option("shell", (char *)p);
 }
 
 /*

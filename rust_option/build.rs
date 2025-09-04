@@ -5,12 +5,12 @@ use std::path::PathBuf;
 use regex::Regex;
 
 fn main() {
-    println!("cargo:rerun-if-changed=../src/option_rs.h");
+    println!("cargo:rerun-if-changed=../src/rust_option.h");
     println!("cargo:rerun-if-changed=../src/optiondefs.h");
 
     // Generate the bindings for the FFI structures.
     let bindings = bindgen::Builder::default()
-        .header("../src/option_rs.h")
+        .header("../src/rust_option.h")
         .allowlist_type("rs_opt_t")
         .allowlist_type("rs_opt_type")
         .generate()
@@ -20,8 +20,7 @@ fn main() {
         .expect("Couldn't write bindings!");
 
     // Parse option names from optiondefs.h to build a Rust table.
-    let content = fs::read_to_string("../src/optiondefs.h")
-        .expect("failed to read optiondefs.h");
+    let content = fs::read_to_string("../src/optiondefs.h").expect("failed to read optiondefs.h");
 
     let re = Regex::new(r#"^\{"([^"]+)",\s*"([^"]*)",\s*([^,]+),"#).unwrap();
     let term_re = Regex::new(r#"^p_term\("([^"]+)""#).unwrap();
@@ -37,14 +36,25 @@ fn main() {
             let (rs_kind, c_kind) = if flags.contains("P_BOOL") {
                 ("OptType::Bool", "crate::bindings::rs_opt_type_RS_OPT_BOOL")
             } else if flags.contains("P_NUM") {
-                ("OptType::Number", "crate::bindings::rs_opt_type_RS_OPT_NUMBER")
+                (
+                    "OptType::Number",
+                    "crate::bindings::rs_opt_type_RS_OPT_NUMBER",
+                )
             } else {
-                ("OptType::String", "crate::bindings::rs_opt_type_RS_OPT_STRING")
+                (
+                    "OptType::String",
+                    "crate::bindings::rs_opt_type_RS_OPT_STRING",
+                )
             };
             entries.push((name, short, rs_kind.to_string(), c_kind.to_string()));
         } else if let Some(caps) = term_re.captures(t) {
             let name = caps.get(1).unwrap().as_str().to_string();
-            entries.push((name, String::new(), "OptType::String".to_string(), "crate::bindings::rs_opt_type_RS_OPT_STRING".to_string()));
+            entries.push((
+                name,
+                String::new(),
+                "OptType::String".to_string(),
+                "crate::bindings::rs_opt_type_RS_OPT_STRING".to_string(),
+            ));
         }
     }
 
