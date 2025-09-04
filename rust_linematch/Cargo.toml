@@ -1,0 +1,10 @@
+[package]
+name = "rust_linematch"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[lib]
+name = "rust_linematch"
+crate-type = ["staticlib", "rlib"]

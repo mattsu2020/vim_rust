@@ -1,0 +1,11 @@
+[package]
+name = "rust_match"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+regex = "1"
+
+[lib]
+name = "rust_match"
+crate-type = ["staticlib", "rlib"]

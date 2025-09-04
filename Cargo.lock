@@ -2256,6 +2256,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_exeval"
+version = "0.1.0"
+dependencies = [
+ "rust_excmds",
+]
+
+[[package]]
 name = "rust_ffi"
 version = "0.1.0"
 
@@ -2424,6 +2431,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_linematch"
+version = "0.1.0"
+
+[[package]]
 name = "rust_list"
 version = "0.1.0"
 dependencies = [
@@ -2446,6 +2457,17 @@ name = "rust_map"
 version = "0.1.0"
 dependencies = [
  "once_cell",
+]
+
+[[package]]
+name = "rust_mark"
+version = "0.1.0"
+
+[[package]]
+name = "rust_match"
+version = "0.1.0"
+dependencies = [
+ "regex",
 ]
 
 [[package]]
@@ -2631,6 +2653,13 @@ dependencies = [
  "criterion 0.5.1",
  "regex",
  "rust_fuzzy",
+]
+
+[[package]]
+name = "rust_register"
+version = "0.1.0"
+dependencies = [
+ "rust_clipboard",
 ]
 
 [[package]]
