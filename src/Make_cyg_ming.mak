@@ -1108,8 +1108,9 @@ endif
 
 all: $(MAIN_TARGET) vimrun.exe xxd/xxd.exe tee/tee.exe GvimExt/gvimext.dll
 
-vimrun.exe: vimrun.c
-	$(CC) $(CFLAGS) -o vimrun.exe vimrun.c $(LIB)
+vimrun.exe:
+        cargo build --manifest-path ../rust_vimrun/Cargo.toml --release
+        cp ../target/release/rust_vimrun.exe vimrun.exe
 
 
 $(OBJ): | $(OUTDIR)

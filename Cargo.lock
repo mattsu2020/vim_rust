@@ -2894,6 +2894,13 @@ name = "rust_viminfo"
 version = "0.1.0"
 
 [[package]]
+name = "rust_vimrun"
+version = "0.1.0"
+dependencies = [
+ "windows",
+]
+
+[[package]]
 name = "rust_wayland"
 version = "0.1.0"
 dependencies = [
