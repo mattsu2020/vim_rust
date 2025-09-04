@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 libc = "0.2"
-rust_screen = { path = "../rust_screen" }
+rust_ui = { path = "../rust_ui" }
 
 [lib]
 name = "rust_drawline"

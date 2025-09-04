@@ -1,10 +1,13 @@
-use rust_screen::ScreenBuffer;
+pub use rust_screen::ScreenBuffer;
 use libc::{c_char, c_int};
 use std::collections::VecDeque;
+use std::ffi::CStr;
 use std::sync::{LazyLock, Mutex};
 
 static INPUT_BUF: LazyLock<Mutex<VecDeque<u8>>> = LazyLock::new(|| Mutex::new(VecDeque::new()));
 static OUTPUT_BUF: LazyLock<Mutex<Vec<String>>> = LazyLock::new(|| Mutex::new(Vec::new()));
+static GLOBAL_UI: LazyLock<Mutex<Option<Ui<CliRenderer>>>> =
+    LazyLock::new(|| Mutex::new(None));
 
 /// Write UI text directly from Rust, bypassing any C shim.
 #[no_mangle]
@@ -49,6 +52,50 @@ pub fn take_output() -> Vec<String> {
     res
 }
 
+/// Initialize the global [`Ui`] instance used by C bindings.
+pub fn init(width: usize, height: usize) {
+    let mut ui = GLOBAL_UI.lock().unwrap();
+    *ui = Some(Ui::new(width, height, CliRenderer));
+}
+
+/// Execute a closure with mutable access to the global [`Ui`] if initialized.
+pub fn with_ui_mut<F, R>(f: F) -> Option<R>
+where
+    F: FnOnce(&mut Ui<CliRenderer>) -> R,
+{
+    let mut ui = GLOBAL_UI.lock().unwrap();
+    ui.as_mut().map(f)
+}
+
+/// Flush pending screen updates using the global [`Ui`].
+pub fn flush() {
+    let _ = with_ui_mut(|ui| ui.flush());
+}
+
+#[no_mangle]
+pub extern "C" fn rs_ui_init(width: c_int, height: c_int) {
+    init(width as usize, height as usize);
+}
+
+#[no_mangle]
+pub extern "C" fn rs_ui_draw_line(row: c_int, text: *const c_char, attr: u8) {
+    if text.is_null() {
+        return;
+    }
+    let c_str = unsafe { CStr::from_ptr(text) };
+    if let Ok(s) = c_str.to_str() {
+        let _ = with_ui_mut(|ui| {
+            ui.clear_line(row as usize, attr);
+            ui.draw_text(row as usize, 0, s, attr);
+        });
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn rs_ui_flush() {
+    flush();
+}
+
 /// Trait implemented by rendering backends.
 pub trait Renderer {
     fn draw_line(&mut self, row: usize, text: &str, attrs: &[u8]);
@@ -81,6 +128,11 @@ impl<R: Renderer> Ui<R> {
         self.screen.draw_text(row, col, text, attr);
     }
 
+    /// Clear a whole line with the given attribute.
+    pub fn clear_line(&mut self, row: usize, attr: u8) {
+        self.screen.clear_line(row, attr);
+    }
+
     pub fn highlight(&mut self, row: usize, col: usize, len: usize, attr: u8) {
         self.screen.highlight_range(row, col, len, attr);
     }
@@ -93,6 +145,11 @@ impl<R: Renderer> Ui<R> {
         for diff in self.screen.flush_diff() {
             self.renderer.draw_line(diff.row, &diff.text, &diff.attrs);
         }
+    }
+
+    /// Return a copy of a line, used for tests.
+    pub fn line(&self, row: usize) -> String {
+        self.screen.line_as_string(row)
     }
 }
 

@@ -4,8 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+libc = "0.2"
 rust_term = { path = "../rust_term" }
 rust_termlib = { path = "../rust_termlib" }
+rust_ui = { path = "../rust_ui" }
 
 [lib]
 name = "rust_terminal"

@@ -2112,6 +2112,7 @@ dependencies = [
 name = "rust_clientserver"
 version = "0.1.0"
 dependencies = [
+ "once_cell",
  "tokio",
 ]
 
@@ -2191,7 +2192,7 @@ name = "rust_drawline"
 version = "0.1.0"
 dependencies = [
  "libc",
- "rust_screen",
+ "rust_ui",
 ]
 
 [[package]]
@@ -2199,10 +2200,7 @@ name = "rust_drawscreen"
 version = "0.1.0"
 dependencies = [
  "libc",
- "rust_gui_core",
- "rust_gui_w32",
- "rust_gui_x11",
- "rust_screen",
+ "rust_ui",
 ]
 
 [[package]]
@@ -2210,6 +2208,19 @@ name = "rust_edit"
 version = "0.1.0"
 dependencies = [
  "cbindgen",
+]
+
+[[package]]
+name = "rust_editor"
+version = "0.1.0"
+
+[[package]]
+name = "rust_entry"
+version = "0.1.0"
+dependencies = [
+ "once_cell",
+ "rust_bufwrite",
+ "rust_vim9class",
 ]
 
 [[package]]
@@ -2795,8 +2806,10 @@ dependencies = [
 name = "rust_terminal"
 version = "0.1.0"
 dependencies = [
+ "libc",
  "rust_term",
  "rust_termlib",
+ "rust_ui",
 ]
 
 [[package]]
@@ -3578,6 +3591,7 @@ dependencies = [
  "rust_job",
  "rust_message",
  "rust_misc1",
+ "rust_move",
  "rust_netbeans",
  "rust_os_amiga",
  "rust_os_qnx",

@@ -1,8 +1,9 @@
 pub use rust_term::*;
 pub use rust_termlib::*;
 
-use std::ffi::CString;
-use std::os::raw::{c_int, c_void};
+use libc::{c_char, c_int, c_void, strlen};
+use rust_ui::ui_write;
+use std::ffi::{CStr, CString};
 use std::ptr;
 
 /// Internal terminal state.
@@ -56,16 +57,48 @@ pub unsafe extern "C" fn rust_terminal_get_status_text(term: *mut TermState) -> 
         .unwrap_or(ptr::null())
 }
 
+/// Set the status text for a terminal instance.
+#[no_mangle]
+pub unsafe extern "C" fn rust_terminal_set_status_text(term: *mut TermState, msg: *const c_char) {
+    if term.is_null() || msg.is_null() {
+        return;
+    }
+    if let Some(ts) = term.as_mut() {
+        if let Ok(s) = CStr::from_ptr(msg).to_str() {
+            ts.status = Some(CString::new(s).unwrap());
+        }
+    }
+}
+
+/// Write a message to the UI and remember it as status text.
+#[no_mangle]
+pub unsafe extern "C" fn rust_terminal_print(term: *mut TermState, msg: *const c_char) {
+    if msg.is_null() {
+        return;
+    }
+    let len = strlen(msg) as c_int;
+    ui_write(msg, len);
+    rust_terminal_set_status_text(term, msg);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::ffi::CString;
 
     #[test]
     fn status_roundtrip() {
+        rust_ui::init(10, 2);
         let term = rust_terminal_new();
         unsafe {
-            assert!(rust_terminal_get_status_text(term).is_null());
+            let msg = CString::new("hi").unwrap();
+            rust_terminal_print(term, msg.as_ptr());
+            let out = rust_ui::take_output();
+            assert_eq!(out, vec!["hi".to_string()]);
+            let ptr = rust_terminal_get_status_text(term) as *const c_char;
+            assert_eq!(CStr::from_ptr(ptr).to_str().unwrap(), "hi");
             rust_terminal_clear_status_text(term);
+            assert!(rust_terminal_get_status_text(term).is_null());
             rust_terminal_free(term);
         }
     }
