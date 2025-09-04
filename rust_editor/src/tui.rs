@@ -33,6 +33,9 @@ enum Mode { Normal, Insert, Command, SearchFwd, SearchBwd, VisualChar, VisualLin
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum SplitLayout { Horizontal, Vertical }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ViewKind { Normal, BuffersList }
+
 struct SearchState {
     regex: Option<Regex>,
     pattern: String,
@@ -77,8 +80,8 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
 
     // window splits (logical only for now; rendering is single view)
     #[derive(Clone)]
-    struct View { cx: usize, cy: usize, scroll: usize }
-    let mut views: Vec<View> = vec![View { cx, cy, scroll }];
+    struct View { kind: ViewKind, cx: usize, cy: usize, scroll: usize, buf: Option<usize> }
+    let mut views: Vec<View> = vec![View { kind: ViewKind::Normal, cx, cy, scroll, buf: None }];
     let mut cur_view: usize = 0;
     let mut layout = SplitLayout::Horizontal;
 
@@ -140,27 +143,45 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                 if v.cy >= v.scroll + view_rows { v.scroll = v.cy + 1 - view_rows; }
 
                 let mut text = Text::default();
-                for r in 0..view_rows {
-                    let li = v.scroll + r;
-                    if li < lines.len() {
-                        let line = &lines[li];
-                        let mut spans: Vec<Span> = Vec::new();
-                        let mut last = 0usize;
-                        let mut matches: Vec<(usize, usize, Style)> = Vec::new();
-                        if let Some(re) = &search.regex {
-                            let mut start_at = 0usize;
-                            while let Some(m) = re.find_at(line, start_at) {
-                                let s = m.start(); let e = m.end(); matches.push((s, e, hl_style)); if e == start_at { break; } start_at = e;
-                            }
+                match v.kind {
+                    ViewKind::Normal => {
+                        for r in 0..view_rows {
+                            let li = v.scroll + r;
+                            if li < lines.len() {
+                                let line = &lines[li];
+                                let mut spans: Vec<Span> = Vec::new();
+                                let mut last = 0usize;
+                                let mut matches: Vec<(usize, usize, Style)> = Vec::new();
+                                if let Some(re) = &search.regex {
+                                    let mut start_at = 0usize;
+                                    while let Some(m) = re.find_at(line, start_at) {
+                                        let s = m.start(); let e = m.end(); matches.push((s, e, hl_style)); if e == start_at { break; } start_at = e;
+                                    }
+                                }
+                                if i == cur_view && matches!(mode, Mode::VisualChar | Mode::VisualLine) {
+                                    if let Some((ax, ay)) = visual_anchor { let (bx, by) = (cx, cy); if (li >= ay && li <= by) || (li >= by && li <= ay) { let (sx, sy, ex, ey) = ordered_region(ax, ay, bx, by); let (s, e) = if sy == ey { if li == sy { (sx.min(line.len()), (ex + 1).min(line.len())) } else { (0, 0) } } else if li == sy { (sx.min(line.len()), line.len()) } else if li == ey { (0, (ex + 1).min(line.len())) } else { (0, line.len()) }; if e > s { matches.push((s, e, sel_style)); } } }
+                                }
+                                matches.sort_by_key(|m| m.0);
+                                for (s, e, st) in matches { if s > last { spans.push(Span::raw(line[last..s].to_string())); } spans.push(Span::styled(line[s..e].to_string(), st)); last = e; }
+                                if last < line.len() { spans.push(Span::raw(line[last..].to_string())); }
+                                text.lines.push(Line::from(spans));
+                            } else { text.lines.push(Line::from("~")); }
                         }
-                        if i == cur_view && matches!(mode, Mode::VisualChar | Mode::VisualLine) {
-                            if let Some((ax, ay)) = visual_anchor { let (bx, by) = (cx, cy); if (li >= ay && li <= by) || (li >= by && li <= ay) { let (sx, sy, ex, ey) = ordered_region(ax, ay, bx, by); let (s, e) = if sy == ey { if li == sy { (sx.min(line.len()), (ex + 1).min(line.len())) } else { (0, 0) } } else if li == sy { (sx.min(line.len()), line.len()) } else if li == ey { (0, (ex + 1).min(line.len())) } else { (0, line.len()) }; if e > s { matches.push((s, e, sel_style)); } } }
+                    }
+                    ViewKind::BuffersList => {
+                        let header = Line::from("Buffers:");
+                        text.lines.push(header);
+                        let mut start = v.scroll;
+                        for (idx, b) in buffers.iter().enumerate().skip(start) {
+                            if text.lines.len() >= view_rows { break; }
+                            let name = b.filename.as_ref().map(|p| p.to_string_lossy().to_string()).unwrap_or_else(|| "[No Name]".into());
+                            let mark = if b.modified { '+' } else { ' ' };
+                            let line = format!(" {:>3} {} {}", idx, mark, name);
+                            if v.cy == (text.lines.len()) { text.lines.push(Line::from(Span::styled(line, sel_style))); }
+                            else { text.lines.push(Line::from(line)); }
                         }
-                        matches.sort_by_key(|m| m.0);
-                        for (s, e, st) in matches { if s > last { spans.push(Span::raw(line[last..s].to_string())); } spans.push(Span::styled(line[s..e].to_string(), st)); last = e; }
-                        if last < line.len() { spans.push(Span::raw(line[last..].to_string())); }
-                        text.lines.push(Line::from(spans));
-                    } else { text.lines.push(Line::from("~")); }
+                        while text.lines.len() < view_rows { text.lines.push(Line::from("~")); }
+                    }
                 }
                 let content = Paragraph::new(text).block(Block::default().borders(Borders::NONE));
                 f.render_widget(content, area);
@@ -255,8 +276,16 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                                 }
                                 else if cmd.starts_with("w") || cmd.starts_with(":w") {
                                     let parts: Vec<&str> = cmd.trim_start_matches(':').split_whitespace().collect();
-                                    if parts.len() >= 2 { filename = Some(PathBuf::from(parts[1])); }
-                                    if let Some(ref p) = filename { match save_file(p, &lines) { Ok(_) => { modified = false; status = Some("written".into()); }, Err(_) => status = Some("write error".into()) } } else { status = Some("No file name".into()); }
+                                    let active_bi = views[cur_view].buf;
+                                    if let Some(bi) = active_bi {
+                                        if let Some(b) = buffers.get_mut(bi) {
+                                            if parts.len() >= 2 { b.filename = Some(PathBuf::from(parts[1])); }
+                                            if let Some(ref p) = b.filename { match save_file(p, &b.lines) { Ok(_) => { b.modified = false; status = Some("written".into()); }, Err(_) => status = Some("write error".into()) } } else { status = Some("No file name".into()); }
+                                        }
+                                    } else {
+                                        if parts.len() >= 2 { filename = Some(PathBuf::from(parts[1])); }
+                                        if let Some(ref p) = filename { match save_file(p, &lines) { Ok(_) => { modified = false; status = Some("written".into()); }, Err(_) => status = Some("write error".into()) } } else { status = Some("No file name".into()); }
+                                    }
                                 }
                                 else if cmd.starts_with(":badd ") || cmd.starts_with("badd ") {
                                     let parts: Vec<&str> = cmd.split_whitespace().collect();
@@ -297,13 +326,8 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                                     }
                                 }
                                 else if cmd == ":buffers" || cmd == "buffers" || cmd == ":ls" || cmd == "ls" {
-                                    let mut s = String::new(); s.push_str("buffers: ");
-                                    for (i,b) in buffers.iter().enumerate() {
-                                        let name = b.filename.as_ref().map(|p| p.to_string_lossy().to_string()).unwrap_or_else(|| "[No Name]".into());
-                                        s.push_str(&format!("{}{}:{} ", if b.modified {'+'} else {' '}, i, name));
-                                        if s.len()>120 { s.push_str("..."); break; }
-                                    }
-                                    status = Some(s);
+                                    views.push(View { kind: ViewKind::BuffersList, cx: 1, cy: 1, scroll: 0, buf: None });
+                                    cur_view = views.len() - 1;
                                 }
                                 else if cmd == "&" || cmd == ":&" || cmd == "&&" || cmd == ":&&" {
                                     if last_pat.is_empty() {
@@ -351,15 +375,17 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                                 }
                                 else if cmd == ":split" || cmd == "split" || cmd == ":sp" || cmd == "sp" {
                                     // add a new horizontal view (clone current)
-                                    views[cur_view] = View { cx, cy, scroll };
-                                    views.push(View { cx, cy, scroll });
+                                    let k = views[cur_view].kind;
+                                    views[cur_view] = View { kind: k, cx, cy, scroll, buf: views[cur_view].buf };
+                                    views.push(View { kind: ViewKind::Normal, cx, cy, scroll, buf: views[cur_view].buf });
                                     cur_view = views.len() - 1;
                                     layout = SplitLayout::Horizontal;
                                     status = Some("split".into());
                                 }
                                 else if cmd == ":vsplit" || cmd == "vsplit" || cmd == ":vsp" || cmd == "vsp" {
-                                    views[cur_view] = View { cx, cy, scroll };
-                                    views.push(View { cx, cy, scroll });
+                                    let k = views[cur_view].kind;
+                                    views[cur_view] = View { kind: k, cx, cy, scroll, buf: views[cur_view].buf };
+                                    views.push(View { kind: ViewKind::Normal, cx, cy, scroll, buf: views[cur_view].buf });
                                     cur_view = views.len() - 1;
                                     layout = SplitLayout::Vertical;
                                     status = Some("vsplit".into());
@@ -371,7 +397,7 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                                     if views.len() > 1 { views.remove(cur_view); cur_view = 0; let v = views[cur_view].clone(); cx = v.cx; cy = v.cy; scroll = v.scroll; status = Some("closed".into()); } else { status = Some("cannot close last window".into()); }
                                 }
                                 else if cmd == ":wincmd w" || cmd == "wincmd w" {
-                                    if !views.is_empty() { views[cur_view] = View { cx, cy, scroll }; cur_view = (cur_view + 1) % views.len(); let v = views[cur_view].clone(); cx = v.cx; cy = v.cy; scroll = v.scroll; }
+                                    if !views.is_empty() { let k = views[cur_view].kind; let b = views[cur_view].buf; views[cur_view] = View { kind: k, cx, cy, scroll, buf: b }; cur_view = (cur_view + 1) % views.len(); let v = views[cur_view].clone(); cx = v.cx; cy = v.cy; scroll = v.scroll; }
                                 }
                                 else if cmd == "help" || cmd == ":help" {
                                     status = Some("Use h j k l, i/ESC, :w :q".into());
@@ -416,12 +442,45 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                             if let Some(reg) = clipboard.clone() { match reg { Register::Charwise(s) => { for ch in s.chars() { lines[cy].insert(cx, ch); cx+=1; } }, Register::Linewise(mut ls) => { let insert_at = cy+1; for (i,l) in ls.drain(..).enumerate(){ lines.insert(insert_at+i, l);} cy = insert_at; cx = 0; } } modified = true; }
                         }
                         ,(KeyCode::Enter, _, Mode::Insert) => { let cur = lines[cy].clone(); let (l, r) = cur.split_at(cx); lines[cy] = l.to_string(); lines.insert(cy+1, r.to_string()); cy+=1; cx=0; modified = true; }
+                        ,(KeyCode::Enter, _, Mode::Normal) => {
+                            // If buffers list is active, select and switch
+                            if !views.is_empty() && matches!(views[cur_view].kind, ViewKind::BuffersList) {
+                                let sel_row = views[cur_view].cy.saturating_sub(1); // row 0 is header
+                                if sel_row < buffers.len() {
+                                    // swap current content with chosen buffer
+                                    let cur = Buffer{ lines: lines.clone(), filename: filename.clone(), modified };
+                                    let chosen = buffers.swap_remove(sel_row);
+                                    lines = chosen.lines; filename = chosen.filename; modified = chosen.modified;
+                                    buffers.push(cur);
+                                    // close buffers view
+                                    views.remove(cur_view);
+                                    cur_view = 0;
+                                    status = Some("buffer switched".into());
+                                }
+                            }
+                        }
+                        ,(KeyCode::Char('q'), _, Mode::Normal) => {
+                            if !views.is_empty() && matches!(views[cur_view].kind, ViewKind::BuffersList) {
+                                views.remove(cur_view); cur_view = 0;
+                            }
+                        }
                         ,(KeyCode::Backspace, _, Mode::Insert) => { if cx>0 { lines[cy].remove(cx-1); cx-=1; modified = true; } else if cy>0 { let prev_len = lines[cy-1].len(); let line = lines.remove(cy); lines[cy-1].push_str(&line); cy-=1; cx=prev_len; modified=true; } }
                         ,(KeyCode::Char(c), KeyModifiers::NONE, Mode::Insert) => { if c == '\t' { let spaces = " ".repeat(tabstop); for ch in spaces.chars() { lines[cy].insert(cx, ch); cx+=1; } } else { lines[cy].insert(cx, c); cx+=1; } modified = true; }
-                        ,(KeyCode::Char('s'), KeyModifiers::CONTROL, _) => { if let Some(ref p) = filename { if save_file(p, &lines).is_ok() { modified = false; status = Some("written".into()); } else { status = Some("write error".into()); } } else { status = Some("No file name".into()); } }
+                        ,(KeyCode::Char('s'), KeyModifiers::CONTROL, _) => {
+                            // save active buffer or global
+                            let active_bi = views[cur_view].buf;
+                            if let Some(bi) = active_bi {
+                                if let Some(b) = buffers.get_mut(bi) {
+                                    if let Some(ref p) = b.filename { if save_file(p, &b.lines).is_ok() { b.modified = false; status = Some("written".into()); } else { status = Some("write error".into()); } }
+                                    else { status = Some("No file name".into()); }
+                                }
+                            } else {
+                                if let Some(ref p) = filename { if save_file(p, &lines).is_ok() { modified = false; status = Some("written".into()); } else { status = Some("write error".into()); } } else { status = Some("No file name".into()); }
+                            }
+                        }
                         ,(KeyCode::Char('n'), _, Mode::Normal) => { if let Some(_) = &search.regex { if let Some((ny, nx)) = find_next(&lines, cy, cx, &search, search.last_dir) { cy = ny; cx = nx; } } }
                         ,(KeyCode::Char('N'), _, Mode::Normal) => { if let Some(_) = &search.regex { if let Some((ny, nx)) = find_next(&lines, cy, cx, &search, -search.last_dir) { cy = ny; cx = nx; } } }
-                        ,(KeyCode::Char('w'), KeyModifiers::CONTROL, Mode::Normal) => { if !views.is_empty() { views[cur_view] = View { cx, cy, scroll }; cur_view = (cur_view + 1) % views.len(); let v = views[cur_view].clone(); cx = v.cx; cy = v.cy; scroll = v.scroll; } }
+                        ,(KeyCode::Char('w'), KeyModifiers::CONTROL, Mode::Normal) => { if !views.is_empty() { let k = views[cur_view].kind; let b = views[cur_view].buf; views[cur_view] = View { kind: k, cx, cy, scroll, buf: b }; cur_view = (cur_view + 1) % views.len(); let v = views[cur_view].clone(); cx = v.cx; cy = v.cy; scroll = v.scroll; } }
                         ,(KeyCode::Char('q'), KeyModifiers::CONTROL, _) => { if modified { status = Some("No write since last change (:q! to quit)".into()); } else { break; } }
                         ,_ => {}
                     }
