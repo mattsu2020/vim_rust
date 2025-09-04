@@ -74,3 +74,6 @@ path = "src/channel.rs"
 serde_json = "1"
 serde = { version = "1", features = ["derive"] }
 rust_fold = { path = "rust_fold" }
+
+[build-dependencies]
+create_nvcmdidxs = { path = "rust/create_nvcmdidxs" }

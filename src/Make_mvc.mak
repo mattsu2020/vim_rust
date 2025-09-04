@@ -1394,10 +1394,7 @@ cmdidxs: ex_cmds.h
 #   - change nv_cmds[] in nv_cmds.h to add the new normal/visual mode command.
 #   - run "make nvcmdidxs" to generate nv_cmdidxs.h
 nvcmdidxs: nv_cmds.h
-	$(CC) /nologo -I. -Iproto -DNDEBUG create_nvcmdidxs.c \
-		-link -subsystem:$(SUBSYSTEM_TOOLS)
-	vim.exe --clean -N -X --not-a-term -u create_nvcmdidxs.vim -c quit
-	- $(RM) create_nvcmdidxs.exe
+	cargo run --manifest-path ../rust/create_nvcmdidxs/Cargo.toml --quiet -- nv_cmdidxs.h
 
 test:
 	cd testdir

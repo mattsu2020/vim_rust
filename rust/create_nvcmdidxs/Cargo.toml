@@ -1,0 +1,15 @@
+[package]
+name = "create_nvcmdidxs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "create_nvcmdidxs"
+path = "src/lib.rs"
+
+[[bin]]
+name = "create_nvcmdidxs"
+path = "src/main.rs"
+
+[dependencies]
+regex = "1"
