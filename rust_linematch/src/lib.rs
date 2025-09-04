@@ -1,6 +1,7 @@
 use core::ffi::{c_char, c_int, c_long};
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct mmfile_t {
     pub ptr: *const c_char,
     pub size: c_long,
@@ -30,10 +31,12 @@ fn matching_chars(m1: &mmfile_t, m2: &mmfile_t) -> c_int {
     let mut icur = 1usize;
     for i in 0..s1len {
         icur ^= 1;
-        let (e1, e2) = if icur == 1 {
-            (&mut matrix[1], &matrix[0])
+        let (e1, e2): (&mut [i32; MATCH_CHAR_MAX_LEN], &[i32; MATCH_CHAR_MAX_LEN]) = if icur == 1 {
+            let (a, b) = matrix.split_at_mut(1);
+            (&mut b[0], &a[0])
         } else {
-            (&mut matrix[0], &matrix[1])
+            let (a, b) = matrix.split_at_mut(1);
+            (&mut a[0], &b[0])
         };
         for j in 0..s2len {
             if e2[j + 1] > e1[j + 1] {
