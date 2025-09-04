@@ -2737,11 +2737,13 @@ EXTERN char e_export_can_only_be_used_in_vim9script[]
 EXTERN char e_invalid_command_after_export[]
 	INIT(= N_("E1043: Invalid command after :export"));
 EXTERN char e_export_with_invalid_argument[]
-	INIT(= N_("E1044: Export with invalid argument"));
-// E1045 not used
-// E1046 not used
+        INIT(= N_("E1044: Export with invalid argument"));
+EXTERN char e_missing_as_after_star[]
+        INIT(= N_("E1045: Missing \"as\" after *"));
+EXTERN char e_missing_comma_in_import[]
+        INIT(= N_("E1046: Missing comma in import"));
 EXTERN char e_syntax_error_in_import_str[]
-	INIT(= N_("E1047: Syntax error in import: %s"));
+        INIT(= N_("E1047: Syntax error in import: %s"));
 EXTERN char e_item_not_found_in_script_str[]
 	INIT(= N_("E1048: Item not found in script: %s"));
 EXTERN char e_item_not_exported_in_script_str[]

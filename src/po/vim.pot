@@ -7232,6 +7232,14 @@ msgstr ""
 msgid "E1044: Export with invalid argument"
 msgstr ""
 
+#. TRANSLATORS: a missing "as" after a '*' in an import statement
+msgid "E1045: Missing \"as\" after *"
+msgstr ""
+
+#. TRANSLATORS: a missing comma between items in an import statement
+msgid "E1046: Missing comma in import"
+msgstr ""
+
 #, c-format
 msgid "E1047: Syntax error in import: %s"
 msgstr ""
