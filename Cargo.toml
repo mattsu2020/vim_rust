@@ -50,6 +50,8 @@ rust_clipboard = { path = "rust_clipboard" }
 rust_hardcopy = { path = "rust_hardcopy" }
 rust_move = { path = "rust_move" }
 rust_time = { path = "rust_time" }
+rust_version = { path = "rust_version" }
+rust_editor = { path = "rust_editor" }
 regex = "1"
 blowfish = "0.8"
 pbkdf2 = "0.12"
