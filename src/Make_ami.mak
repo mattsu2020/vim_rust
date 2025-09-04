@@ -155,7 +155,6 @@ SRC += \
 	typval.c \
 	ui.c \
 	undo.c \
-	usercmd.c \
 	userfunc.c \
 	version.c \
 	viminfo.c \

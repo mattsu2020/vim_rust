@@ -33,6 +33,7 @@ rust_pty = { path = "rust_pty" }
 rust_change = { path = "rust_change" }
 rust_excmds = { path = "rust_excmds" }
 rust_cmdhist = { path = "rust_cmdhist" }
+rust_usercmd = { path = "rust_usercmd" }
 rust_alloc = { path = "rust_alloc" }
 rust_message = { path = "rust_message" }
 rust_blob = { path = "rust_blob" }

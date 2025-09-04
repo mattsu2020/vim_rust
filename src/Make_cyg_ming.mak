@@ -865,7 +865,6 @@ OBJ = \
 	$(OUTDIR)/typval.o \
 	$(OUTDIR)/ui.o \
 	$(OUTDIR)/undo.o \
-	$(OUTDIR)/usercmd.o \
 	$(OUTDIR)/userfunc.o \
 	$(OUTDIR)/version.o \
 	$(OUTDIR)/vim9class.o \

@@ -1856,7 +1856,6 @@ BASIC_SRC = \
         typval.c \
         ui.c \
         undo.c \
-        usercmd.c \
         userfunc.c \
         version.c \
         vim9cmds.c \
@@ -2005,7 +2004,6 @@ OBJ_COMMON = \
 	objects/ui.o \
         objects/undo.o \
         objects/undo_stubs.o \
-        objects/usercmd.o \
         objects/userfunc.o \
         objects/version.o \
         objects/vim9cmds.o \
@@ -2151,7 +2149,6 @@ PRO_AUTO = \
 	typval.pro \
 	ui.pro \
 	undo.pro \
-	usercmd.pro \
 	userfunc.pro \
 	version.pro \
         vim9cmds.pro \
@@ -3607,8 +3604,6 @@ objects/ui.o: ui.c
 objects/undo.o: undo.c
 	$(CCC) -o $@ undo.c
 
-objects/usercmd.o: usercmd.c
-	$(CCC) -o $@ usercmd.c
 
 objects/userfunc.o: userfunc.c
 	$(CCC) -o $@ userfunc.c
@@ -4177,7 +4172,6 @@ objects/undo.o: undo.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/usercmd.o: usercmd.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \

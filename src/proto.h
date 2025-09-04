@@ -223,7 +223,6 @@ void mbyte_im_set_active(int active_arg);
 # include "typval.pro"
 # include "ui.pro"
 # include "undo.pro"
-# include "usercmd.pro"
 # include "userfunc.pro"
 # include "version.pro"
 # include "vim9script.pro"
