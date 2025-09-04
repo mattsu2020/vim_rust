@@ -1400,9 +1400,6 @@ RUST_MEM_DIR = rust/mem
 RUST_MEM_LIB = $(RUST_MEM_DIR)/target/release/libvim_mem.a
 RUST_REGEX_DIR = ../rust_regex_engine
 RUST_REGEX_LIB = $(RUST_REGEX_DIR)/target/release/librust_regex_engine.a
-# Additional Rust regex helpers used by evalfunc/search wrappers
-SRC_RUST_REGEX_DIR = rust_regex
-SRC_RUST_REGEX_LIB = $(SRC_RUST_REGEX_DIR)/target/release/libvim_rust_regex.a
 RUST_BUFFER_DIR = ../rust_buffer
 RUST_BUFFER_LIB = $(RUST_BUFFER_DIR)/target/release/librust_buffer.a
 RUST_BUFWRITE_DIR = ../rust_bufwrite
@@ -1539,13 +1536,9 @@ $(RUST_MEM_LIB):
 	cd $(RUST_MEM_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_REGEX_LIB):
-	cd $(RUST_REGEX_DIR) && CARGO_TARGET_DIR=target cargo build --release
-
-$(SRC_RUST_REGEX_LIB):
-	cd $(SRC_RUST_REGEX_DIR) && CARGO_TARGET_DIR=target cargo build --release
-
+        cd $(RUST_REGEX_DIR) && CARGO_TARGET_DIR=target cargo build --release
 $(RUST_BUFFER_LIB):
-	cd $(RUST_BUFFER_DIR) && CARGO_TARGET_DIR=target cargo build --release
+        cd $(RUST_BUFFER_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_BUFWRITE_LIB):
 	cd $(RUST_BUFWRITE_DIR) && CARGO_TARGET_DIR=target cargo build --release

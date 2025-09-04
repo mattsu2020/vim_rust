@@ -1,4 +1,4 @@
-use libc::{c_int, c_long, c_void, size_t, c_uchar};
+use libc::{c_char, c_int, c_long, c_void, size_t, c_uchar};
 use regex::Regex;
 use std::ffi::{CStr, CString};
 use once_cell::sync::Lazy;
@@ -318,6 +318,60 @@ pub extern "C" fn rust_last_search_pattern_len() -> size_t {
         .as_ref()
         .map(|p| p.len().saturating_sub(1))
         .unwrap_or(0) as size_t
+}
+
+#[repr(C)]
+pub struct searchstat_T {
+    pub cur: c_int,
+    pub cnt: c_int,
+    pub exact_match: c_int,
+    pub incomplete: c_int,
+    pub last_maxcount: c_int,
+}
+
+#[no_mangle]
+pub extern "C" fn rust_search_update_stat(
+    pat: *const c_char,
+    text: *const c_char,
+    stat: *mut searchstat_T,
+) -> c_int {
+    if pat.is_null() || text.is_null() || stat.is_null() {
+        return 0;
+    }
+    let c_pat = unsafe { CStr::from_ptr(pat) };
+    let c_text = unsafe { CStr::from_ptr(text) };
+    let pattern = match c_pat.to_str() {
+        Ok(p) => p,
+        Err(_) => return 0,
+    };
+    let text_str = match c_text.to_str() {
+        Ok(t) => t,
+        Err(_) => return 0,
+    };
+    let re = match Regex::new(pattern) {
+        Ok(r) => r,
+        Err(_) => return 0,
+    };
+    let mut cur: c_int = -1;
+    let mut cnt: c_int = 0;
+    let mut exact: c_int = 0;
+    for (i, m) in re.find_iter(text_str).enumerate() {
+        if i == 0 {
+            cur = m.start() as c_int;
+            if m.start() == 0 {
+                exact = 1;
+            }
+        }
+        cnt = i as c_int + 1;
+    }
+    unsafe {
+        (*stat).cur = cur;
+        (*stat).cnt = cnt;
+        (*stat).exact_match = exact;
+        (*stat).incomplete = 0;
+        (*stat).last_maxcount = cnt;
+    }
+    1
 }
 
 #[cfg(test)]

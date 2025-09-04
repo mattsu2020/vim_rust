@@ -23,6 +23,7 @@ long vim_regexec_multi(struct regmmatch_T *rmp, struct win_T *win,
                        int *timed_out);
 char* vim_regsub(RegProg *prog, const char *text, const char *sub);
 int vim_regcomp_had_eol(void);
+int rust_regex_match(const char *pat, const char *text, int magic, long timeout_ms);
 
 #ifdef __cplusplus
 }
