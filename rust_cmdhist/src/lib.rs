@@ -10,7 +10,9 @@ static HISTORY: Lazy<Mutex<Vec<String>>> = Lazy::new(|| Mutex::new(Vec::new()));
 
 #[no_mangle]
 pub extern "C" fn rs_cmd_history_add(cmd: *const c_char) {
-    let cmd = unsafe { CStr::from_ptr(cmd) }.to_string_lossy().into_owned();
+    let cmd = unsafe { CStr::from_ptr(cmd) }
+        .to_string_lossy()
+        .into_owned();
     HISTORY.lock().unwrap().push(cmd);
 }
 
@@ -22,6 +24,11 @@ pub extern "C" fn rs_cmd_history_get(idx: c_int) -> *const c_char {
     } else {
         std::ptr::null()
     }
+}
+
+#[no_mangle]
+pub extern "C" fn rs_cmd_history_clear() {
+    HISTORY.lock().unwrap().clear();
 }
 
 #[cfg(test)]

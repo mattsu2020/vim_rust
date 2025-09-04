@@ -1,4 +1,7 @@
 use libc::{c_int, c_long, c_void};
+use once_cell::sync::Lazy;
+use std::collections::VecDeque;
+use std::sync::Mutex;
 
 const UPD_NOT_VALID: c_int = 40;
 
@@ -15,7 +18,9 @@ mod stubs {
     #[no_mangle]
     pub extern "C" fn redraw_win_later(_wp: *mut c_void, _update: c_int) {}
     #[no_mangle]
-    pub extern "C" fn pum_visible() -> c_int { 0 }
+    pub extern "C" fn pum_visible() -> c_int {
+        0
+    }
     #[no_mangle]
     pub static mut curwin: *mut c_void = std::ptr::null_mut();
 }
@@ -23,15 +28,15 @@ mod stubs {
 #[cfg(test)]
 use stubs::*;
 
-#[cfg(feature = "gui")]
-mod gui;
 #[cfg(not(feature = "gui"))]
 mod cli;
-
 #[cfg(feature = "gui")]
-use gui::handle_mouse_event;
+mod gui;
+
 #[cfg(not(feature = "gui"))]
 use cli::handle_mouse_event;
+#[cfg(feature = "gui")]
+use gui::handle_mouse_event;
 
 #[no_mangle]
 pub extern "C" fn rs_handle_mouse_event(
@@ -41,6 +46,7 @@ pub extern "C" fn rs_handle_mouse_event(
     count: c_long,
     fixindent: c_int,
 ) -> c_int {
+    EVENTS.lock().unwrap().push_back((c, dir, count, fixindent));
     handle_mouse_event(oap, c, dir, count, fixindent)
 }
 
@@ -51,6 +57,14 @@ pub extern "C" fn rs_redraw_pum_overlap() {
             redraw_win_later(curwin, UPD_NOT_VALID);
         }
     }
+}
+
+static EVENTS: Lazy<Mutex<VecDeque<(c_int, c_int, c_long, c_int)>>> =
+    Lazy::new(|| Mutex::new(VecDeque::new()));
+
+#[no_mangle]
+pub extern "C" fn rs_mouse_event_len() -> usize {
+    EVENTS.lock().unwrap().len()
 }
 
 #[cfg(test)]

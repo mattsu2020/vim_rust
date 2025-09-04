@@ -14,6 +14,7 @@
 
 #include "vim.h"
 #include "rust_input.h"
+#include "rust_getchar.h"
 
 /*
  * These buffers are used for storing:
@@ -41,6 +42,30 @@ static buffheader_T redobuff = {{NULL, 0, {NUL}}, NULL, 0, 0, FALSE};
 static buffheader_T old_redobuff = {{NULL, 0, {NUL}}, NULL, 0, 0, FALSE};
 static buffheader_T recordbuff = {{NULL, 0, {NUL}}, NULL, 0, 0, FALSE};
 static InputContext *rs_input_ctx = NULL;
+
+static int
+rust_getchar(void)
+{
+    if (rs_input_ctx == NULL)
+        rs_input_ctx = rs_input_context_new();
+    return rs_getchar(rs_input_ctx);
+}
+
+static int
+rust_getchar_avail(void)
+{
+    if (rs_input_ctx == NULL)
+        rs_input_ctx = rs_input_context_new();
+    return rs_getchar_avail(rs_input_ctx);
+}
+
+static void
+rust_ungetchar(int c)
+{
+    if (rs_input_ctx == NULL)
+        rs_input_ctx = rs_input_context_new();
+    rs_ungetchar(rs_input_ctx, (uint32_t)c);
+}
 
 static int typeahead_char = 0;		// typeahead char that's not flushed
 

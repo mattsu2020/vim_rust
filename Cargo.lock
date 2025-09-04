@@ -2555,6 +2555,7 @@ name = "rust_mouse"
 version = "0.1.0"
 dependencies = [
  "libc",
+ "once_cell",
 ]
 
 [[package]]
@@ -3593,6 +3594,7 @@ dependencies = [
  "rust_clipboard",
  "rust_cmdhist",
  "rust_debugger",
+ "rust_editor",
  "rust_evalfunc",
  "rust_evalwindow",
  "rust_excmds",
@@ -3617,6 +3619,7 @@ dependencies = [
  "rust_spell",
  "rust_time",
  "rust_usercmd",
+ "rust_version",
  "rust_vim9class",
  "rust_wayland",
  "rust_winclip",
