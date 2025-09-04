@@ -5,7 +5,7 @@ edition = "2021"
 
 [lib]
 name = "rust_evalbuffer"
-crate-type = ["staticlib", "rlib"]
+crate-type = ["rlib"]
 
 [dependencies]
 once_cell = "1"
