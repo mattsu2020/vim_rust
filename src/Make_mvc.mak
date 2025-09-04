@@ -1320,8 +1320,9 @@ CFLAGS_INST = /nologo /O2 -DNDEBUG -DWIN32 -DWINVER=$(WINVER) \
 
 CFLAGS_INST = $(CFLAGS_INST) -DVIM_VERSION_PATCHLEVEL=$(PATCHLEVEL)
 
-vimrun.exe: vimrun.c
-        $(CC) /nologo -DNDEBUG vimrun.c -link -subsystem:$(SUBSYSTEM_TOOLS)
+vimrun.exe:
+        cargo build --manifest-path ..\rust_vimrun\Cargo.toml --release
+        copy ..\target\release\rust_vimrun.exe vimrun.exe
 
 xxd/xxd.exe:
 	cd xxd

@@ -2256,6 +2256,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_exeval"
+version = "0.1.0"
+dependencies = [
+ "rust_excmds",
+]
+
+[[package]]
 name = "rust_ffi"
 version = "0.1.0"
 
@@ -2634,6 +2641,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_register"
+version = "0.1.0"
+dependencies = [
+ "rust_clipboard",
+]
+
+[[package]]
 name = "rust_screen"
 version = "0.1.0"
 dependencies = [
@@ -2822,6 +2836,13 @@ version = "0.1.0"
 [[package]]
 name = "rust_viminfo"
 version = "0.1.0"
+
+[[package]]
+name = "rust_vimrun"
+version = "0.1.0"
+dependencies = [
+ "windows",
+]
 
 [[package]]
 name = "rust_wayland"

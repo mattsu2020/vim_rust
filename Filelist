@@ -501,7 +501,6 @@ SRC_DOS =	\
                 src/testdir/util/dos.vim \
                 src/vim.rc \
                 src/vim.manifest \
-                src/vimrun.c \
 		src/xpm_w32.c \
 		src/xpm_w32.h \
 		src/tee/Make_ming.mak \
