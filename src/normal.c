@@ -217,15 +217,7 @@ check_text_locked(oparg_T *oap)
     int
 check_text_or_curbuf_locked(oparg_T *oap)
 {
-    if (check_text_locked(oap))
-	return TRUE;
-
-    if (!curbuf_locked())
-	return FALSE;
-
-    if (oap != NULL)
-	clearop(oap);
-    return TRUE;
+    return rs_check_text_or_curbuf_locked(oap);
 }
 
 /*

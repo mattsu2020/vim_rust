@@ -9,6 +9,7 @@ extern "C" {
 
 void rs_normal_cmd(oparg_T *oap, int toplevel);
 void rs_del_from_showcmd(int len);
+int rs_check_text_or_curbuf_locked(oparg_T *oap);
 
 #ifdef __cplusplus
 }

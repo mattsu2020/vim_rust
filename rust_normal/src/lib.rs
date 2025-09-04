@@ -28,6 +28,11 @@ extern "C" {
     fn transchar(c: c_int) -> *const c_char;
     fn mb_char2bytes(c: c_int, buf: *mut c_char) -> c_int;
     fn setcursor();
+    fn text_locked() -> c_int;
+    fn text_locked_msg();
+    fn curbuf_locked() -> c_int;
+    fn clearop(oap: *mut oparg_T);
+    fn clearopbeep(oap: *mut oparg_T);
 }
 
 #[cfg(test)]
@@ -81,6 +86,47 @@ extern "C" fn mb_char2bytes(c: c_int, buf: *mut c_char) -> c_int {
 #[cfg(test)]
 #[no_mangle]
 extern "C" fn setcursor() {}
+
+#[cfg(test)]
+#[no_mangle]
+static mut TEXT_LOCKED_RET: c_int = 0;
+#[cfg(test)]
+#[no_mangle]
+static mut CURBUF_LOCKED_RET: c_int = 0;
+#[cfg(test)]
+#[no_mangle]
+static mut CLEAROP_CALLED: c_int = 0;
+#[cfg(test)]
+#[no_mangle]
+static mut CLEAROPBEEP_CALLED: c_int = 0;
+
+#[cfg(test)]
+#[no_mangle]
+extern "C" fn text_locked() -> c_int {
+    unsafe { TEXT_LOCKED_RET }
+}
+#[cfg(test)]
+#[no_mangle]
+extern "C" fn text_locked_msg() {}
+#[cfg(test)]
+#[no_mangle]
+extern "C" fn curbuf_locked() -> c_int {
+    unsafe { CURBUF_LOCKED_RET }
+}
+#[cfg(test)]
+#[no_mangle]
+extern "C" fn clearop(_oap: *mut oparg_T) {
+    unsafe {
+        CLEAROP_CALLED += 1;
+    }
+}
+#[cfg(test)]
+#[no_mangle]
+extern "C" fn clearopbeep(_oap: *mut oparg_T) {
+    unsafe {
+        CLEAROPBEEP_CALLED += 1;
+    }
+}
 
 #[no_mangle]
 pub extern "C" fn rs_del_from_showcmd(len: c_int) {
@@ -179,6 +225,26 @@ pub extern "C" fn rs_add_to_showcmd_c(c: c_int) {
     }
 }
 
+#[no_mangle]
+pub extern "C" fn rs_check_text_or_curbuf_locked(oap: *mut oparg_T) -> c_int {
+    unsafe {
+        if text_locked() != 0 {
+            if !oap.is_null() {
+                clearopbeep(oap);
+            }
+            text_locked_msg();
+            return 1;
+        }
+        if curbuf_locked() == 0 {
+            return 0;
+        }
+        if !oap.is_null() {
+            clearop(oap);
+        }
+        1
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -240,6 +306,42 @@ mod tests {
             assert_eq!(r, 0);
             let res = CStr::from_ptr(showcmd_buf.as_ptr()).to_str().unwrap();
             assert_eq!(res, "ab");
+        }
+    }
+
+    #[test]
+    fn check_text_locked_calls_beep() {
+        unsafe {
+            TEXT_LOCKED_RET = 1;
+            CURBUF_LOCKED_RET = 0;
+            CLEAROPBEEP_CALLED = 0;
+            let oap = std::ptr::NonNull::<oparg_T>::dangling().as_ptr();
+            let r = rs_check_text_or_curbuf_locked(oap);
+            assert_eq!(r, 1);
+            assert_eq!(CLEAROPBEEP_CALLED, 1);
+        }
+    }
+
+    #[test]
+    fn check_curbuf_locked_calls_clearop() {
+        unsafe {
+            TEXT_LOCKED_RET = 0;
+            CURBUF_LOCKED_RET = 1;
+            CLEAROP_CALLED = 0;
+            let oap = std::ptr::NonNull::<oparg_T>::dangling().as_ptr();
+            let r = rs_check_text_or_curbuf_locked(oap);
+            assert_eq!(r, 1);
+            assert_eq!(CLEAROP_CALLED, 1);
+        }
+    }
+
+    #[test]
+    fn check_not_locked_returns_zero() {
+        unsafe {
+            TEXT_LOCKED_RET = 0;
+            CURBUF_LOCKED_RET = 0;
+            let r = rs_check_text_or_curbuf_locked(std::ptr::null_mut());
+            assert_eq!(r, 0);
         }
     }
 }
