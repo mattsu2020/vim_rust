@@ -1,0 +1,12 @@
+[package]
+name = "rust_drawline"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+libc = "0.2"
+rust_screen = { path = "../rust_screen" }
+
+[lib]
+name = "rust_drawline"
+crate-type = ["staticlib", "rlib"]

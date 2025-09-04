@@ -1424,6 +1424,8 @@ RUST_UNDO_DIR = ../rust_undo
 RUST_UNDO_LIB = $(RUST_UNDO_DIR)/target/release/librust_undo.a
 RUST_DRAWSCREEN_DIR = ../rust_drawscreen
 RUST_DRAWSCREEN_LIB = $(RUST_DRAWSCREEN_DIR)/target/release/librust_drawscreen.a
+RUST_DRAWLINE_DIR = ../rust_drawline
+RUST_DRAWLINE_LIB = $(RUST_DRAWLINE_DIR)/target/release/librust_drawline.a
 RUST_OPTION_DIR = ../rust_option
 RUST_OPTION_LIB = $(RUST_OPTION_DIR)/target/release/librust_option.a
 RUST_EVALVARS_DIR = ../rust_evalvars
@@ -1489,6 +1491,7 @@ ALL_LIBS = \
            $(RUST_WINDOW_LIB) \
            $(RUST_UNDO_LIB) \
            $(RUST_DRAWSCREEN_LIB) \
+           $(RUST_DRAWLINE_LIB) \
            $(RUST_OPTION_LIB) \
            $(RUST_EVALVARS_LIB) \
            $(RUST_SCREEN_LIB) \
@@ -1623,10 +1626,13 @@ $(RUST_UNDO_LIB):
 	cd $(RUST_UNDO_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_DRAWSCREEN_LIB):
-	cd $(RUST_DRAWSCREEN_DIR) && CARGO_TARGET_DIR=target cargo build --release
+        cd $(RUST_DRAWSCREEN_DIR) && CARGO_TARGET_DIR=target cargo build --release
+
+$(RUST_DRAWLINE_LIB):
+        cd $(RUST_DRAWLINE_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_OPTION_LIB):
-	cd $(RUST_OPTION_DIR) && CARGO_TARGET_DIR=target cargo build --release
+        cd $(RUST_OPTION_DIR) && CARGO_TARGET_DIR=target cargo build --release
 
 $(RUST_EVALVARS_LIB):
 	cd $(RUST_EVALVARS_DIR) && CARGO_TARGET_DIR=target cargo build --release
