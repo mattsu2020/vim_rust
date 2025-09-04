@@ -2526,6 +2526,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_misc1"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rust_mouse"
 version = "0.1.0"
 dependencies = [
@@ -3571,6 +3578,7 @@ dependencies = [
  "rust_hardcopy",
  "rust_job",
  "rust_message",
+ "rust_misc1",
  "rust_netbeans",
  "rust_os_amiga",
  "rust_os_qnx",
