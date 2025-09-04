@@ -5,6 +5,14 @@
 
 typedef struct searchit_arg_T searchit_arg_T;
 
+typedef struct {
+    int cur;
+    int cnt;
+    int exact_match;
+    int incomplete;
+    int last_maxcount;
+} searchstat_T;
+
 int rust_searchit(win_T *win, buf_T *buf, pos_T *pos, pos_T *end_pos,
                   int dir, char_u *pat, size_t patlen, long count,
                   int options, int pat_use, searchit_arg_T *extra_arg);
@@ -26,5 +34,7 @@ void rust_save_last_search_pattern(void);
 void rust_restore_last_search_pattern(void);
 char_u *rust_last_search_pattern(void);
 size_t rust_last_search_pattern_len(void);
+
+int rust_search_update_stat(const char *pat, const char *text, searchstat_T *stat);
 
 #endif // RUST_SEARCH_H

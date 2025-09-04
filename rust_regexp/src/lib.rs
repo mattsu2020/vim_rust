@@ -12,7 +12,11 @@
 
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int, c_long, c_void};
-use regex::bytes::{NoExpand, Regex, RegexBuilder};
+use regex::bytes::{NoExpand, Regex as BytesRegex, RegexBuilder as BytesRegexBuilder};
+use regex::Regex;
+use std::sync::mpsc;
+use std::thread;
+use std::time::Duration;
 
 mod linematch;
 
@@ -26,7 +30,7 @@ pub use linematch::line_match;
 /// exposed for benchmarks and tests.
 pub fn search(pat: &[u8], text: &[u8], ic: bool) -> Option<(usize, usize)> {
     let pat_str = std::str::from_utf8(pat).ok()?;
-    let mut builder = RegexBuilder::new(pat_str);
+    let mut builder = BytesRegexBuilder::new(pat_str);
     builder.case_insensitive(ic);
     let re = builder.build().ok()?;
     re.find(text).map(|m| (m.start(), m.end()))
@@ -34,7 +38,7 @@ pub fn search(pat: &[u8], text: &[u8], ic: bool) -> Option<(usize, usize)> {
 
 #[repr(C)]
 pub struct RegProg {
-    regex: Regex,
+    regex: BytesRegex,
 }
 
 #[no_mangle]
@@ -47,7 +51,7 @@ pub extern "C" fn vim_regcomp(pattern: *const c_char, flags: c_int) -> *mut RegP
         Ok(s) => s,
         Err(_) => return std::ptr::null_mut(),
     };
-    let mut builder = RegexBuilder::new(pattern_str);
+    let mut builder = BytesRegexBuilder::new(pattern_str);
     if (flags & 1) != 0 {
         builder.case_insensitive(true);
     }
@@ -224,4 +228,59 @@ pub extern "C" fn vim_regsub(
 #[no_mangle]
 pub extern "C" fn vim_regcomp_had_eol() -> c_int {
     0
+}
+
+fn compile_pattern(pattern: &str, magic: bool) -> Result<Regex, regex::Error> {
+    let pat = if magic {
+        pattern.to_string()
+    } else {
+        regex::escape(pattern)
+    };
+    Regex::new(&pat)
+}
+
+#[no_mangle]
+pub extern "C" fn rust_regex_match(
+    pat: *const c_char,
+    text: *const c_char,
+    magic: c_int,
+    timeout_ms: c_long,
+) -> c_int {
+    if pat.is_null() || text.is_null() {
+        return 0;
+    }
+    let c_pat = unsafe { CStr::from_ptr(pat) };
+    let c_text = unsafe { CStr::from_ptr(text) };
+    let pattern = match c_pat.to_str() {
+        Ok(p) => p,
+        Err(_) => return 0,
+    };
+    let text = match c_text.to_str() {
+        Ok(t) => t,
+        Err(_) => return 0,
+    };
+    let (tx, rx) = mpsc::channel();
+    let pattern = pattern.to_string();
+    let text = text.to_string();
+    let magic = magic != 0;
+    let handle = thread::spawn(move || {
+        let result = compile_pattern(&pattern, magic)
+            .map(|re| re.is_match(&text))
+            .unwrap_or(false);
+        let _ = tx.send(result);
+    });
+    let timeout = Duration::from_millis(timeout_ms as u64);
+    let ret = match rx.recv_timeout(timeout) {
+        Ok(v) => {
+            if v {
+                1
+            } else {
+                0
+            }
+        }
+        Err(mpsc::RecvTimeoutError::Timeout) => -1,
+        Err(_) => 0,
+    };
+    let _ = handle.join();
+    ret
 }
