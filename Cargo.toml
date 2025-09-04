@@ -1,5 +1,5 @@
 [workspace]
-members = ["rust_*", "rust/*"]
+members = ["rust_*", "rust/*", "src/GvimExt/rust_gvimext_win"]
 exclude = [
     "rust_lua",
     "rust_ruby",
