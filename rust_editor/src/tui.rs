@@ -44,6 +44,9 @@ impl SearchState {
 #[derive(Clone)]
 enum Register { Charwise(String), Linewise(Vec<String>) }
 
+#[derive(Clone)]
+struct Buffer { lines: Vec<String>, filename: Option<PathBuf>, modified: bool }
+
 pub fn run(args: &[String]) -> std::io::Result<()> {
     // initial state
     let mut filename: Option<PathBuf> = None;
@@ -54,6 +57,8 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
     let mut cy: usize = 0;
     let mut scroll: usize = 0;
     let mut modified = false;
+    // 保持用バッファリスト（アクティブは直下の lines/filename/modified）
+    let mut buffers: Vec<Buffer> = Vec::new();
     let mut status: Option<String> = None;
     let mut mode = Mode::Normal;
     let mut cmdline: String = String::new(); // used for :cmd and /search
@@ -229,6 +234,53 @@ pub fn run(args: &[String]) -> std::io::Result<()> {
                                     let parts: Vec<&str> = cmd.trim_start_matches(':').split_whitespace().collect();
                                     if parts.len() >= 2 { filename = Some(PathBuf::from(parts[1])); }
                                     if let Some(ref p) = filename { match save_file(p, &lines) { Ok(_) => { modified = false; status = Some("written".into()); }, Err(_) => status = Some("write error".into()) } } else { status = Some("No file name".into()); }
+                                }
+                                else if cmd.starts_with(":badd ") || cmd.starts_with("badd ") {
+                                    let parts: Vec<&str> = cmd.split_whitespace().collect();
+                                    if parts.len() >= 2 {
+                                        let p = PathBuf::from(parts[1]);
+                                        let mut l = open_file(&p);
+                                        if l.is_empty(){ l.push(String::new()); }
+                                        buffers.push(Buffer{ lines: l, filename: Some(p), modified: false });
+                                        status = Some(format!("badd: #{}", buffers.len()-1));
+                                    } else { status = Some("badd: missing file".into()); }
+                                }
+                                else if cmd == ":bn" || cmd == "bn" {
+                                    if !buffers.is_empty() {
+                                        buffers.push(Buffer{ lines: lines.clone(), filename: filename.clone(), modified });
+                                        let b = buffers.remove(0);
+                                        lines = b.lines; filename = b.filename; modified = b.modified; cx=0; cy=0; scroll=0;
+                                    } else { status = Some("no buffers".into()); }
+                                }
+                                else if cmd == ":bp" || cmd == "bp" {
+                                    if !buffers.is_empty() {
+                                        buffers.insert(0, Buffer{ lines: lines.clone(), filename: filename.clone(), modified });
+                                        let b = buffers.pop().unwrap();
+                                        lines = b.lines; filename = b.filename; modified = b.modified; cx=0; cy=0; scroll=0;
+                                    } else { status = Some("no buffers".into()); }
+                                }
+                                else if cmd.starts_with(":buffer ") || cmd.starts_with("buffer ") || cmd.starts_with(":b ") || cmd.starts_with("b ") {
+                                    let parts: Vec<&str> = cmd.split_whitespace().collect();
+                                    if parts.len() >= 2 {
+                                        if let Ok(n) = parts[1].parse::<usize>() {
+                                            if n < buffers.len() {
+                                                let cur = Buffer{ lines: lines.clone(), filename: filename.clone(), modified };
+                                                let b = buffers.swap_remove(n);
+                                                lines = b.lines; filename = b.filename; modified = b.modified;
+                                                buffers.push(cur);
+                                                cx=0; cy=0; scroll=0;
+                                            } else { status = Some("buffer: out of range".into()); }
+                                        }
+                                    }
+                                }
+                                else if cmd == ":buffers" || cmd == "buffers" || cmd == ":ls" || cmd == "ls" {
+                                    let mut s = String::new(); s.push_str("buffers: ");
+                                    for (i,b) in buffers.iter().enumerate() {
+                                        let name = b.filename.as_ref().map(|p| p.to_string_lossy().to_string()).unwrap_or_else(|| "[No Name]".into());
+                                        s.push_str(&format!("{}{}:{} ", if b.modified {'+'} else {' '}, i, name));
+                                        if s.len()>120 { s.push_str("..."); break; }
+                                    }
+                                    status = Some(s);
                                 }
                                 else if cmd == "&" || cmd == ":&" || cmd == "&&" || cmd == ":&&" {
                                     if last_pat.is_empty() {
