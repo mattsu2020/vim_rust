@@ -289,7 +289,6 @@ OBJDIR = $(OBJDIR)$(CPU)
 NODEBUG = 1
 !ELSE
 ! UNDEF NODEBUG
-MAKEFLAGS_GVIMEXT = DEBUG=yes
 !ENDIF
 
 LINK = link
@@ -572,8 +571,6 @@ CPUARG = /arch:AVX512
 CPUARG = /arch:$(CPUNR)
 !ENDIF
 
-# Pass CPUARG to GvimExt, to avoid using version-dependent defaults
-MAKEFLAGS_GVIMEXT = $(MAKEFLAGS_GVIMEXT) CPUARG="$(CPUARG)"
 
 !IF "$(VIMDLL)" == "yes"
 VIMDLLBASE = vim
@@ -842,8 +839,6 @@ SUBSYSTEM_TOOLS = $(SUBSYSTEM_TOOLS),$(SUBSYSTEM_VER)
 ! IF "$(VIMDLL)" == "yes"
 SUBSYSTEM_CON = $(SUBSYSTEM_CON),$(SUBSYSTEM_VER)
 ! ENDIF
-# Pass SUBSYSTEM_VER to GvimExt and other tools
-MAKEFLAGS_GVIMEXT = $(MAKEFLAGS_GVIMEXT) SUBSYSTEM_VER=$(SUBSYSTEM_VER)
 MAKEFLAGS_TOOLS = $(MAKEFLAGS_TOOLS) SUBSYSTEM_VER=$(SUBSYSTEM_VER)
 !ENDIF
 
@@ -1314,10 +1309,9 @@ tee/tee.exe: tee/tee.c
 	$(MAKE) -lf Make_mvc.mak $(MAKEFLAGS_TOOLS)
 	cd ..
 
-GvimExt/gvimext.dll: GvimExt/gvimext.cpp GvimExt/gvimext.rc GvimExt/gvimext.h
-	cd GvimExt
-	$(MAKE) -lf Make_mvc.mak $(MAKEFLAGS_GVIMEXT)
-	cd ..
+GvimExt/gvimext.dll:
+   cargo build -p rust_gvimext --release
+   copy ..\target\release\gvimext.dll GvimExt\gvimext.dll
 
 
 tags: notags
@@ -1357,9 +1351,7 @@ clean: testclean
 	cd tee
 	$(MAKE) -lf Make_mvc.mak clean
 	cd ..
-	cd GvimExt
-	$(MAKE) -lf Make_mvc.mak clean
-	cd ..
+        cargo clean -p rust_gvimext
 
 # Run Vim script to generate the Ex command lookup table.
 # This only needs to be run when a command name has been added or changed.

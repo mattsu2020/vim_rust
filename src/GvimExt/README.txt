@@ -2,6 +2,9 @@ README.txt for the gvimext DLL.
 
 Written by Tianmiao Hu.  Edited by Bram Moolenaar.
 
+This extension is now implemented in Rust as the `rust_gvimext` crate.
+The original C++ sources have been removed.
+
 
 INSTALLATION
 
@@ -65,30 +68,7 @@ where %1 can be substituted by gvimext.inf
 
 THE SOURCE CODE
 
-I have provided the source code here in hope that gvim users around world can
-further enhance this little dll.  I believe the only thing you need to change
-is gvimext.cpp file.  The important two functions you need to look at are
-QueryContextMenu and InvokeCommand.  You can modify right-click menus in the
-QueryContextMenu function and invoke gvim in the InvokeCommand function.  Note
-the selected files can be accessed from the DragQueryFile function.  I am not
-familiar with the invoking options for gvim.  I believe there are some
-improvements that can be made on that side.
-
-I use MS Visual C++ 6.0's nmake to make the gvimext.dll.  I don't have a
-chance to try earlier versions of MSVC.  The files that are required for build
-are:
-	gvimext.cpp
-	gvimext.h
-	gvimext.def
-	gvimext.rc
-	resource.h
-	Makefile
-
-To compile the DLL from the command line:
-	vcvars32
-	nmake -f Makefile
-
-If you did something interesting to this dll, please let me know
-@ tianmiao@acm.org.
+The shell extension is now written in Rust.  The implementation lives in the
+`rust_gvimext` crate and is built with Cargo.
 
 Happy vimming!!!

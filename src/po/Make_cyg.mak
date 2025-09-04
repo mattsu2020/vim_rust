@@ -55,7 +55,7 @@ all: $(MOFILES) $(MOCONVERTED)
 PO_INPUTLIST = \
 	$(wildcard ../*.c) \
 	../if_perl.xs \
-	../GvimExt/gvimext.cpp \
+    ../rust_gvimext/src/lib.rs \
 	../errors.h \
 	../globals.h \
 	../if_py_both.h \

@@ -1155,8 +1155,9 @@ xxd/xxd.exe:
 tee/tee.exe: tee/tee.c
 	$(MAKE) -C tee -f Make_ming.mak CC='$(CC)'
 
-GvimExt/gvimext.dll: GvimExt/gvimext.cpp GvimExt/gvimext.rc GvimExt/gvimext.h
-	$(MAKE) -C GvimExt -f Make_ming.mak CROSS=$(CROSS) CROSS_COMPILE=$(CROSS_COMPILE) CXX=$(CXX) STATIC_STDCPLUS=$(STATIC_STDCPLUS)
+GvimExt/gvimext.dll:
+   cargo build -p rust_gvimext --release
+   cp ../target/release/gvimext.dll GvimExt/gvimext.dll
 
 tags: notags
 	$(CTAGS) $(TAGS_FILES)
@@ -1181,7 +1182,7 @@ endif
 ifdef MZSCHEME
 	-$(DEL) mzscheme_base.c
 endif
-	$(MAKE) -C GvimExt -f Make_ming.mak clean
+   cargo clean -p rust_gvimext
 	$(MAKE) -C xxd -f Make_ming.mak clean
 	$(MAKE) -C tee -f Make_ming.mak clean
 
