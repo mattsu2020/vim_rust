@@ -81,6 +81,10 @@ rust_wayland = { path = "rust_wayland" }
 name = "vim_channel"
 path = "src/channel.rs"
 
+[[bin]]
+name = "vim"
+path = "src/main.rs"
+
 [dev-dependencies]
 serde_json = "1"
 serde = { version = "1", features = ["derive"] }
@@ -88,3 +92,4 @@ rust_fold = { path = "rust_fold" }
 
 [build-dependencies]
 create_nvcmdidxs = { path = "rust/create_nvcmdidxs" }
+create_vimfile = { path = "rust/create_vimfile" }
