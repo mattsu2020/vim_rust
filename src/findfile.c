@@ -88,28 +88,8 @@ typedef struct ff_stack
     int			ffs_star_star_empty;
 } ff_stack_T;
 
-/*
- * type for already visited directories or files.
- */
-typedef struct ff_visited
-{
-    struct ff_visited	*ffv_next;
-
-    // Visited directories are different if the wildcard string are
-    // different. So we have to save it.
-    char_u		*ffv_wc_path;
-
-    // for unix use inode etc for comparison (needed because of links), else
-    // use filename.
-#ifdef UNIX
-    int			ffv_dev_valid;	// ffv_dev and ffv_ino were set
-    dev_t		ffv_dev;	// device number
-    ino_t		ffv_ino;	// inode number
-#endif
-    // The memory for this struct is allocated according to the length of
-    // ffv_fname.
-    char_u		ffv_fname[1];	// actually longer
-} ff_visited_T;
+// The visited list is handled in Rust; keep type opaque here.
+typedef void ff_visited_T;
 
 /*
  * We might have to manage several visited lists during a search.
@@ -178,10 +158,10 @@ typedef struct ff_search_ctx_T
 } ff_search_ctx_T;
 
 // locally needed functions
-static int ff_check_visited(ff_visited_T **, char_u *, size_t, char_u *, size_t);
+extern int ff_check_visited(ff_visited_T **, char_u *, size_t, char_u *, size_t);
 static void vim_findfile_free_visited(void *search_ctx_arg);
 static void vim_findfile_free_visited_list(ff_visited_list_hdr_T **list_headp);
-static void ff_free_visited_list(ff_visited_T *vl);
+extern void ff_free_visited_list(ff_visited_T *vl);
 static ff_visited_list_hdr_T* ff_get_visited_list(char_u *, size_t, ff_visited_list_hdr_T **list_headp);
 
 static void ff_push(ff_search_ctx_T *search_ctx, ff_stack_T *stack_ptr);
@@ -761,25 +741,12 @@ vim_findfile(void *search_ctx_arg)
 	    if (stackp == NULL)
 		break;
 
-	    /*
-	     * TODO: decide if we leave this test in
-	     *
-	     * GOOD: don't search a directory(-tree) twice.
-	     * BAD:  - check linked list for every new directory entered.
-	     *       - check for double files also done below
-	     *
-	     * Here we check if we already searched this directory.
-	     * We already searched a directory if:
-	     * 1) The directory is the same.
-	     * 2) We would use the same wildcard string.
-	     *
-	     * Good if you have links on same directory via several ways
-	     *  or you have selfreferences in directories (e.g. SuSE Linux 6.3:
-	     *  /etc/rc.d/init.d is linked to /etc/rc.d -> endless loop)
-	     *
-	     * This check is only needed for directories we work on for the
-	     * first time (hence stackp->ff_filearray == NULL)
-	     */
+            /*
+             * Avoid searching the same directory twice.  This check uses a
+             * visited-directory set for fast lookups and is only required for
+             * directories processed for the first time
+             * (stackp->ff_filearray == NULL).
+             */
 	    if (stackp->ffs_filearray == NULL
 		    && ff_check_visited(&search_ctx->ffsc_dir_visited_list
 							  ->ffvl_visited_list,
@@ -1277,22 +1244,6 @@ vim_findfile_free_visited_list(ff_visited_list_hdr_T **list_headp)
     }
     *list_headp = NULL;
 }
-
-    static void
-ff_free_visited_list(ff_visited_T *vl)
-{
-    ff_visited_T *vp;
-
-    while (vl != NULL)
-    {
-	vp = vl->ffv_next;
-	vim_free(vl->ffv_wc_path);
-	vim_free(vl);
-	vl = vp;
-    }
-    vl = NULL;
-}
-
 /*
  * Returns the already visited list for the given filename. If none is found it
  * allocates a new one.
@@ -1402,39 +1353,6 @@ ff_wc_equal(char_u *s1, char_u *s2)
     return s1[i] == s2[j];
 }
 
-/*
- * maintains the list of already visited files and dirs
- * returns FAIL if the given file/dir is already in the list
- * returns OK if it is newly added
- *
- * TODO: What to do on memory allocation problems?
- *	 -> return TRUE - Better the file is found several times instead of
- *	    never.
- */
-    static int
-ff_check_visited(
-    ff_visited_T	**visited_list,
-    char_u		*fname,
-    size_t		fnamelen,
-    char_u		*wc_path,
-    size_t		wc_pathlen)
-{
-    ff_visited_T	*vp;
-#ifdef UNIX
-    stat_T		st;
-    int			url = FALSE;
-#endif
-
-    // For a URL we only compare the name, otherwise we compare the
-    // device/inode (unix) or the full path name (not Unix).
-    if (path_with_url(fname))
-    {
-	vim_strncpy(ff_expand_buffer.string, fname, fnamelen);
-	ff_expand_buffer.length = fnamelen;
-#ifdef UNIX
-	url = TRUE;
-#endif
-    }
     else
     {
 	ff_expand_buffer.string[0] = NUL;
