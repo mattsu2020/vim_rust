@@ -1,7 +1,7 @@
+use ropey::{Rope, RopeSlice};
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
-use ropey::{Rope, RopeSlice};
 
 // Maximum length of a single line allowed in the memline buffer.  This keeps
 // the C side from accidentally passing an unbounded string and exhausting
@@ -19,7 +19,10 @@ pub struct MemBuffer {
 
 impl MemBuffer {
     pub fn new() -> Self {
-        Self { lines: Rope::new(), workspace: HashMap::new() }
+        Self {
+            lines: Rope::new(),
+            workspace: HashMap::new(),
+        }
     }
 
     fn line_count(&self) -> usize {
@@ -68,19 +71,21 @@ fn rope_slice_to_cstring(slice: RopeSlice) -> CString {
 }
 
 #[no_mangle]
-pub extern "C" fn rs_ml_buffer_new() -> *mut MemBuffer {
+pub extern "C" fn ml_buffer_new() -> *mut MemBuffer {
     Box::into_raw(Box::new(MemBuffer::new()))
 }
 
 #[no_mangle]
-pub extern "C" fn rs_ml_buffer_free(ptr: *mut MemBuffer) {
+pub extern "C" fn ml_buffer_free(ptr: *mut MemBuffer) {
     if !ptr.is_null() {
-        unsafe { drop(Box::from_raw(ptr)); }
+        unsafe {
+            drop(Box::from_raw(ptr));
+        }
     }
 }
 
 #[no_mangle]
-pub extern "C" fn rs_ml_append(buf: *mut MemBuffer, lnum: usize, line: *const c_char) -> bool {
+pub extern "C" fn ml_append(buf: *mut MemBuffer, lnum: usize, line: *const c_char) -> bool {
     if buf.is_null() || line.is_null() {
         return false;
     }
@@ -93,7 +98,7 @@ pub extern "C" fn rs_ml_append(buf: *mut MemBuffer, lnum: usize, line: *const c_
 }
 
 #[no_mangle]
-pub extern "C" fn rs_ml_delete(buf: *mut MemBuffer, lnum: usize) -> bool {
+pub extern "C" fn ml_delete(buf: *mut MemBuffer, lnum: usize) -> bool {
     if buf.is_null() {
         return false;
     }
@@ -102,7 +107,7 @@ pub extern "C" fn rs_ml_delete(buf: *mut MemBuffer, lnum: usize) -> bool {
 }
 
 #[no_mangle]
-pub extern "C" fn rs_ml_replace(buf: *mut MemBuffer, lnum: usize, line: *const c_char) -> bool {
+pub extern "C" fn ml_replace(buf: *mut MemBuffer, lnum: usize, line: *const c_char) -> bool {
     if buf.is_null() || line.is_null() {
         return false;
     }
@@ -120,9 +125,9 @@ pub extern "C" fn rs_ml_replace(buf: *mut MemBuffer, lnum: usize, line: *const c
 /// Get a pointer to a NUL-terminated, writable line buffer for lnum.
 /// If `for_change` is true, the buffer may be modified by the caller.
 /// The returned pointer remains valid until the next call that invalidates
-/// the workspace for the same lnum (e.g. another rs_ml_get_line or replace).
+/// the workspace for the same lnum (e.g. another ml_get_line or replace).
 #[no_mangle]
-pub extern "C" fn rs_ml_get_line(
+pub extern "C" fn ml_get_line(
     buf: *mut MemBuffer,
     lnum: usize,
     for_change: bool,
@@ -158,7 +163,7 @@ pub extern "C" fn rs_ml_get_line(
 }
 
 #[no_mangle]
-pub extern "C" fn rs_ml_line_count(buf: *const MemBuffer) -> usize {
+pub extern "C" fn ml_line_count(buf: *const MemBuffer) -> usize {
     if buf.is_null() {
         return 0;
     }
@@ -187,13 +192,17 @@ pub struct DataBlock {
     pub data: [u8; 4096],
 }
 
-use std::fs::OpenOptions;
 use memmap2::MmapMut;
-use std::io::{Result};
+use std::fs::OpenOptions;
+use std::io::Result;
 
 /// Map a file into memory, creating it if needed.
 pub fn map_file(path: &str, size: usize) -> Result<MmapMut> {
-    let file = OpenOptions::new().read(true).write(true).create(true).open(path)?;
+    let file = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .open(path)?;
     file.set_len(size as u64)?;
     unsafe { MmapMut::map_mut(&file) }
 }
@@ -210,10 +219,12 @@ mod tests {
         assert!(buf.ml_append(1, "world"));
         assert_eq!(buf.ml_replace(2, "vim"), Some("world".into()));
         assert_eq!(buf.ml_delete(1), Some("hello".into()));
-        assert_eq!(rs_ml_line_count(&buf as *const _), 1);
-        let mut len = 0;
-        let ptr = rs_ml_get_line(&mut buf as *mut _, 1, false, &mut len as *mut usize);
-        let s = unsafe { CStr::from_ptr(ptr as *const c_char) }.to_str().unwrap();
+        assert_eq!(ml_line_count(&buf as *const _), 1);
+        let mut len: usize = 0;
+        let ptr = ml_get_line(&mut buf as *mut _, 1, false, &mut len as *mut usize);
+        let s = unsafe { CStr::from_ptr(ptr as *const c_char) }
+            .to_str()
+            .unwrap();
         assert_eq!(s, "vim");
         assert_eq!(len, 3);
     }
@@ -223,14 +234,18 @@ mod tests {
         let mut buf = MemBuffer::new();
         let long = vec![b'a'; MAX_LINE_LEN + 1];
         let c = std::ffi::CString::new(long).unwrap();
-        assert!(!rs_ml_append(&mut buf as *mut _, 0, c.as_ptr()));
+        assert!(!ml_append(&mut buf as *mut _, 0, c.as_ptr()));
     }
 
     #[test]
     fn count_lines() {
         let mut buf = MemBuffer::new();
-        assert_eq!(rs_ml_line_count(&buf as *const _), 0);
-        assert!(rs_ml_append(&mut buf as *mut _, 0, b"one\0".as_ptr() as *const c_char));
-        assert_eq!(rs_ml_line_count(&buf as *const _), 1);
+        assert_eq!(ml_line_count(&buf as *const _), 0);
+        assert!(ml_append(
+            &mut buf as *mut _,
+            0,
+            b"one\0".as_ptr() as *const c_char
+        ));
+        assert_eq!(ml_line_count(&buf as *const _), 1);
     }
 }
