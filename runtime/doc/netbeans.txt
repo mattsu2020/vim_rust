@@ -376,8 +376,6 @@ pathname	String argument: file name with full path.
 
 6.3 Commands						*nb-commands*
 
-actionMenuItem	Not implemented.
-
 actionSensitivity
 		Not implemented.
 
@@ -617,8 +615,6 @@ unguard off len
 		Opposite of "guard", remove guarding for a text area.
 		Also sets the current buffer, if necessary.
 
-version		Not implemented.
-
 
 6.4 Functions and Replies				*nb-functions*
 
@@ -814,9 +810,6 @@ startupDone	The editor has finished its startup work and is ready for
 
 unmodified	The buffer is now unmodified.
 		Only fired when enabled, see "startDocumentListen".
-
-version vers	Report the version of the interface implementation.  Vim
-		reports "2.4" (including the quotes).
 
 
 6.6 Special messages					*nb-special*

@@ -47,12 +47,10 @@ func Nb_basic(port)
   " Establish the connection with the netbeans server
   exe 'nbstart :localhost:' .. a:port .. ':bunny'
   call assert_true(has("netbeans_enabled"))
-  call WaitFor('len(ReadXnetbeans()) > (g:last + 2)')
+  call WaitFor('len(ReadXnetbeans()) > (g:last + 1)')
   let l = ReadXnetbeans()
-  call assert_equal(['AUTH bunny',
-        \ '0:version=0 "2.5"',
-        \ '0:startupDone=0'], l[-3:])
-  let g:last += 3
+  call assert_equal(['AUTH bunny', '0:startupDone=0'], l[-2:])
+  let g:last += 2
 
   " Trying to connect again to netbeans server should fail
   call assert_fails("exe 'nbstart :localhost:' . a:port . ':bunny'", 'E511:')
@@ -856,12 +854,10 @@ func Nb_file_auth(port)
   exe 'nbstart =Xnbauth'
   call assert_true(has("netbeans_enabled"))
 
-  call WaitFor('len(ReadXnetbeans()) > 2')
+  call WaitFor('len(ReadXnetbeans()) > 1')
   nbclose
   let lines = ReadXnetbeans()
-  call assert_equal('AUTH bunny', lines[0])
-  call assert_equal('0:version=0 "2.5"', lines[1])
-  call assert_equal('0:startupDone=0', lines[2])
+  call assert_equal(['AUTH bunny', '0:startupDone=0'], lines)
 
   call delete("Xnbauth")
 endfunc
@@ -888,11 +884,9 @@ func Nb_quit_with_conn(port)
       " Establish the connection with the netbeans server
       exe 'nbstart :localhost:' .. g:port .. ':star'
       call assert_true(has("netbeans_enabled"))
-      call WaitFor('len(ReadXnetbeans()) >= 3')
+      call WaitFor('len(ReadXnetbeans()) >= 2')
       let l = ReadXnetbeans()
-      call assert_equal(['AUTH star',
-        \ '0:version=0 "2.5"',
-        \ '0:startupDone=0'], l[-3:])
+      call assert_equal(['AUTH star', '0:startupDone=0'], l[-2:])
 
       " Open the command buffer to communicate with the server
       split Xcmdbuf
@@ -939,10 +933,8 @@ func Nb_bwipe_buffer(port)
   exe 'nbstart :localhost:' .. a:port .. ':bunny'
   call WaitFor('len(ReadXnetbeans()) > (g:last + 2)')
   let l = ReadXnetbeans()
-  call assert_equal(['AUTH bunny',
-        \ '0:version=0 "2.5"',
-        \ '0:startupDone=0'], l[-3:])
-  let g:last += 3
+  call assert_equal(['AUTH bunny', '0:startupDone=0'], l[-2:])
+  let g:last += 2
 
   " Open the command buffer to communicate with the server
   split Xcmdbuf
