@@ -669,7 +669,6 @@ OBJ = \
         $(OUTDIR)\autocmd.obj \
         $(OUTDIR)\beval.obj \
         $(OUTDIR)\buffer.obj \
-	$(OUTDIR)\bufwrite.obj \
 	$(OUTDIR)\change.obj \
 	$(OUTDIR)\charset.obj \
 	$(OUTDIR)\cindent.obj \
@@ -1449,7 +1448,6 @@ $(OUTDIR)/autocmd.obj: $(OUTDIR) autocmd.c $(INCL)
 $(OUTDIR)/beval.obj: $(OUTDIR) beval.c $(INCL)
 $(OUTDIR)/buffer.obj: $(OUTDIR) buffer.c $(INCL) version.h
 
-$(OUTDIR)/bufwrite.obj: $(OUTDIR) bufwrite.c $(INCL)
 
 $(OUTDIR)/charset.obj: $(OUTDIR) charset.c $(INCL)
 
@@ -1796,7 +1794,6 @@ proto.h: \
 	proto/alloc.pro \
         proto/autocmd.pro \
         proto/buffer.pro \
-	proto/bufwrite.pro \
 	proto/change.pro \
 	proto/charset.pro \
 	proto/cindent.pro \

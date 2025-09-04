@@ -27,7 +27,7 @@ alloc.c		| memory management
 rust_arglist/	| handling argument list
 autocmd.c	| autocommands
 buffer.c	| manipulating buffers (loaded files)
-bufwrite.c	| writing a buffer to file
+rust_bufwrite/   | writing a buffer to file
 rust_change/	| handling changes to text
 cindent.c	| C and Lisp indentation
 clientserver.c	| client server functionality

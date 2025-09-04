@@ -37,9 +37,7 @@ SRC_ALL =	\
                 src/ascii.h \
                 src/autocmd.c \
                 src/beval.c \
-                src/beval.h \
-                src/bufwrite.c \
-		src/channel.c \
+                src/beval.h \		src/channel.c \
 		src/charset.c \
 		src/cindent.c \
                 src/clientserver.c \
@@ -200,9 +198,7 @@ SRC_ALL =	\
                 src/protodef.h \
                 src/proto/alloc.pro \
                 src/proto/autocmd.pro \
-                src/proto/beval.pro \
-                src/proto/bufwrite.pro \
-                src/proto/change.pro \
+                src/proto/beval.pro \                src/proto/change.pro \
 		src/proto/channel.pro \
 		src/proto/charset.pro \
 		src/proto/cindent.pro \

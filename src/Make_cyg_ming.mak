@@ -768,7 +768,6 @@ OBJ = \
 	$(OUTDIR)/beval.o \
         $(OUTDIR)/blob.o \
         $(OUTDIR)/buffer.o \
-	$(OUTDIR)/bufwrite.o \
 	$(OUTDIR)/change.o \
 	$(OUTDIR)/charset.o \
 	$(OUTDIR)/cindent.o \
