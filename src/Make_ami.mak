@@ -77,7 +77,6 @@ SRC += \
         autocmd.c \
         beval.c \
         buffer.c \
-        bufwrite.c \
 	charset.c \
 	cindent.c \
         clientserver.c \

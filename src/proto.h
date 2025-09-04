@@ -86,7 +86,6 @@ extern int _stricoll(char *a, char *b);
 #   include "buffer.pro"
 #  endif
 # endif
-# include "bufwrite.pro"
 # ifndef HAVE_RUST_CHANGE_HDR
 #  include "change.pro"
 # endif
@@ -158,7 +157,7 @@ void do_modelines(int flags);
 #  ifndef mch_dirname
 #   define mch_dirname(buf, maxlen) (FAIL)
 #  endif
-/* bufwrite.c 等が参照する OS/NetBeans 依存関数の最小スタブ */
+/* Legacy OS/NetBeans stubs */
 #  ifndef enc2macroman
 #   define enc2macroman(...) (0)
 #  endif

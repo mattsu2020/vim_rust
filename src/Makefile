@@ -1816,7 +1816,6 @@ BASIC_SRC = \
         vim9type.c \
         viminfo.c \
         window.c \
-        bufwrite.c \
         $(OS_EXTRA_SRC)
 
 SRC =	$(BASIC_SRC) \
@@ -1881,7 +1880,6 @@ PRO_AUTO = \
        alloc.pro \
        autocmd.pro \
        buffer.pro \
-       bufwrite.pro \
        change.pro \
 	channel.pro \
 	charset.pro \
@@ -3093,8 +3091,6 @@ objects/autocmd.o: autocmd.c
 	$(CCC) -o $@ autocmd.c
 
 
-objects/bufwrite.o: bufwrite.c
-	$(CCC) -o $@ bufwrite.c
 
  
 
@@ -3977,8 +3973,6 @@ objects/window.o: window.c vim.h protodef.h auto/config.h feature.h os_unix.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h
-objects/bufwrite.o: bufwrite.c vim.h protodef.h auto/config.h feature.h os_unix.h \
- auto/osdef.h ascii.h keymap.h termdefs.h macros.h option.h beval.h \
  proto/gui_beval.pro structs.h regexp.h gui.h libvterm/include/vterm.h \
  libvterm/include/vterm_keycodes.h alloc.h ex_cmds.h spell.h proto.h \
  globals.h errors.h

@@ -2166,9 +2166,6 @@ dependencies = [
 [[package]]
 name = "rust_dict"
 version = "0.1.0"
-dependencies = [
- "libc",
-]
 
 [[package]]
 name = "rust_diff"
@@ -2479,9 +2476,6 @@ version = "0.1.0"
 [[package]]
 name = "rust_list"
 version = "0.1.0"
-dependencies = [
- "libc",
-]
 
 [[package]]
 name = "rust_locale"
