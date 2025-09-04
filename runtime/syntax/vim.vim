@@ -175,7 +175,7 @@ syn keyword vimVimVarName contained vim_did_enter testing t_number t_string t_fu
 
 if s:has("nvim")
   syn keyword vimOptionVarName contained channel inccommand mousescroll pumblend redrawdebug scrollback shada shadafile statuscolumn termpastefilter termsync winbar winblend winhighlight
-  syn keyword vimFuncName      contained api_info buffer_exists buffer_name buffer_number chanclose chansend ctxget ctxpop ctxpush ctxset ctxsize dictwatcheradd dictwatcherdel file_readable highlight_exists highlightID jobclose jobpid jobresize jobsend jobstart jobstop jobwait last_buffer_nr menu_get msgpackdump msgpackparse reg_recorded rpcnotify rpcrequest rpcstart rpcstop serverstart serverstop sockconnect stdioopen stdpath termopen test_write_list_log wait
+  syn keyword vimFuncName      contained api_info chanclose chansend ctxget ctxpop ctxpush ctxset ctxsize dictwatcheradd dictwatcherdel file_readable highlight_exists highlightID jobclose jobpid jobresize jobsend jobstart jobstop jobwait last_buffer_nr menu_get msgpackdump msgpackparse reg_recorded rpcnotify rpcrequest rpcstart rpcstop serverstart serverstop sockconnect stdioopen stdpath termopen test_write_list_log wait
   syn match   vimFuncName      contained "\<nvim_\w\+\>"
   syn keyword vimVimVarName    contained lua msgpack_types relnum stderr termrequest virtnum
 endif

@@ -6362,9 +6362,6 @@ buffer-list	windows.txt	/*buffer-list*
 buffer-reuse	windows.txt	/*buffer-reuse*
 buffer-variable	eval.txt	/*buffer-variable*
 buffer-write	editing.txt	/*buffer-write*
-buffer_exists()	builtin.txt	/*buffer_exists()*
-buffer_name()	builtin.txt	/*buffer_name()*
-buffer_number()	builtin.txt	/*buffer_number()*
 buffers	windows.txt	/*buffers*
 buffers-menu	gui.txt	/*buffers-menu*
 buflisted()	builtin.txt	/*buflisted()*

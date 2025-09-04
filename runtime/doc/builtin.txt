@@ -1421,7 +1421,6 @@ bufexists({buf})					*bufexists()*
 <
 		Return type: |Number|
 
-		Obsolete name: buffer_exists().		*buffer_exists()*
 
 
 buflisted({buf})					*buflisted()*
@@ -1496,8 +1495,6 @@ bufname([{buf}])					*bufname()*
 	bufname("file2")	name of buffer where "file2" matches.
 <
 		Return type: |String|
-							*buffer_name()*
-		Obsolete name: buffer_name().
 
 
 bufnr([{buf} [, {create}]])				*bufnr()*
@@ -1524,7 +1521,6 @@ bufnr([{buf} [, {create}]])				*bufnr()*
 <
 		Return type: |Number|
 
-		Obsolete name: buffer_number().		*buffer_number()*
 							*last_buffer_nr()*
 		Obsolete name for bufnr("$"): last_buffer_nr().
 
