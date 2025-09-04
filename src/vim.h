@@ -2335,9 +2335,6 @@ typedef struct
     int_u	format;		// Vim's own special clipboard format
     int_u	format_raw;	// Vim's raw text clipboard format
 # endif
-# ifdef FEAT_GUI_HAIKU
-    // No clipboard at the moment. TODO?
-# endif
 } Clipboard_T;
 #else
 typedef int Clipboard_T;	// This is required for the prototypes.
