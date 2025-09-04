@@ -4064,9 +4064,8 @@ exec_instructions(ectx_T *ectx)
 #endif
 			    else if (iptr->isn_type == ISN_ECHOCONSOLE)
 			    {
-				ui_write(ga.ga_data, (int)STRLEN(ga.ga_data),
-									 TRUE);
-				ui_write((char_u *)"\r\n", 2, TRUE);
+                                ui_write(ga.ga_data, (int)STRLEN(ga.ga_data));
+                                ui_write((char_u *)"\r\n", 2);
 			    }
 			    else
 			    {
