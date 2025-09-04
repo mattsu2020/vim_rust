@@ -2934,6 +2934,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust_winclip"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "rust_clipboard",
+]
+
+[[package]]
 name = "rust_window"
 version = "0.1.0"
 dependencies = [
@@ -2951,6 +2959,10 @@ dependencies = [
  "diff",
  "similar",
 ]
+
+[[package]]
+name = "rust_xpm_w32"
+version = "0.1.0"
 
 [[package]]
 name = "rustc-demangle"
@@ -3543,6 +3555,8 @@ dependencies = [
  "rust_usercmd",
  "rust_vim9class",
  "rust_wayland",
+ "rust_winclip",
+ "rust_xpm_w32",
  "serde",
  "serde_json",
  "tokio",

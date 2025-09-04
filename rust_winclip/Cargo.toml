@@ -1,0 +1,12 @@
+[package]
+name = "rust_winclip"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rust_clipboard = { path = "../rust_clipboard" }
+libc = "0.2"
+
+[lib]
+name = "rust_winclip"
+crate-type = ["staticlib", "rlib"]

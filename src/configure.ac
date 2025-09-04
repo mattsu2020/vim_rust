@@ -3364,7 +3364,7 @@ case $vim_cv_uname_output in
     CYGWIN*|MSYS*)    CYGWIN=yes; AC_MSG_RESULT(yes)
                 AC_MSG_CHECKING(for CYGWIN clipboard support)
                 if test "x$with_x" = "xno" ; then
-                  OS_EXTRA_SRC=winclip.c; OS_EXTRA_OBJ=objects/winclip.o
+                  OS_EXTRA_SRC=; OS_EXTRA_OBJ=
                   AC_MSG_RESULT(yes)
                   AC_DEFINE(FEAT_CYGWIN_WIN32_CLIPBOARD)
                 else

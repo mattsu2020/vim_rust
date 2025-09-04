@@ -870,7 +870,6 @@ OBJ = \
 	$(OUTDIR)/vim9script.o \
 	$(OUTDIR)/vim9type.o \
 	$(OUTDIR)/viminfo.o \
-	$(OUTDIR)/winclip.o \
 	$(OUTDIR)/window.o
 
 ifeq ($(VIMDLL),yes)
@@ -938,7 +937,6 @@ endif
 ifneq ($(XPM),no)
 # Only allow XPM for a GUI build.
  ifeq (yes, $(GUI))
-OBJ += $(OUTDIR)/xpm_w32.o
 # Use the Rust-based XPM loader
 LIB += $(XPM)/target/release/libvim_xpm.a
  endif
